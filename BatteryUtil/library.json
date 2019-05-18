@@ -1,0 +1,5 @@
+{
+  "name": "HID-Playground BatteryUtil",
+  "frameworks": "arduino",
+  "platforms": "nordicnrf52"
+}

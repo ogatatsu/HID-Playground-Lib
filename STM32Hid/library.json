@@ -1,0 +1,10 @@
+{
+  "name": "HID-Playground STM32Hid",
+  "frameworks": "arduino",
+  "platforms": "ststm32",
+  "dependencies": [
+    {
+      "name": "HID-Playground HidReporter"
+    }
+  ]
+}

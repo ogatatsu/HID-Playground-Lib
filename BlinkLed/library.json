@@ -1,0 +1,9 @@
+{
+  "name": "HID-Playground BlinkLed",
+  "frameworks": "arduino",
+  "dependencies": [
+    {
+      "name": "HID-Playground portRTOS"
+    }
+  ]
+}

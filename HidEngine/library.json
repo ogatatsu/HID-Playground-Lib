@@ -1,0 +1,18 @@
+{
+  "name": "HID-Playground HidEngine",
+  "frameworks": "arduino",
+  "dependencies": [
+    {
+      "name": "HID-Playground HidReporter"
+    },
+    {
+      "name": "HID-Playground Set"
+    },
+    {
+      "name": "HID-Playground portRTOS"
+    },
+    {
+      "name": "LinkedList"
+    }
+  ]
+}

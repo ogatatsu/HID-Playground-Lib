@@ -1,0 +1,22 @@
+{
+  "name": "HID-Playground BleController",
+  "frameworks": "arduino",
+  "platforms": "nordicnrf52",
+  "dependencies": [
+    {
+      "name": "HID-Playground HidReporter"
+    },
+    {
+      "name": "HID-Playground Set"
+    },
+    {
+      "name": "HID-Playground MemStore"
+    },
+    {
+      "name": "HID-Playground BlinkLed"
+    },
+    {
+      "name": "Adafruit Bluefruit nRF52 Libraries"
+    }
+  ]
+}

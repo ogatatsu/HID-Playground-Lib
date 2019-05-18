@@ -1,0 +1,16 @@
+{
+  "name": "HID-Playground BleCommand",
+  "frameworks": "arduino",
+  "platforms": "nordicnrf52",
+  "dependencies": [
+    {
+      "name": "HID-Playground HidEngine"
+    },
+    {
+      "name": "HID-Playground BleController"
+    },
+    {
+      "name": "HID-Playground BatteryUtil"
+    }
+  ]
+}

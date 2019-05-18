@@ -1,0 +1,12 @@
+{
+  "name": "HID-Playground ThreadSafeSPI",
+  "frameworks": "arduino",
+  "dependencies": [
+    {
+      "name": "SPI"
+    },
+    {
+      "name": "HID-Playground portRTOS"
+    }
+  ]
+}

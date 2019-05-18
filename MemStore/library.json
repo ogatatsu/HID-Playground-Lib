@@ -1,0 +1,10 @@
+{
+  "name": "HID-Playground MemStore",
+  "frameworks": "arduino",
+  "platforms": "nordicnrf52",
+  "dependencies": [
+    {
+      "name": "Adafruit File System Libraries"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "HID-Playground MatrixScan",
+  "frameworks": "arduino",
+  "dependencies": [
+    {
+      "name": "Bounce2"
+    },
+    {
+      "name": "HID-Playground Set"
+    },
+    {
+      "name": "HID-Playground portRTOS"
+    }
+  ]
+}
