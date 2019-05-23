@@ -202,9 +202,9 @@ void OneShotModifier::onRelease()
 }
 
 /*------------------------------------------------------------------*/
-/* DivideLayer
+/* Layering
  *------------------------------------------------------------------*/
-DivideLayer::DivideLayer(Command *commands[LAYER_SIZE]) : _commands(commands)
+Layering::Layering(Command *commands[LAYER_SIZE]) : _commands(commands)
 {
   for (int i = 0; i < LAYER_SIZE; i++)
   {
@@ -215,7 +215,7 @@ DivideLayer::DivideLayer(Command *commands[LAYER_SIZE]) : _commands(commands)
   }
 }
 
-uint8_t DivideLayer::onPress(uint8_t accrued)
+uint8_t Layering::onPress(uint8_t accrued)
 {
   // 現在のレイヤーの状態を取得
   bool layerState[LAYER_SIZE];
@@ -253,7 +253,7 @@ uint8_t DivideLayer::onPress(uint8_t accrued)
   return result;
 }
 
-void DivideLayer::onRelease()
+void Layering::onRelease()
 {
   if (_runningCommand != nullptr)
   {

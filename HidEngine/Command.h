@@ -138,10 +138,10 @@ private:
 };
 
 /*------------------------------------------------------------------*/
-class DivideLayer : public Command
+class Layering : public Command
 {
 public:
-  DivideLayer(Command *commands[LAYER_SIZE]);
+  Layering(Command *commands[LAYER_SIZE]);
 
 protected:
   uint8_t onPress(uint8_t accrued) override;
@@ -485,7 +485,7 @@ static inline Command *MT(Modifier modifier, Command *command) { return (new Mod
 // Oneshot Modifier
 static inline Command *OSM(Modifier modifier) { return (new OneShotModifier(modifier)); }
 
-// Divide Layer
+// Layering
 using CommandPtr = Command *;
 
 template <size_t N>
@@ -498,7 +498,7 @@ static Command *L(const CommandPtr (&arr)[N])
   {
     arg[i] = arr[i];
   }
-  return (new DivideLayer(arg));
+  return (new Layering(arg));
 }
 
 // Transparent (_ * 7)
