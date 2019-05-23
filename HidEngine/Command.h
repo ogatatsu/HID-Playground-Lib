@@ -489,7 +489,7 @@ static inline Command *OSM(Modifier modifier) { return (new OneShotModifier(modi
 using CommandPtr = Command *;
 
 template <size_t N>
-static Command *L(const CommandPtr (&arr)[N])
+static Command *LY(const CommandPtr (&arr)[N])
 {
   static_assert(N <= LAYER_SIZE, "");
 
