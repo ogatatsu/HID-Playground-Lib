@@ -48,7 +48,7 @@ public:
   static void startPrphConnection(uint8_t slot = 0);
   static void stopPrphConnection();
   static bool isPrphRunning();
-  static uint8_t currentSlot();
+  static uint8_t getCurrentSlot();
   static void clearBonds();
   static HidReporter *getHidReporter();
   static void setBatteryLevel(uint8_t level);

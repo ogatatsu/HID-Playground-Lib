@@ -207,7 +207,7 @@ bool BleController::isPrphRunning()
   return (Bluefruit.Advertising.isRunning() || Bluefruit.Periph.connected());
 }
 
-uint8_t BleController::currentSlot()
+uint8_t BleController::getCurrentSlot()
 {
   return _currentSlot;
 }
