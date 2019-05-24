@@ -132,7 +132,7 @@ void KeyTapper::tap(Keycode keycode)
   {
     _currentKey = static_cast<uint8_t>(keycode);
     Hid::setKey(keycode);
-    Hid::sendKeyReport();
+    Hid::sendKeyReport(true);
     xTimerStart(_timerHandle, portMAX_DELAY);
   }
   else
@@ -146,7 +146,7 @@ void KeyTapper::onTimer()
   if (_currentKey != -1)
   {
     Hid::unsetKey(static_cast<Keycode>(_currentKey));
-    Hid::sendKeyReport();
+    Hid::sendKeyReport(false);
     _currentKey = -1;
     if (_list.size() > 0)
     {
@@ -157,7 +157,7 @@ void KeyTapper::onTimer()
   {
     _currentKey = static_cast<uint8_t>(_list.shift());
     Hid::setKey(static_cast<Keycode>(_currentKey));
-    Hid::sendKeyReport();
+    Hid::sendKeyReport(true);
     xTimerStart(_timerHandle, portMAX_DELAY);
   }
 }

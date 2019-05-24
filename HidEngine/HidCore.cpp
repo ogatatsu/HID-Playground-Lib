@@ -193,8 +193,8 @@ void Hid::sendKeyReport(bool triggerOneShot)
       modifier |= bit(i);
     }
   }
-  // OneShotが発動するのはキーが追加されたときのみ、削除されたときは発動しない
-  if ((isKeyAdding || isModifierAdding) && triggerOneShot)
+
+  if (triggerOneShot)
   {
     for (int i = 0; i < 8; i++)
     {
@@ -252,18 +252,22 @@ void Hid::mouseMove(int8_t x, int8_t y)
 
 void Hid::mouseScroll(int8_t scroll, int8_t horiz)
 {
+  sendKeyReport(true);
   _hidReporter->mouseReport(_prevSentButton, 0, 0, scroll, horiz);
+  sendKeyReport(false);
 }
 
 void Hid::mouseButtonPress(MouseButton button)
 {
   countUp(_buttonCounter, static_cast<uint8_t>(button));
+  sendKeyReport(true);
   sendMouseButtonReport();
 }
 
 void Hid::mouseButtonRelease(MouseButton button)
 {
   countDown(_buttonCounter, static_cast<uint8_t>(button));
+  sendKeyReport(false);
   sendMouseButtonReport();
 }
 

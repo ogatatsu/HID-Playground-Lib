@@ -103,14 +103,14 @@ NormalKey::NormalKey(Keycode keycode) : _keycode(keycode)
 uint8_t NormalKey::onPress(uint8_t accrued)
 {
   Hid::setKey(_keycode);
-  Hid::sendKeyReport();
+  Hid::sendKeyReport(true);
   return 1;
 }
 
 void NormalKey::onRelease()
 {
   Hid::unsetKey(_keycode);
-  Hid::sendKeyReport();
+  Hid::sendKeyReport(false);
 }
 
 /*------------------------------------------------------------------*/
@@ -123,14 +123,14 @@ ModifierKey::ModifierKey(Modifier modifier) : _modifier(modifier)
 uint8_t ModifierKey::onPress(uint8_t accrued)
 {
   Hid::setModifier(_modifier);
-  Hid::sendKeyReport();
+  Hid::sendKeyReport(true);
   return 1;
 }
 
 void ModifierKey::onRelease()
 {
   Hid::unsetModifier(_modifier);
-  Hid::sendKeyReport();
+  Hid::sendKeyReport(false);
 }
 
 /*------------------------------------------------------------------*/
@@ -144,7 +144,7 @@ uint8_t CombinationKey::onPress(uint8_t accrued)
 {
   Hid::setKey(_keycode);
   Hid::setModifier(_modifier);
-  Hid::sendKeyReport();
+  Hid::sendKeyReport(true);
   return 1;
 }
 
@@ -152,7 +152,7 @@ void CombinationKey::onRelease()
 {
   Hid::unsetKey(_keycode);
   Hid::unsetModifier(_modifier);
-  Hid::sendKeyReport();
+  Hid::sendKeyReport(false);
 }
 
 /*------------------------------------------------------------------*/
@@ -179,7 +179,7 @@ void ModifierTap::onRelease()
   }
   else
   {
-    Hid::sendKeyReport();
+    Hid::sendKeyReport(false);
   }
 }
 
@@ -637,6 +637,7 @@ Macro::DownKey::DownKey(Keycode keycode) : _keycode(keycode)
 unsigned int Macro::DownKey::apply()
 {
   Hid::setKey(_keycode);
+  Hid::sendKeyReport(true);
   return 0;
 }
 
@@ -647,6 +648,7 @@ Macro::UpKey::UpKey(Keycode keycode) : _keycode(keycode)
 unsigned int Macro::UpKey::apply()
 {
   Hid::unsetKey(_keycode);
+  Hid::sendKeyReport(false);
   return 0;
 }
 
@@ -657,6 +659,7 @@ Macro::DownModifier::DownModifier(Modifier modifier) : _modifier(modifier)
 unsigned int Macro::DownModifier::apply()
 {
   Hid::setModifier(_modifier);
+  Hid::sendKeyReport(true);
   return 0;
 }
 
@@ -667,6 +670,7 @@ Macro::UpModifier::UpModifier(Modifier modifier) : _modifier(modifier)
 unsigned int Macro::UpModifier::apply()
 {
   Hid::unsetModifier(_modifier);
+  Hid::sendKeyReport(false);
   return 0;
 }
 
@@ -705,12 +709,10 @@ void Macro::onTimer()
     unsigned int delay = _mcommands[_count++]->apply();
     if (delay != 0)
     {
-      Hid::sendKeyReport();
       startTimer(delay);
       return;
     }
   }
-  Hid::sendKeyReport();
   _isRunning = false;
   stopTimer();
 }

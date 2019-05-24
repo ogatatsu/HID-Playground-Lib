@@ -47,7 +47,7 @@ public:
   static void unsetModifier(Modifier modifier);
   static void setOneShotModifier(Modifier modifier);
   static void releaseOneShotModifier(Modifier modifier);
-  static void sendKeyReport(bool triggerOneShot = true);
+  static void sendKeyReport(bool triggerOneShot);
 
   // Consumer API
   static void consumerKeyPress(UsageCode usageCode);
