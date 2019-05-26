@@ -26,7 +26,6 @@
 #include "HidCore.h"
 #include "Layer.h"
 #include "MouseSpeedController.h"
-#include "Tapper.h"
 #include <Arduino.h>
 
 namespace hidpg
@@ -175,7 +174,8 @@ void ModifierTap::onRelease()
   Hid::unsetModifier(_modifier);
   if (this->isLastPressed())
   {
-    CmdTapper::tap(_command);
+    _command->press();
+    _command->release();
   }
   else
   {
@@ -281,7 +281,8 @@ void LayerTap::onRelease()
   Layer::off(_layerNumber);
   if (this->isLastPressed())
   {
-    CmdTapper::tap(_command);
+    _command->press();
+    _command->release();
   }
 }
 
@@ -384,7 +385,8 @@ void TapDance::onRelease()
   {
     if (_count == _len - 1)
     {
-      CmdTapper::tap(_pairs[_count].tapCommand);
+      _pairs[_count].tapCommand->press();
+      _pairs[_count].tapCommand->release();
       _count = -1;
       _state = State::Unexecuted;
     }
@@ -407,7 +409,8 @@ void TapDance::onTimer()
   }
   else if (_state == State::Tap_or_NextCommand)
   {
-    CmdTapper::tap(_pairs[_count].tapCommand);
+    _pairs[_count].tapCommand->press();
+    _pairs[_count].tapCommand->release();
     _count = -1;
     _state = State::Unexecuted;
   }
@@ -424,7 +427,8 @@ void TapDance::onDifferentRootCommandPress()
   }
   else if (_state == State::Tap_or_NextCommand)
   {
-    CmdTapper::tap(_pairs[_count].tapCommand);
+    _pairs[_count].tapCommand->press();
+    _pairs[_count].tapCommand->release();
     _count = -1;
     _state = State::Unexecuted;
   }
@@ -454,7 +458,8 @@ void TapOrHold::onRelease()
 {
   if (_state == State::Unfixed)
   {
-    CmdTapper::tap(_tapCommand);
+    _tapCommand->press();
+    _tapCommand->release();
     _state = State::Unexecuted;
     stopTimer();
   }

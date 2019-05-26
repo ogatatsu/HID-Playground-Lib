@@ -62,11 +62,6 @@ struct CmdTapEventData
   //empty
 };
 
-struct KeyTapEventData
-{
-  //empty
-};
-
 struct EventData
 {
   EventData(){};
@@ -77,7 +72,6 @@ struct EventData
     ApplyToKeymapEventData applyToKeymap;
     MouseMoveEventData mouseMove;
     CmdTapEventData cmdTap;
-    KeyTapEventData keyTap;
   };
 };
 

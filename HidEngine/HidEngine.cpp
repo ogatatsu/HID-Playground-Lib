@@ -81,7 +81,8 @@ void TrackTap::onRelease()
   Tracking::onRelease();
   if (this->isLastPressed())
   {
-    CmdTapper::tap(_command);
+    _command->press();
+    _command->release();
   }
 }
 
@@ -106,7 +107,6 @@ void HidEngine::init(HidReporter *hidReporter)
 {
   Hid::setReporter(hidReporter);
   HidEngineTask::init();
-  KeyTapper::init();
   CmdTapper::init();
 }
 

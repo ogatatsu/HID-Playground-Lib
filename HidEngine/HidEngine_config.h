@@ -29,11 +29,6 @@
 #define LAYER_SIZE 8
 #endif
 
-// ModTap,LayerTapコマンドなどでタップ入力が発動した時の入力速度 (ms)
-#ifndef TAP_SPEED
-#define TAP_SPEED 12
-#endif
-
 // TapDanceコマンドのタップ判定時間 (ms)
 #ifndef TAPPING_TERM
 #define TAPPING_TERM 200

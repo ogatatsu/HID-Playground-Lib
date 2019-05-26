@@ -41,7 +41,7 @@ TimerHandle_t CmdTapper::_timerHandle = nullptr;
 
 void CmdTapper::init()
 {
-  _timerHandle = xTimerCreate(nullptr, pdMS_TO_TICKS(TAP_SPEED), false, nullptr, timeout);
+  _timerHandle = xTimerCreate(nullptr, pdMS_TO_TICKS(1), false, nullptr, timeout);
 }
 
 void CmdTapper::tap(Command *command, uint8_t times)
@@ -111,62 +111,6 @@ void CmdTapper::timeout(TimerHandle_t timerHandle)
   // Software Timersのスタックを消費しないようにstaticで宣言
   static EventData edata;
   edata.eventType = EventType::CmdTap;
-  HidEngineTask::sendEventQueue(edata);
-}
-
-/*------------------------------------------------------------------*/
-/* KeyTapper
- *------------------------------------------------------------------*/
-LinkedList<Keycode> KeyTapper::_list;
-int16_t KeyTapper::_currentKey = -1;
-TimerHandle_t KeyTapper::_timerHandle = nullptr;
-
-void KeyTapper::init()
-{
-  _timerHandle = xTimerCreate(nullptr, pdMS_TO_TICKS(TAP_SPEED), false, nullptr, timeout);
-}
-
-void KeyTapper::tap(Keycode keycode)
-{
-  if (_list.size() == 0 && _currentKey == -1)
-  {
-    _currentKey = static_cast<uint8_t>(keycode);
-    Hid::setKey(keycode);
-    Hid::sendKeyReport(true);
-    xTimerStart(_timerHandle, portMAX_DELAY);
-  }
-  else
-  {
-    _list.add(keycode);
-  }
-}
-
-void KeyTapper::onTimer()
-{
-  if (_currentKey != -1)
-  {
-    Hid::unsetKey(static_cast<Keycode>(_currentKey));
-    Hid::sendKeyReport(false);
-    _currentKey = -1;
-    if (_list.size() > 0)
-    {
-      xTimerStart(_timerHandle, portMAX_DELAY);
-    }
-  }
-  else
-  {
-    _currentKey = static_cast<uint8_t>(_list.shift());
-    Hid::setKey(static_cast<Keycode>(_currentKey));
-    Hid::sendKeyReport(true);
-    xTimerStart(_timerHandle, portMAX_DELAY);
-  }
-}
-
-void KeyTapper::timeout(TimerHandle_t timerHandle)
-{
-  // Software Timersのスタックを消費しないようにstaticで宣言
-  static EventData edata;
-  edata.eventType = EventType::KeyTap;
   HidEngineTask::sendEventQueue(edata);
 }
 

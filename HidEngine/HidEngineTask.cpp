@@ -76,10 +76,6 @@ void HidEngineTask::task(void *pvParameters)
     {
       CmdTapper::onTimer();
     }
-    case EventType::KeyTap:
-    {
-      KeyTapper::onTimer();
-    }
     }
   }
 }

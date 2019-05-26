@@ -26,7 +26,6 @@
 #include "BatteryUtil.h"
 #include "BleController.h"
 #include "HidCore.h"
-#include "Tapper.h"
 #include <Arduino.h>
 
 namespace hidpg
@@ -64,6 +63,14 @@ static Keycode numToKeycode(uint8_t num)
   return static_cast<Keycode>(num + 29);
 }
 
+static void tap(Keycode keycode)
+{
+  Hid::setKey(keycode);
+  Hid::sendKeyReport(true);
+  Hid::unsetKey(keycode);
+  Hid::sendKeyReport(false);
+}
+
 uint8_t PrintBatteryLevel::onPress(uint8_t accrued)
 {
   uint8_t level = BatteryUtil::readBatteryLevel();
@@ -72,9 +79,9 @@ uint8_t PrintBatteryLevel::onPress(uint8_t accrued)
   Keycode level2 = numToKeycode(level % 100 / 10);
   Keycode level3 = numToKeycode(level / 100);
 
-  KeyTapper::tap(level3);
-  KeyTapper::tap(level2);
-  KeyTapper::tap(level1);
+  tap(level3);
+  tap(level2);
+  tap(level1);
 
   return 1;
 }

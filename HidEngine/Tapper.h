@@ -57,21 +57,4 @@ private:
   static TimerHandle_t _timerHandle;
 };
 
-class KeyTapper
-{
-  friend class HidEngineTask;
-
-public:
-  static void tap(Keycode keycode);
-  static void init();
-
-private:
-  static void timeout(TimerHandle_t timerHandle);
-  static void onTimer();
-
-  static LinkedList<Keycode> _list;
-  static int16_t _currentKey;
-  static TimerHandle_t _timerHandle;
-};
-
 } // namespace hidpg
