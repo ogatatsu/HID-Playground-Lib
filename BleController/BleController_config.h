@@ -50,7 +50,7 @@
 
 // Minimum guaranteed number of Handle Value Notifications that can be queued for transmission.
 #ifndef HVN_TX_QUEUE_SIZE
-#define HVN_TX_QUEUE_SIZE 8
+#define HVN_TX_QUEUE_SIZE 3
 #endif
 
 // アドバタイジング時に点滅させるLEDのピン番号

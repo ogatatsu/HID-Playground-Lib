@@ -52,7 +52,7 @@
 // MouseMoveのマウスカーソルの動く間隔 (ms)
 // ワイヤレスの場合下げすぎると不安定になるかも
 #ifndef MOUSEKEY_INTERVAL
-#define MOUSEKEY_INTERVAL 12
+#define MOUSEKEY_INTERVAL 15
 #endif
 
 // HidEngineタスクのスタックサイズ
