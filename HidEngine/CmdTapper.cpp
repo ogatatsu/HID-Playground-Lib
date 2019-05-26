@@ -22,7 +22,7 @@
   THE SOFTWARE.
 */
 
-#include "Tapper.h"
+#include "CmdTapper.h"
 #include "HidCore.h"
 #include "HidEngineTask.h"
 #include "portRTOS.h"

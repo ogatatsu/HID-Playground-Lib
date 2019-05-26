@@ -23,9 +23,9 @@
 */
 
 #include "HidEngine.h"
+#include "CmdTapper.h"
 #include "HidCore.h"
 #include "HidEngineTask.h"
-#include "Tapper.h"
 #include <Arduino.h>
 
 namespace hidpg

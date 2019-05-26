@@ -23,8 +23,8 @@
 */
 
 #include "HidEngineTask.h"
+#include "CmdTapper.h"
 #include "HidEngine.h"
-#include "Tapper.h"
 
 namespace hidpg
 {
