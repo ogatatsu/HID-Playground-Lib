@@ -41,7 +41,7 @@ public:
   static void stopPrphConnection();
   static bool isPrphRunning();
   static void sendToMaster(const Set &ids);
-  static void sendToMaster(int8_t deltaX, int8_t deltaY, uint8_t id);
+  static void sendToMaster(int16_t deltaX, int16_t deltaY, uint8_t id);
   static void clearBonds();
   static void setBatteryLevel(uint8_t level);
   static void setPrphCannnotConnectCallback(prphCannotConnectCallback_t callback);

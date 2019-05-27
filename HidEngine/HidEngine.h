@@ -150,11 +150,11 @@ public:
   static void init(HidReporter *hidReporter);
   static void startTask();
   static void applyToKeymap(const Set &ids);
-  static void mouseMove(int8_t x, int8_t y);
+  static void mouseMove(int16_t x, int16_t y);
 
 private:
   static void applyToKeymap_impl(const Set &ids);
-  static void mouseMove_impl(int8_t x, int8_t y);
+  static void mouseMove_impl(int16_t x, int16_t y);
   static int match_with_seqKeymap(const uint8_t ids[], size_t len, SeqIDs_and_Command **matched);
   static size_t getValidLength(const uint8_t ids[], size_t maxLength);
 
@@ -179,8 +179,8 @@ private:
   static void switchSequenceMode();
 
   static LinkedList<Tracking *> _trackingList;
-  static int _distanceX;
-  static int _distanceY;
+  static int32_t _distanceX;
+  static int32_t _distanceY;
   static void startTracking(Tracking *tracking);
   static void stopTracking(Tracking *tracking);
 };

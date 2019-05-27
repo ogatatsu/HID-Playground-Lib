@@ -137,10 +137,10 @@ void PMW3360::task(void *pvParameters)
 
     if (bitRead(event, TimerEventBit))
     {
-      int8_t deltaX = constrain(totalDeltaX, -127, 127);
+      int16_t deltaX = constrain(totalDeltaX, INT16_MIN, INT16_MAX);
       totalDeltaX -= deltaX;
 
-      int8_t deltaY = constrain(totalDeltaY, -127, 127);
+      int16_t deltaY = constrain(totalDeltaY, INT16_MIN, INT16_MAX);
       totalDeltaY -= deltaY;
 
       if (that->_callback != nullptr)

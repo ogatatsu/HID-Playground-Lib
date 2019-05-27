@@ -511,13 +511,19 @@ void BleController::bleuart_rx_callback(BLEClientUart &uart_svc)
   }
   else if (header == 0x01) // MotionEvent
   {
-    uint8_t id = uart_svc.read();
-    int8_t deltaX = uart_svc.read();
-    int8_t deltaY = uart_svc.read();
+#pragma pack(1)
+    struct
+    {
+      uint8_t id;
+      int16_t deltaX;
+      int16_t deltaY;
+    } buf;
+#pragma pack()
 
+    uart_svc.read(reinterpret_cast<uint8_t *>(&buf), sizeof(buf));
     if (_slaveMotionCallback != nullptr)
     {
-      _slaveMotionCallback(deltaX, deltaY, id, idx);
+      _slaveMotionCallback(buf.deltaX, buf.deltaY, buf.id, idx);
     }
   }
   else // unknown

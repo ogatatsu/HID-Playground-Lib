@@ -56,7 +56,7 @@ public:
 
 #ifdef CENTRAL_ENABLE
   using slaveKeyCallback_t = void (*)(Set &ids, uint8_t index);
-  using slaveMotionCallback_t = void (*)(int8_t deltaX, int8_t deltaY, uint8_t id, uint8_t index);
+  using slaveMotionCallback_t = void (*)(int16_t deltaX, int16_t deltaY, uint8_t id, uint8_t index);
 
   static void startCentConnection();
   static void stopCentConnection();

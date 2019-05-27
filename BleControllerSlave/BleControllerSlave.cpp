@@ -114,15 +114,24 @@ void BleControllerSlave::sendToMaster(const Set &ids)
   _bleuart.write(buf, min(size + 2, 20));
 }
 
-void BleControllerSlave::sendToMaster(int8_t deltaX, int8_t deltaY, uint8_t id)
+void BleControllerSlave::sendToMaster(int16_t deltaX, int16_t deltaY, uint8_t id)
 {
-  uint8_t buf[4];
+#pragma pack(1)
+  struct
+  {
+    uint8_t header;
+    uint8_t id;
+    int16_t deltaX;
+    int16_t deltaY;
+  } buf;
+#pragma pack()
+
   // MotionDataはヘッダを0x01とする
-  buf[0] = 0x01;
-  buf[1] = id;
-  buf[2] = deltaX;
-  buf[3] = deltaY;
-  _bleuart.write(buf, sizeof(buf));
+  buf.header = 0x01;
+  buf.id = id;
+  buf.deltaX = deltaX;
+  buf.deltaY = deltaY;
+  _bleuart.write(reinterpret_cast<uint8_t *>(&buf), sizeof(buf));
 }
 
 void BleControllerSlave::clearBonds()

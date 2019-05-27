@@ -100,8 +100,8 @@ uint8_t HidEngine::_trackmapLength = 0;
 
 HidEngine::SeqModeState HidEngine::_seqModeState = HidEngine::SeqModeState::Disable;
 LinkedList<Tracking *> HidEngine::_trackingList;
-int HidEngine::_distanceX = 0;
-int HidEngine::_distanceY = 0;
+int32_t HidEngine::_distanceX = 0;
+int32_t HidEngine::_distanceY = 0;
 
 void HidEngine::init(HidReporter *hidReporter)
 {
@@ -123,7 +123,7 @@ void HidEngine::applyToKeymap(const Set &ids)
   HidEngineTask::sendEventQueue(data);
 }
 
-void HidEngine::mouseMove(int8_t x, int8_t y)
+void HidEngine::mouseMove(int16_t x, int16_t y)
 {
   EventData data;
   data.eventType = EventType::MouseMove;
@@ -294,7 +294,7 @@ int HidEngine::match_with_seqKeymap(const uint8_t ids[], size_t len, SeqIDs_and_
   return 0;
 }
 
-void HidEngine::mouseMove_impl(int8_t x, int8_t y)
+void HidEngine::mouseMove_impl(int16_t x, int16_t y)
 {
   static uint8_t beforeID;
 
@@ -369,7 +369,14 @@ void HidEngine::mouseMove_impl(int8_t x, int8_t y)
   }
   else
   {
-    Hid::mouseMove(x, y);
+    while (!(x == 0 && y == 0))
+    {
+      int8_t deltaX = constrain(x, -127, 127);
+      x -= deltaX;
+      int8_t deltaY = constrain(y, -127, 127);
+      y -= deltaY;
+      Hid::mouseMove(deltaX, deltaY);
+    }
   }
 }
 
