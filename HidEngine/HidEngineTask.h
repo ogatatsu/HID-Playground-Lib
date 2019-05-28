@@ -80,6 +80,7 @@ class HidEngineTask
 public:
   static void init();
   static void startTask();
+  static void enqueEvent(const EventData &data);
   static void sumNextMouseMoveEventIfExist(int16_t &x, int16_t &y);
 
 private:

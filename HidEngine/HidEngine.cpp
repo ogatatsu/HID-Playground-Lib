@@ -120,7 +120,7 @@ void HidEngine::applyToKeymap(const Set &ids)
   EventData data;
   data.eventType = EventType::ApplyToKeymap;
   data.applyToKeymap.ids = ids;
-  HidEngineTask::sendEventQueue(data);
+  HidEngineTask::enqueEvent(data);
 }
 
 void HidEngine::mouseMove(int16_t x, int16_t y)
@@ -129,7 +129,7 @@ void HidEngine::mouseMove(int16_t x, int16_t y)
   data.eventType = EventType::MouseMove;
   data.mouseMove.x = x;
   data.mouseMove.y = y;
-  HidEngineTask::sendEventQueue(data);
+  HidEngineTask::enqueEvent(data);
 }
 
 size_t HidEngine::getValidLength(const uint8_t ids[], size_t maxLength)
@@ -298,7 +298,7 @@ void HidEngine::mouseMove_impl(int16_t x, int16_t y)
 {
   static uint8_t beforeID;
 
-  if (_trackingList.size() > 0)
+  if (_trackingList.size() > 0) // Tracking Commandが実行中の場合
   {
     // 一番上のtrackIDを取得
     uint8_t trackID = _trackingList[0]->getID();
@@ -330,7 +330,7 @@ void HidEngine::mouseMove_impl(int16_t x, int16_t y)
     }
     // 測った距離が閾値を超えてたらコマンドを発火する
     int16_t threshold = _trackmap[idx].distance;
-    if (_distanceY <= -threshold)
+    if (_distanceY <= -threshold) // 上
     {
       uint8_t times = min(abs(_distanceY / threshold), UINT8_MAX);
       _distanceY %= threshold;
@@ -339,7 +339,7 @@ void HidEngine::mouseMove_impl(int16_t x, int16_t y)
         CmdTapper::tap(_trackmap[idx].upCommand, times);
       }
     }
-    else if (_distanceY >= threshold)
+    else if (_distanceY >= threshold) // 下
     {
       uint8_t times = min(_distanceY / threshold, UINT8_MAX);
       _distanceY %= threshold;
@@ -349,7 +349,7 @@ void HidEngine::mouseMove_impl(int16_t x, int16_t y)
       }
     }
 
-    if (_distanceX <= -threshold)
+    if (_distanceX <= -threshold) // 左
     {
       uint8_t times = min(abs(_distanceX / threshold), UINT8_MAX);
       _distanceX %= threshold;
@@ -358,7 +358,7 @@ void HidEngine::mouseMove_impl(int16_t x, int16_t y)
         CmdTapper::tap(_trackmap[idx].leftCommand, times);
       }
     }
-    else if (_distanceX >= threshold)
+    else if (_distanceX >= threshold) // 右
     {
       uint8_t times = min(_distanceX / threshold, UINT8_MAX);
       _distanceX %= threshold;

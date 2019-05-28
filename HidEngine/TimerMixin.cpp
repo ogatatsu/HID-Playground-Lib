@@ -36,7 +36,7 @@ void TimerMixin::timeout(TimerHandle_t timerHandle)
 
   TimerEventData *tdata = static_cast<TimerEventData *>(pvTimerGetTimerID(timerHandle));
   edata.timer = tdata;
-  HidEngineTask::sendEventQueue(edata);
+  HidEngineTask::enqueEvent(edata);
 
   xTimerDelete(timerHandle, portMAX_DELAY);
 }

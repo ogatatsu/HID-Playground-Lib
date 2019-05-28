@@ -44,7 +44,7 @@ void HidEngineTask::startTask()
   xTaskCreate(task, "HidEngine", HID_ENGINE_TASK_STACK_SIZE, nullptr, TASK_PRIO_LOW, &_taskHandle);
 }
 
-void HidEngineTask::sendEventQueue(const EventData &data)
+void HidEngineTask::enqueEvent(const EventData &data)
 {
   xQueueSend(_eventQueue, &data, portMAX_DELAY);
 }
