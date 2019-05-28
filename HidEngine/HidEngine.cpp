@@ -308,6 +308,8 @@ void HidEngine::mouseMove_impl(int16_t x, int16_t y)
       _distanceX = _distanceY = 0;
       beforeID = trackID;
     }
+    // 効率のため、次のイベントがMouseMoveだったら合計してまとめて行う
+    HidEngineTask::sumNextMouseMoveEventIfExist(x, y);
     // 距離を足す
     _distanceX += x;
     _distanceY += y;
@@ -371,6 +373,9 @@ void HidEngine::mouseMove_impl(int16_t x, int16_t y)
   {
     while (!(x == 0 && y == 0))
     {
+      // 効率のため、次のイベントがMouseMoveだったら合計してまとめて行う
+      HidEngineTask::sumNextMouseMoveEventIfExist(x, y);
+      // １回で動かせる量は -127 ~ 127
       int8_t deltaX = constrain(x, -127, 127);
       x -= deltaX;
       int8_t deltaY = constrain(y, -127, 127);

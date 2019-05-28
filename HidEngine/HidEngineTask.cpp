@@ -25,12 +25,14 @@
 #include "HidEngineTask.h"
 #include "CmdTapper.h"
 #include "HidEngine.h"
+#include <Arduino.h>
 
 namespace hidpg
 {
 
 TaskHandle_t HidEngineTask::_taskHandle = nullptr;
 QueueHandle_t HidEngineTask::_eventQueue = nullptr;
+EventData HidEngineTask::_lookAhead;
 
 void HidEngineTask::init()
 {
@@ -47,29 +49,60 @@ void HidEngineTask::sendEventQueue(const EventData &data)
   xQueueSend(_eventQueue, &data, portMAX_DELAY);
 }
 
+void HidEngineTask::sumNextMouseMoveEventIfExist(int16_t &x, int16_t &y)
+{
+  if (_lookAhead.eventType != EventType::Invalid)
+  {
+    return;
+  }
+
+  while (true)
+  {
+    if (xQueueReceive(_eventQueue, &_lookAhead, 0) == pdFALSE)
+    {
+      return;
+    }
+    if (_lookAhead.eventType != EventType::MouseMove)
+    {
+      return;
+    }
+    x = constrain(_lookAhead.mouseMove.x + x, INT16_MIN, INT16_MAX);
+    y = constrain(_lookAhead.mouseMove.y + y, INT16_MIN, INT16_MAX);
+    _lookAhead.eventType = EventType::Invalid;
+  }
+}
+
 void HidEngineTask::task(void *pvParameters)
 {
   while (true)
   {
-    EventData data;
-    xQueueReceive(_eventQueue, &data, portMAX_DELAY);
+    EventData buf, *edata;
+    if (_lookAhead.eventType != EventType::Invalid)
+    {
+      edata = &_lookAhead;
+    }
+    else
+    {
+      xQueueReceive(_eventQueue, &buf, portMAX_DELAY);
+      edata = &buf;
+    }
 
-    switch (data.eventType)
+    switch (edata->eventType)
     {
     case EventType::ApplyToKeymap:
     {
-      HidEngine::applyToKeymap_impl(data.applyToKeymap.ids);
+      HidEngine::applyToKeymap_impl(edata->applyToKeymap.ids);
       break;
     }
     case EventType::MouseMove:
     {
-      HidEngine::mouseMove_impl(data.mouseMove.x, data.mouseMove.y);
+      HidEngine::mouseMove_impl(edata->mouseMove.x, edata->mouseMove.y);
       break;
     }
     case EventType::Timer:
     {
-      data.timer->cls->trigger(data.timer->number);
-      delete data.timer;
+      edata->timer->cls->trigger(edata->timer->number);
+      delete edata->timer;
       break;
     }
     case EventType::CmdTap:
@@ -77,6 +110,7 @@ void HidEngineTask::task(void *pvParameters)
       CmdTapper::onTimer();
     }
     }
+    edata->eventType = EventType::Invalid;
   }
 }
 

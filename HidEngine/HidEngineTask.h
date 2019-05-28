@@ -33,11 +33,11 @@ namespace hidpg
 
 enum class EventType
 {
+  Invalid,
   ApplyToKeymap,
   MouseMove,
   Timer,
   CmdTap,
-  KeyTap,
 };
 
 struct ApplyToKeymapEventData
@@ -64,7 +64,7 @@ struct CmdTapEventData
 
 struct EventData
 {
-  EventData(){};
+  EventData() : eventType(EventType::Invalid){};
 
   EventType eventType;
   union {
@@ -80,13 +80,14 @@ class HidEngineTask
 public:
   static void init();
   static void startTask();
-  static void sendEventQueue(const EventData &data);
+  static void sumNextMouseMoveEventIfExist(int16_t &x, int16_t &y);
 
 private:
   static void task(void *pvParameters);
 
   static TaskHandle_t _taskHandle;
   static QueueHandle_t _eventQueue;
+  static EventData _lookAhead;
 };
 
 } // namespace hidpg
