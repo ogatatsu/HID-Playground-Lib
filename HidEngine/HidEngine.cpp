@@ -332,7 +332,7 @@ void HidEngine::mouseMove_impl(int16_t x, int16_t y)
     int16_t threshold = _trackmap[idx].distance;
     if (_distanceY <= -threshold) // 上
     {
-      uint8_t times = min(abs(_distanceY / threshold), UINT8_MAX);
+      uint8_t times = min(static_cast<int>(abs(_distanceY / threshold)), UINT8_MAX);
       _distanceY %= threshold;
       if (_trackmap[idx].upCommand != nullptr)
       {
@@ -341,7 +341,7 @@ void HidEngine::mouseMove_impl(int16_t x, int16_t y)
     }
     else if (_distanceY >= threshold) // 下
     {
-      uint8_t times = min(_distanceY / threshold, UINT8_MAX);
+      uint8_t times = min(static_cast<int>(_distanceY / threshold), UINT8_MAX);
       _distanceY %= threshold;
       if (_trackmap[idx].downCommand != nullptr)
       {
@@ -351,7 +351,7 @@ void HidEngine::mouseMove_impl(int16_t x, int16_t y)
 
     if (_distanceX <= -threshold) // 左
     {
-      uint8_t times = min(abs(_distanceX / threshold), UINT8_MAX);
+      uint8_t times = min(static_cast<int>(abs(_distanceX / threshold)), UINT8_MAX);
       _distanceX %= threshold;
       if (_trackmap[idx].leftCommand != nullptr)
       {
@@ -360,7 +360,7 @@ void HidEngine::mouseMove_impl(int16_t x, int16_t y)
     }
     else if (_distanceX >= threshold) // 右
     {
-      uint8_t times = min(_distanceX / threshold, UINT8_MAX);
+      uint8_t times = min(static_cast<int>(_distanceX / threshold), UINT8_MAX);
       _distanceX %= threshold;
 
       if (_trackmap[idx].rightCommand != nullptr)
