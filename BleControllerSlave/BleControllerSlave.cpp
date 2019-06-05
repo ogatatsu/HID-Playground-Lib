@@ -43,6 +43,7 @@ void BleControllerSlave::init()
   Bluefruit.setTxPower(TX_POWER);
   Bluefruit.setName(DEVICE_NAME);
   Bluefruit.autoConnLed(false);
+  Bluefruit.setEventCallback(ble_event_callback);
 
   Bluefruit.Periph.setConnectCallback(connect_callback);
   Bluefruit.Periph.setDisconnectCallback(disconnect_callback);
@@ -215,6 +216,29 @@ void BleControllerSlave::disconnect_callback(uint16_t conn_handle, uint8_t reaso
     break;
   }
   }
+}
+
+void BleControllerSlave::ble_event_callback(ble_evt_t *evt)
+{
+#if USE_LOCAL_CONN_LATENCY == true
+  switch (evt->header.evt_id)
+  {
+  case BLE_GAP_EVT_CONNECTED:
+    // fall through
+  case BLE_GAP_EVT_CONN_PARAM_UPDATE:
+    uint16_t conn_hdl = evt->evt.common_evt.conn_handle;
+    BLEConnection *conn = Bluefruit.Connection(conn_hdl);
+    if (conn != nullptr && conn->getRole() == BLE_GAP_ROLE_PERIPH)
+    {
+      ble_opt_t opt;
+      opt.gap_opt.local_conn_latency.conn_handle = conn_hdl;
+      opt.gap_opt.local_conn_latency.requested_latency = BLE_GAP_CP_SLAVE_LATENCY_MAX;
+      opt.gap_opt.local_conn_latency.p_actual_latency = nullptr;
+      sd_ble_opt_set(BLE_GAP_OPT_LOCAL_CONN_LATENCY, &opt);
+    }
+    break;
+  }
+#endif
 }
 
 } // namespace hidpg

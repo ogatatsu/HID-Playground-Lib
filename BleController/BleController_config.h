@@ -63,6 +63,14 @@
 #define IS_HIGH_DRIVE false
 #endif
 
+// Local connection latency is a feature which enables the slave to improve
+// current consumption by ignoring the slave latency set by the peer. The
+// local connection latency can only be set to a multiple of the slave latency,
+// and cannot be longer than half of the supervision timeout.
+#ifndef USE_LOCAL_CONN_LATENCY
+#define USE_LOCAL_CONN_LATENCY true
+#endif
+
 // スレーブがある場合のみ定義する
 // スレーブ側のアドレスのリスト、このリストでフィルタして他の機器と接続しないようにする
 // 定義するとBleControllerにセントラル用の関数が生える

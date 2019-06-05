@@ -51,6 +51,7 @@ private:
   static void adv_stop_callback();
   static void connect_callback(uint16_t conn_handle);
   static void disconnect_callback(uint16_t conn_handle, uint8_t reason);
+  static void ble_event_callback(ble_evt_t *evt);
 
   static BLEUart _bleuart;
   static BLEBas _blebas;
