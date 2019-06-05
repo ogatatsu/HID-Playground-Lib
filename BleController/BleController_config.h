@@ -84,5 +84,5 @@
 // マスターとスレーブ間コネクションインターバル 6~
 // 反応速度と消費電力に影響する、6が最高の反応速度で最も消費電力が高い (unit of 1.25ms)
 #ifndef CENTRAL_CONNECTION_INTERVAL
-#define CENTRAL_CONNECTION_INTERVAL 9
+#define CENTRAL_CONNECTION_INTERVAL 6
 #endif
