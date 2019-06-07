@@ -79,8 +79,19 @@ void MatrixScan::initMatrix()
   // 入力ピンの設定
   for (int i = 0; i < _inLength; i++)
   {
-    pinMode(_inPins[i], (ACTIVE_STATE ? INPUT_PULLDOWN : INPUT_PULLUP));
-    attachInterrupt(_inPins[i], interrupt_callback, (ACTIVE_STATE ? RISING : FALLING));
+#if (ACTIVE_STATE == LOW) && (USE_EXTERNAL_PULL_RESISTOR == false)
+    pinMode(_inPins[i], INPUT_PULLUP);
+    attachInterrupt(digitalPinToInterrupt(_inPins[i]), interrupt_callback, FALLING);
+#elif (ACTIVE_STATE == HIGH) && (USE_EXTERNAL_PULL_RESISTOR == false)
+    pinMode(_inPins[i], INPUT_PULLDOWN);
+    attachInterrupt(digitalPinToInterrupt(_inPins[i]), interrupt_callback, RISING);
+#elif (ACTIVE_STATE == LOW) && (USE_EXTERNAL_PULL_RESISTOR == true)
+    pinMode(_inPins[i], INPUT);
+    attachInterrupt(digitalPinToInterrupt(_inPins[i]), interrupt_callback, FALLING);
+#elif (ACTIVE_STATE == HIGH) && (USE_EXTERNAL_PULL_RESISTOR == true)
+    pinMode(_inPins[i], INPUT);
+    attachInterrupt(digitalPinToInterrupt(_inPins[i]), interrupt_callback, RISING);
+#endif
   }
 
   // スイッチオブジェクトの初期化

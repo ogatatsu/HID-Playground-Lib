@@ -34,6 +34,11 @@
 #define ACTIVE_STATE LOW
 #endif
 
+// 外部のプル抵抗を使うか
+#ifndef USE_EXTERNAL_PULL_RESISTOR
+#define USE_EXTERNAL_PULL_RESISTOR false
+#endif
+
 // MatrixScanタスクのスタックサイズ
 #ifndef MATRIX_SCAN_TASK_STACK_SIZE
 #define MATRIX_SCAN_TASK_STACK_SIZE 128
