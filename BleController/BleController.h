@@ -70,7 +70,6 @@ private:
   static void adv_stop_callback();
   static void prph_connect_callback(uint16_t connHandle);
   static void prph_disconnect_callback(uint16_t connHandle, uint8_t reason);
-  static void ble_event_callback(ble_evt_t *evt);
 
   static BLEDis _bledis;
   static BLEBas _blebas;
