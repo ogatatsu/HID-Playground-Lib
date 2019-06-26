@@ -355,6 +355,11 @@ void PMW3360::initRegisters()
 
 void PMW3360::changeMode(Mode mode)
 {
+  if (_taskHandles[_id] == nullptr)
+  {
+    return;
+  }
+
   uint32_t ms;
   uint8_t data;
 
@@ -375,21 +380,41 @@ void PMW3360::changeMode(Mode mode)
 
 void PMW3360::changeCpi(Cpi cpi)
 {
+  if (_taskHandles[_id] == nullptr)
+  {
+    return;
+  }
+
   writeRegister(Config1, static_cast<uint8_t>(cpi));
 }
 
 void PMW3360::resetCpi()
 {
+  if (_taskHandles[_id] == nullptr)
+  {
+    return;
+  }
+
   writeRegister(Config1, PMW3360_Config1);
 }
 
 void PMW3360::enableAngleSnap()
 {
+  if (_taskHandles[_id] == nullptr)
+  {
+    return;
+  }
+
   writeRegister(Angle_Snap, 0b10000000);
 }
 
 void PMW3360::disableAngleSnap()
 {
+  if (_taskHandles[_id] == nullptr)
+  {
+    return;
+  }
+
   writeRegister(Angle_Snap, 0b00000000);
 }
 
