@@ -255,10 +255,7 @@ void PMW3360::readMotionBurst(MotionBurstData &data)
   delayMicroseconds(35);
 
   // 5.Start reading SPI Data continuously up to 12 bytes. Motion burst may be terminated by pulling NCS high for at least tBEXIT.
-  for (int i = 0; i < 12; i++)
-  {
-    data.raw[i] = _spi.transfer(0);
-  }
+  _spi.transfer(data.raw, 12);
 
   digitalWrite(_ncsPin, HIGH);
   _spi.endTransaction();
