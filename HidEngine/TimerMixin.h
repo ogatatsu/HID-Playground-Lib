@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "portRTOS.h"
+#include "portFreeRTOS.h"
 
 namespace hidpg
 {

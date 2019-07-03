@@ -9,7 +9,7 @@
       "name": "HID-Playground Set"
     },
     {
-      "name": "HID-Playground portRTOS"
+      "name": "HID-Playground portFreeRTOS"
     }
   ]
 }

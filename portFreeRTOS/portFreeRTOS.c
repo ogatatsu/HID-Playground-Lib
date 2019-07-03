@@ -22,7 +22,7 @@
   THE SOFTWARE.
 */
 
-#include "portRTOS.h"
+#include "portFreeRTOS.h"
 
 #if defined(ARDUINO_ARCH_STM32)
 void yield(void)

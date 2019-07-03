@@ -26,7 +26,7 @@
 
 #include "Set.h"
 #include "Switch.h"
-#include "portRTOS.h"
+#include "portFreeRTOS.h"
 
 namespace hidpg
 {

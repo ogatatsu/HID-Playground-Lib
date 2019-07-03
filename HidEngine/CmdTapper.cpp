@@ -25,7 +25,7 @@
 #include "CmdTapper.h"
 #include "HidCore.h"
 #include "HidEngineTask.h"
-#include "portRTOS.h"
+#include "portFreeRTOS.h"
 #include <Arduino.h>
 
 namespace hidpg

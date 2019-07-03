@@ -3,7 +3,7 @@
   "frameworks": "arduino",
   "dependencies": [
     {
-      "name": "HID-Playground portRTOS"
+      "name": "HID-Playground portFreeRTOS"
     }
   ]
 }

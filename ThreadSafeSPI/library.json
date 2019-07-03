@@ -6,7 +6,7 @@
       "name": "SPI"
     },
     {
-      "name": "HID-Playground portRTOS"
+      "name": "HID-Playground portFreeRTOS"
     }
   ]
 }
