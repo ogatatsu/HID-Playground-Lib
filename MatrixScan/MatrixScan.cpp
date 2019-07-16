@@ -76,23 +76,36 @@ void MatrixScan::initMatrix()
     pinMode(_outPins[i], OUTPUT);
     digitalWrite(_outPins[i], ACTIVE_STATE);
   }
+
   // 入力ピンの設定
   for (int i = 0; i < _inLength; i++)
   {
-#if (ACTIVE_STATE == LOW) && (USE_EXTERNAL_PULL_RESISTOR == false)
+#if (ACTIVE_STATE == LOW) && (USE_EXTERNAL_PULL_RESISTOR == false) && (USE_SENSE_INTERRUPT == false)
     pinMode(_inPins[i], INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(_inPins[i]), interrupt_callback, FALLING);
-#elif (ACTIVE_STATE == HIGH) && (USE_EXTERNAL_PULL_RESISTOR == false)
+#elif (ACTIVE_STATE == HIGH) && (USE_EXTERNAL_PULL_RESISTOR == false) && (USE_SENSE_INTERRUPT == false)
     pinMode(_inPins[i], INPUT_PULLDOWN);
     attachInterrupt(digitalPinToInterrupt(_inPins[i]), interrupt_callback, RISING);
-#elif (ACTIVE_STATE == LOW) && (USE_EXTERNAL_PULL_RESISTOR == true)
+#elif (ACTIVE_STATE == LOW) && (USE_EXTERNAL_PULL_RESISTOR == true) && (USE_SENSE_INTERRUPT == false)
     pinMode(_inPins[i], INPUT);
     attachInterrupt(digitalPinToInterrupt(_inPins[i]), interrupt_callback, FALLING);
-#elif (ACTIVE_STATE == HIGH) && (USE_EXTERNAL_PULL_RESISTOR == true)
+#elif (ACTIVE_STATE == HIGH) && (USE_EXTERNAL_PULL_RESISTOR == true) && (USE_SENSE_INTERRUPT == false)
     pinMode(_inPins[i], INPUT);
     attachInterrupt(digitalPinToInterrupt(_inPins[i]), interrupt_callback, RISING);
+#elif (ACTIVE_STATE == LOW) && (USE_EXTERNAL_PULL_RESISTOR == false) && (USE_SENSE_INTERRUPT == true)
+    pinModeEx(_inPins[i], INPUT_PULLUP, DRIVE_S0S1, SENSE_LOW);
+#elif (ACTIVE_STATE == HIGH) && (USE_EXTERNAL_PULL_RESISTOR == false) && (USE_SENSE_INTERRUPT == true)
+    pinModeEx(_inPins[i], INPUT_PULLDOWN, DRIVE_S0S1, SENSE_HIGH);
+#elif (ACTIVE_STATE == LOW) && (USE_EXTERNAL_PULL_RESISTOR == true) && (USE_SENSE_INTERRUPT == true)
+    pinModeEx(_inPins[i], INPUT, DRIVE_S0S1, SENSE_LOW);
+#elif (ACTIVE_STATE == HIGH) && (USE_EXTERNAL_PULL_RESISTOR == true) && (USE_SENSE_INTERRUPT == true)
+    pinModeEx(_inPins[i], INPUT, DRIVE_S0S1, SENSE_HIGH);
 #endif
   }
+
+#if (USE_SENSE_INTERRUPT == true)
+  attachSenseInterrupt(interrupt_callback);
+#endif
 
   // スイッチオブジェクトの初期化
   for (int o = 0; o < _outLength; o++)

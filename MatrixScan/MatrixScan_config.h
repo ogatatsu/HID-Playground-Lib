@@ -39,6 +39,12 @@
 #define USE_EXTERNAL_PULL_RESISTOR false
 #endif
 
+// 割り込みにSense signalを使用するか
+// nRF52でなおかつcustom version frameworkでのみ使用可能
+#ifndef USE_SENSE_INTERRUPT
+#define USE_SENSE_INTERRUPT false
+#endif
+
 // MatrixScanタスクのスタックサイズ
 #ifndef MATRIX_SCAN_TASK_STACK_SIZE
 #define MATRIX_SCAN_TASK_STACK_SIZE 128
