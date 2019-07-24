@@ -46,7 +46,7 @@ bool MemStore::load(const char *name, void *buf, size_t size)
 
   String path = _directory + '/' + name;
 
-  _file.open(path.c_str(), FILE_READ);
+  _file.open(path.c_str(), FILE_O_READ);
 
   if (_file)
   {
@@ -70,7 +70,7 @@ void MemStore::save(const char *name, const void *buf, size_t size)
     InternalFS.remove(path.c_str());
   }
 
-  _file.open(path.c_str(), FILE_WRITE);
+  _file.open(path.c_str(), FILE_O_WRITE);
   _file.write(static_cast<const uint8_t *>(buf), size);
   _file.close();
 }

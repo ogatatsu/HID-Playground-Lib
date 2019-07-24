@@ -24,7 +24,10 @@
 
 #pragma once
 
-#include <Bluefruit_FileIO.h>
+#include <Adafruit_LittleFS.h>
+#include <InternalFileSystem.h>
+
+using namespace Adafruit_LittleFS_Namespace;
 
 namespace hidpg
 {

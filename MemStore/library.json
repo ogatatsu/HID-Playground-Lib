@@ -4,7 +4,10 @@
   "platforms": "nordicnrf52",
   "dependencies": [
     {
-      "name": "Adafruit File System Libraries"
+      "name": "Adafruit Little File System Libraries"
+    },
+    {
+      "name": "Adafruit Internal File System on Bluefruit nRF52"
     }
   ]
 }
