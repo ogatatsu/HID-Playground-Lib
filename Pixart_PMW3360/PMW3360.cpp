@@ -241,7 +241,7 @@ uint8_t PMW3360::readRegister(uint8_t addr)
 
 void PMW3360::readMotionBurst(MotionBurstData &data, uint8_t length)
 {
-  length = min(12, length);
+  length = min(static_cast<uint8_t>(12), length);
 
   // 1.Write any value to Motion_Burst register.
   writeRegister(Motion_Burst, 0);
