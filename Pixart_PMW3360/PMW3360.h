@@ -129,7 +129,7 @@ private:
 
   void writeRegister(uint8_t addr, uint8_t data);
   uint8_t readRegister(uint8_t addr);
-  void readMotionBurst(MotionBurstData &data);
+  void readMotionBurst(MotionBurstData &data, uint8_t length);
   void SROM_Download();
   void powerUp(void);
   void initRegisters();
