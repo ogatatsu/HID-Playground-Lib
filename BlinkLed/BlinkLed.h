@@ -25,6 +25,7 @@
 #pragma once
 
 #include "portFreeRTOS.h"
+#include <Arduino.h>
 
 namespace hidpg
 {
@@ -32,7 +33,7 @@ namespace hidpg
 class BlinkLed
 {
 public:
-  BlinkLed(uint8_t pin, bool isHighDrive = false);
+  BlinkLed(uint8_t pin, uint8_t activeState = HIGH, bool isHighDrive = false);
 
   void blink(uint8_t times = 1);
   void off();
@@ -43,6 +44,7 @@ private:
   static void task(void *pvParameters);
 
   const uint8_t _pin;
+  const uint8_t _activeState;
   volatile bool _isBlink;
   volatile uint8_t _times;
   TaskHandle_t _taskHandle;

@@ -34,7 +34,7 @@ BLEDis BleController::_bledis;
 BLEBas BleController::_blebas;
 BLEHidAdafruit BleController::_blehid;
 BLEHidAdafruitHidReporter BleController::_hidReporter(_blehid);
-BlinkLed BleController::_advLed(ADV_LED_PIN, IS_HIGH_DRIVE);
+BlinkLed BleController::_advLed(ADV_LED_PIN, ADV_LED_ACTIVE_STATE, IS_HIGH_DRIVE);
 MemStore BleController::_addrStore(STORE_DIR_ENAME);
 uint8_t BleController::_currentSlot;
 BleController::prphCannotConnectCallback_t BleController::_cannotConnectCallback = nullptr;
@@ -310,7 +310,7 @@ void BleController::prph_disconnect_callback(uint16_t connHandle, uint8_t reason
 
 constexpr uint8_t BleController::_slaveAddrList[][6];
 BleController::SlaveInfo BleController::_slaves[];
-BlinkLed BleController::_scanLed(SCAN_LED_PIN, IS_HIGH_DRIVE);
+BlinkLed BleController::_scanLed(SCAN_LED_PIN, SCAN_LED_ACTIVE_STATE, IS_HIGH_DRIVE);
 BleController::slaveKeyCallback_t BleController::_slaveKeyCallback = nullptr;
 BleController::slaveMotionCallback_t BleController::_slaveMotionCallback = nullptr;
 

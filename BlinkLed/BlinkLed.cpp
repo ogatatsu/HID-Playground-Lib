@@ -24,7 +24,6 @@
 
 #include "BlinkLed.h"
 #include "BlinkLed_config.h"
-#include <Arduino.h>
 
 namespace hidpg
 {
@@ -49,7 +48,8 @@ static void pinMode_OutputEx(uint32_t ulPin, bool isHighDrive)
 }
 #endif
 
-BlinkLed::BlinkLed(uint8_t pin, bool isHighDrive) : _pin(pin), _isBlink(false), _times(0)
+BlinkLed::BlinkLed(uint8_t pin, uint8_t activeState, bool isHighDrive)
+    : _pin(pin), _activeState(activeState), _isBlink(false), _times(0)
 {
 
 #ifdef ARDUINO_ARCH_NRF52
@@ -79,9 +79,9 @@ void BlinkLed::task(void *pvParameters)
       that->_isBlink = true;
       for (int i = 0; i < that->_times; i++)
       {
-        digitalWrite(that->_pin, HIGH);
+        digitalWrite(that->_pin, that->_activeState);
         delay(BLINK_LED_INTERVAL);
-        digitalWrite(that->_pin, LOW);
+        digitalWrite(that->_pin, !that->_activeState);
         delay(BLINK_LED_INTERVAL);
       }
       delay(BLINK_LED_INTERVAL * 3);

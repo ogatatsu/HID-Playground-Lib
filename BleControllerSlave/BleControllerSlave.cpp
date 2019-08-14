@@ -30,7 +30,7 @@ namespace hidpg
 
 BLEUart BleControllerSlave::_bleuart;
 BLEBas BleControllerSlave::_blebas;
-BlinkLed BleControllerSlave::_advLed(ADV_LED_PIN, IS_HIGH_DRIVE);
+BlinkLed BleControllerSlave::_advLed(ADV_LED_PIN, ADV_LED_ACTIVE_STATE, IS_HIGH_DRIVE);
 BleControllerSlave::prphCannotConnectCallback_t BleControllerSlave::_cannotConnectCallback = nullptr;
 
 /*------------------------------------------------------------------*/

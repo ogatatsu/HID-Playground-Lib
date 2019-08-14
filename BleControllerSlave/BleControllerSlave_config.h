@@ -44,6 +44,11 @@
 #define ADV_LED_PIN PIN_LED2
 #endif
 
+// アドバタイジングLEDがHIGHとLOWどちらでONになるか
+#ifndef ADV_LED_ACTIVE_STATE
+#define ADV_LED_ACTIVE_STATE HIGH
+#endif
+
 // LEDをHighDriveで光らせるかどうか
 #ifndef IS_HIGH_DRIVE
 #define IS_HIGH_DRIVE false
