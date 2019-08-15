@@ -176,7 +176,7 @@ void PMW3360::setMotionCallback(callback_t callback)
   _callback = callback;
 }
 
-void PMW3360::startTask()
+void PMW3360::init()
 {
   _spi.begin();
   _spi.usingInterrupt(_interruptPin);
@@ -187,11 +187,14 @@ void PMW3360::startTask()
   void (*interrupt_callback)() = (_id == 0) ? interrupt_callback_0 : interrupt_callback_1;
   attachInterrupt(digitalPinToInterrupt(_interruptPin), interrupt_callback, FALLING);
 
-  char name[] = "3360_0";
-  name[5] += _id;
-
   // デフォルトはRest mode
   _timerHandle = xTimerCreate(nullptr, pdMS_TO_TICKS(PMW3360_REST_MODE_CALLBACK_INTERVAL), true, this, timeout);
+}
+
+void PMW3360::startTask()
+{
+  char name[] = "3360_0";
+  name[5] += _id;
   xTaskCreate(task, name, PMW3360_TASK_STACK_SIZE, this, PMW3360_TASK_PRIO, &_taskHandles[_id]);
 
   powerUp();
@@ -310,7 +313,7 @@ void PMW3360::SROM_Download()
   writeRegister(Config2, 0x20);
 }
 
-void PMW3360::powerUp(void)
+void PMW3360::powerUp()
 {
   // 1.Apply power to VDD and VDDIO in any order, with a delay of no more than 100ms in between each supply. Ensure all supplies are stable.
 

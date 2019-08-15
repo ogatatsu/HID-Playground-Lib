@@ -87,6 +87,7 @@ public:
   }
 
   void setMotionCallback(callback_t callback);
+  void init();
   void startTask();
   void changeMode(Mode mode);
   void changeCpi(Cpi cpi);
@@ -131,7 +132,7 @@ private:
   uint8_t readRegister(uint8_t addr);
   void readMotionBurst(MotionBurstData &data, uint8_t length);
   void SROM_Download();
-  void powerUp(void);
+  void powerUp();
   void initRegisters();
 
   TimerHandle_t _timerHandle;
