@@ -147,7 +147,8 @@ public:
     _trackmapLength = trackmapLength;
   }
 
-  static void init(HidReporter *hidReporter);
+  static void setHidReporter(HidReporter *hidReporter);
+  static void init();
   static void startTask();
   static void applyToKeymap(const Set &ids);
   static void mouseMove(int16_t x, int16_t y);

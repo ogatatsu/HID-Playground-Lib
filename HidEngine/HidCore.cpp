@@ -29,7 +29,7 @@
 namespace hidpg
 {
 
-HidReporter *Hid::_hidReporter;
+HidReporter *Hid::_hidReporter = nullptr;
 uint8_t Hid::_pressedKeys[7] = {};
 uint8_t Hid::_prevSentKeys[6] = {};
 uint8_t Hid::_keyCounter[256] = {};
@@ -219,12 +219,18 @@ void Hid::sendKeyReport(bool triggerOneShot)
   {
     // keyとmodifierが同時に追加された場合はmodifierキーを送ってからkeyを送る
     // 全く同じタイミングで送ると一部の環境で意図しない動きになる（windowsキーを使ったショートカットなど）
-    _hidReporter->keyboardReport(modifier, _prevSentKeys);
-    _hidReporter->keyboardReport(modifier, _pressedKeys);
+    if (_hidReporter != nullptr)
+    {
+      _hidReporter->keyboardReport(modifier, _prevSentKeys);
+      _hidReporter->keyboardReport(modifier, _pressedKeys);
+    }
   }
   else if (isChanged)
   {
-    _hidReporter->keyboardReport(modifier, _pressedKeys);
+    if (_hidReporter != nullptr)
+    {
+      _hidReporter->keyboardReport(modifier, _pressedKeys);
+    }
   }
 
   // 次回用に保存
@@ -237,23 +243,35 @@ void Hid::sendKeyReport(bool triggerOneShot)
 
 void Hid::consumerKeyPress(UsageCode usageCode)
 {
-  _hidReporter->consumerReport(static_cast<uint16_t>(usageCode));
+  if (_hidReporter != nullptr)
+  {
+    _hidReporter->consumerReport(static_cast<uint16_t>(usageCode));
+  }
 }
 
 void Hid::consumerKeyRelease()
 {
-  _hidReporter->consumerReport(0);
+  if (_hidReporter != nullptr)
+  {
+    _hidReporter->consumerReport(0);
+  }
 }
 
 void Hid::mouseMove(int8_t x, int8_t y)
 {
-  _hidReporter->mouseReport(_prevSentButton, x, y, 0, 0);
+  if (_hidReporter != nullptr)
+  {
+    _hidReporter->mouseReport(_prevSentButton, x, y, 0, 0);
+  }
 }
 
 void Hid::mouseScroll(int8_t scroll, int8_t horiz)
 {
   sendKeyReport(true);
-  _hidReporter->mouseReport(_prevSentButton, 0, 0, scroll, horiz);
+  if (_hidReporter != nullptr)
+  {
+    _hidReporter->mouseReport(_prevSentButton, 0, 0, scroll, horiz);
+  }
   sendKeyReport(false);
 }
 
@@ -285,7 +303,10 @@ void Hid::sendMouseButtonReport()
   if (button != _prevSentButton)
   {
     _prevSentButton = button;
-    _hidReporter->mouseReport(button, 0, 0, 0, 0);
+    if (_hidReporter != nullptr)
+    {
+      _hidReporter->mouseReport(button, 0, 0, 0, 0);
+    }
   }
 }
 

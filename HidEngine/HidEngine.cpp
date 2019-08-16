@@ -103,9 +103,13 @@ LinkedList<Tracking *> HidEngine::_trackingList;
 int32_t HidEngine::_distanceX = 0;
 int32_t HidEngine::_distanceY = 0;
 
-void HidEngine::init(HidReporter *hidReporter)
+void HidEngine::setHidReporter(HidReporter *hidReporter)
 {
   Hid::setReporter(hidReporter);
+}
+
+void HidEngine::init()
+{
   HidEngineTask::init();
   CmdTapper::init();
 }
