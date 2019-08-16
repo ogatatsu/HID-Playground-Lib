@@ -23,7 +23,6 @@
 */
 
 #include "CmdTapper.h"
-#include "HidCore.h"
 #include "HidEngineTask.h"
 #include "portFreeRTOS.h"
 #include <Arduino.h>
