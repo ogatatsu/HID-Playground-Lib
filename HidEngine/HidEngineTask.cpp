@@ -109,6 +109,10 @@ void HidEngineTask::task(void *pvParameters)
     {
       CmdTapper::onTimer();
     }
+    default:
+    {
+      break;
+    }
     }
     edata->eventType = EventType::Invalid;
   }
