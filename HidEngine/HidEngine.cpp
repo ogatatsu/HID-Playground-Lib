@@ -30,62 +30,6 @@
 
 namespace hidpg
 {
-
-/*------------------------------------------------------------------*/
-/* SequenceMode
- *------------------------------------------------------------------*/
-uint8_t SequenceMode::onPress(uint8_t accrued)
-{
-  HidEngine::switchSequenceMode();
-  return 1;
-}
-
-/*------------------------------------------------------------------*/
-/* Tracking
- *------------------------------------------------------------------*/
-Tracking::Tracking(uint8_t id) : _id(id)
-{
-}
-
-uint8_t Tracking::getID()
-{
-  return _id;
-}
-
-uint8_t Tracking::onPress(uint8_t accrued)
-{
-  HidEngine::startTracking(this);
-  return 1;
-}
-
-void Tracking::onRelease()
-{
-  HidEngine::stopTracking(this);
-}
-
-/*------------------------------------------------------------------*/
-/* TrackTap
- *------------------------------------------------------------------*/
-TrackTap::TrackTap(uint8_t id, Command *command) : Tracking(id), _command(command)
-{
-  _command->setParent(this);
-}
-
-uint8_t TrackTap::onPress(uint8_t accrued)
-{
-  return Tracking::onPress(accrued);
-}
-
-void TrackTap::onRelease()
-{
-  Tracking::onRelease();
-  if (this->isLastPressed())
-  {
-    _command->press();
-    _command->release();
-  }
-}
-
 /*------------------------------------------------------------------*/
 /* HidEngine
  *------------------------------------------------------------------*/
@@ -99,7 +43,7 @@ uint8_t HidEngine::_seqKeymapLength = 0;
 uint8_t HidEngine::_trackmapLength = 0;
 
 HidEngine::SeqModeState HidEngine::_seqModeState = HidEngine::SeqModeState::Disable;
-LinkedList<Tracking *> HidEngine::_trackingList;
+LinkedList<HidEngine::Tracking *> HidEngine::_trackingList;
 int32_t HidEngine::_distanceX = 0;
 int32_t HidEngine::_distanceY = 0;
 
@@ -397,12 +341,12 @@ void HidEngine::switchSequenceMode()
   }
 }
 
-void HidEngine::startTracking(Tracking *tracking)
+void HidEngine::startTracking(HidEngine::Tracking *tracking)
 {
   _trackingList.unshift(tracking);
 }
 
-void HidEngine::stopTracking(Tracking *tracking)
+void HidEngine::stopTracking(HidEngine::Tracking *tracking)
 {
   for (int i = 0; i < _trackingList.size(); i++)
   {
@@ -415,6 +359,56 @@ void HidEngine::stopTracking(Tracking *tracking)
       }
       return;
     }
+  }
+}
+
+/*------------------------------------------------------------------*/
+/* SequenceMode
+ *------------------------------------------------------------------*/
+uint8_t HidEngine::SequenceMode::onPress(uint8_t accrued)
+{
+  HidEngine::switchSequenceMode();
+  return 1;
+}
+
+/*------------------------------------------------------------------*/
+/* Tracking
+ *------------------------------------------------------------------*/
+HidEngine::Tracking::Tracking(uint8_t id) : _id(id)
+{
+}
+
+uint8_t HidEngine::Tracking::getID()
+{
+  return _id;
+}
+
+uint8_t HidEngine::Tracking::onPress(uint8_t accrued)
+{
+  HidEngine::startTracking(this);
+  return 1;
+}
+
+void HidEngine::Tracking::onRelease()
+{
+  HidEngine::stopTracking(this);
+}
+
+/*------------------------------------------------------------------*/
+/* TrackTap
+ *------------------------------------------------------------------*/
+HidEngine::TrackTap::TrackTap(uint8_t id, Command *command) : Tracking(id), _command(command)
+{
+  _command->setParent(this);
+}
+
+void HidEngine::TrackTap::onRelease()
+{
+  Tracking::onRelease();
+  if (this->isLastPressed())
+  {
+    _command->press();
+    _command->release();
   }
 }
 

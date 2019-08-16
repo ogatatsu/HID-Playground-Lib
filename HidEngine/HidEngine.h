@@ -61,52 +61,9 @@ struct TrackID_and_Command
   Command *rightCommand;
 };
 
-/*------------------------------------------------------------------*/
-/*  define special command
- *------------------------------------------------------------------*/
-class SequenceMode : public Command
-{
-protected:
-  uint8_t onPress(uint8_t accrued) override;
-};
-
-/*------------------------------------------------------------------*/
-class Tracking : public Command
-{
-public:
-  Tracking(uint8_t id);
-  uint8_t getID();
-
-protected:
-  uint8_t onPress(uint8_t accrued) override;
-  void onRelease() override;
-
-private:
-  uint8_t _id;
-};
-
-/*------------------------------------------------------------------*/
-class TrackTap : public Tracking
-{
-public:
-  TrackTap(uint8_t id, Command *command);
-
-protected:
-  uint8_t onPress(uint8_t accrued) override;
-  void onRelease() override;
-
-private:
-  Command *_command;
-};
-
-/*------------------------------------------------------------------*/
-/*  define HidEngine class
- *------------------------------------------------------------------*/
 class HidEngine
 {
   friend class HidEngineTask;
-  friend class SequenceMode;
-  friend class Tracking;
 
 public:
   template <uint8_t keymapLength>
@@ -153,6 +110,41 @@ public:
   static void applyToKeymap(const Set &ids);
   static void mouseMove(int16_t x, int16_t y);
 
+  /*------------------------------------------------------------------*/
+  /*  HidEngine inner command
+   *------------------------------------------------------------------*/
+  class SequenceMode : public Command
+  {
+  protected:
+    uint8_t onPress(uint8_t accrued) override;
+  };
+
+  class Tracking : public Command
+  {
+  public:
+    Tracking(uint8_t id);
+    uint8_t getID();
+
+  protected:
+    uint8_t onPress(uint8_t accrued) override;
+    void onRelease() override;
+
+  private:
+    uint8_t _id;
+  };
+
+  class TrackTap : public Tracking
+  {
+  public:
+    TrackTap(uint8_t id, Command *command);
+
+  protected:
+    void onRelease() override;
+
+  private:
+    Command *_command;
+  };
+
 private:
   static void applyToKeymap_impl(const Set &ids);
   static void mouseMove_impl(int16_t x, int16_t y);
@@ -182,18 +174,18 @@ private:
   static LinkedList<Tracking *> _trackingList;
   static int32_t _distanceX;
   static int32_t _distanceY;
-  static void startTracking(Tracking *tracking);
-  static void stopTracking(Tracking *tracking);
+  static void startTracking(HidEngine::Tracking *tracking);
+  static void stopTracking(HidEngine::Tracking *tracking);
 };
 
 /*------------------------------------------------------------------*/
-/*  define short name special command
+/*  define short name inner command
  *------------------------------------------------------------------*/
 // Sequence Mode
-#define SEQ_MODE (static_cast<Command *>(new SequenceMode))
+#define SEQ_MODE (static_cast<Command *>(new HidEngine::SequenceMode))
 // Track
-static inline Command *TRC(uint8_t trackID) { return (new Tracking(trackID)); }
+static inline Command *TRC(uint8_t trackID) { return (new HidEngine::Tracking(trackID)); }
 // Track or Tap
-static inline Command *TRT(uint8_t trackID, Command *command) { return (new TrackTap(trackID, command)); }
+static inline Command *TRT(uint8_t trackID, Command *command) { return (new HidEngine::TrackTap(trackID, command)); }
 
 } // namespace hidpg
