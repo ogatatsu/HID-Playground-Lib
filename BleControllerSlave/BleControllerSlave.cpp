@@ -192,12 +192,13 @@ void BleControllerSlave::adv_stop_callback()
   }
 }
 
-void BleControllerSlave::connect_callback(uint16_t conn_handle)
+void BleControllerSlave::connect_callback(uint16_t connHandle)
 {
+  Bluefruit.Connection(connHandle)->requestPHY();
   _advLed.off();
 }
 
-void BleControllerSlave::disconnect_callback(uint16_t conn_handle, uint8_t reason)
+void BleControllerSlave::disconnect_callback(uint16_t connHandle, uint8_t reason)
 {
   switch (reason)
   {

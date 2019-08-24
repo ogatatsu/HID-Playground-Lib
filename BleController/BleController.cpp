@@ -280,6 +280,7 @@ void BleController::adv_stop_callback()
 
 void BleController::prph_connect_callback(uint16_t connHandle)
 {
+  Bluefruit.Connection(connHandle)->requestPHY();
   _advLed.off();
 }
 
