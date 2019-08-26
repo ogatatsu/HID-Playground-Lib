@@ -57,3 +57,19 @@
 // 自身のアドレスを変更したい場合は定義する(random static address)
 // （例）
 // #define OWN_ADDR {0x36, 0x9E, 0x59, 0xB6, 0xF4, 0xE0}
+
+// SUPERVISION_TIMEOUT * 4 > (1 + SLAVE_LATENCY) * CONNECTION_INTERVAL
+// Connection Interval (unit of 1.25ms)
+#ifndef CONNECTION_INTERVAL
+#define CONNECTION_INTERVAL 6
+#endif
+
+// Slave Latency
+#ifndef SLAVE_LATENCY
+#define SLAVE_LATENCY 65
+#endif
+
+// Supervision Timeout (unit of 10ms)
+#ifndef SUPERVISION_TIMEOUT
+#define SUPERVISION_TIMEOUT 100
+#endif

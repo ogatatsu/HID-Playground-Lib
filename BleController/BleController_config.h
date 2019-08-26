@@ -68,6 +68,43 @@
 #define IS_HIGH_DRIVE false
 #endif
 
+/*
+  According to Accessory Design Guidelines for Apple Devices:
+
+  The connection parameter request may be rejected if it does not complywith all of these rules :
+
+  ● Slave Latency ≤ 30
+  ● 2 seconds ≤ connSupervisionTimeout ≤ 6 seconds
+  ● Interval Min modulo 15 ms == 0
+  ● Interval Min ≥ 15 ms
+  ● One of the following :
+    ● Interval Min + 15 ms ≤ Interval Max
+    ● Interval Min == Interval Max == 15 ms
+  ● Interval Max * (Slave Latency + 1) ≤ 2 seconds
+  ● Interval Max * (Slave Latency + 1) * 3 < connSupervisionTimeout
+
+  Note that if an accessory requests Interval Min == Interval Max == 15 ms, somedevices will scale the interval
+  to 30 ms to balance power and performance constraints.
+
+  If Bluetooth Low Energy HID is one of the connected services of an accessory, connection interval down to
+  11 .25 ms may be accepted by the device.
+*/
+
+// Connection Interval (unit of 1.25ms)
+#ifndef CONNECTION_INTERVAL
+#define CONNECTION_INTERVAL 9
+#endif
+
+// Slave Latency
+#ifndef SLAVE_LATENCY
+#define SLAVE_LATENCY 30
+#endif
+
+// Supervision Timeout (unit of 10ms)
+#ifndef SUPERVISION_TIMEOUT
+#define SUPERVISION_TIMEOUT 200
+#endif
+
 // スレーブがある場合のみ定義する
 // スレーブ側のアドレスのリスト、このリストでフィルタして他の機器と接続しないようにする
 // 定義するとBleControllerにセントラル用の関数が生える
@@ -89,11 +126,4 @@
 // スキャンLEDがHIGHとLOWどちらでONになるか
 #ifndef SCAN_LED_ACTIVE_STATE
 #define SCAN_LED_ACTIVE_STATE HIGH
-#endif
-
-// スレーブがある場合のみ使用される
-// マスターとスレーブ間コネクションインターバル 6~
-// 反応速度と消費電力に影響する、6が最高の反応速度で最も消費電力が高い (unit of 1.25ms)
-#ifndef CENTRAL_CONNECTION_INTERVAL
-#define CENTRAL_CONNECTION_INTERVAL 6
 #endif

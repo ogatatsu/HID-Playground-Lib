@@ -194,7 +194,9 @@ void BleControllerSlave::adv_stop_callback()
 
 void BleControllerSlave::connect_callback(uint16_t connHandle)
 {
-  Bluefruit.Connection(connHandle)->requestPHY();
+  BLEConnection *conn = Bluefruit.Connection(connHandle);
+  conn->requestConnectionParameter(CONNECTION_INTERVAL, SLAVE_LATENCY, SUPERVISION_TIMEOUT);
+  conn->requestPHY();
   _advLed.off();
 }
 

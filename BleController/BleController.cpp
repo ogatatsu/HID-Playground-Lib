@@ -117,7 +117,6 @@ void BleController::init()
   // Callbacks for Central
   Bluefruit.Central.setConnectCallback(cent_connect_callback);
   Bluefruit.Central.setDisconnectCallback(cent_disconnect_callback);
-  Bluefruit.Central.setConnInterval(CENTRAL_CONNECTION_INTERVAL, CENTRAL_CONNECTION_INTERVAL);
 
   /* Start Central Scanning
    * - Enable auto scan if disconnected
@@ -280,7 +279,9 @@ void BleController::adv_stop_callback()
 
 void BleController::prph_connect_callback(uint16_t connHandle)
 {
-  Bluefruit.Connection(connHandle)->requestPHY();
+  BLEConnection *conn = Bluefruit.Connection(connHandle);
+  conn->requestConnectionParameter(CONNECTION_INTERVAL, SLAVE_LATENCY, SUPERVISION_TIMEOUT);
+  conn->requestPHY();
   _advLed.off();
 }
 
