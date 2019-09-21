@@ -66,7 +66,7 @@ public:
     _11600 = 0x73, _11700 = 0x74, _11800 = 0x75, _11900 = 0x76, _12000 = 0x77,
   };
 
-  using callback_t = void (*)(int16_t deltaX, int16_t deltaY, uint8_t id);
+  using callback_t = void (*)(int16_t deltaX, int16_t deltaY);
 
   template <uint8_t ID>
   static PMW3360 &create(ThreadSafeSPIClass &spi, uint8_t ncsPin, uint8_t interruptPin)

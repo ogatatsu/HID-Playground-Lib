@@ -145,7 +145,7 @@ void PMW3360::task(void *pvParameters)
 
       if (that->_callback != nullptr)
       {
-        that->_callback(deltaX, deltaY, that->_id);
+        that->_callback(deltaX, deltaY);
       }
 
       if (totalDeltaX == 0 && totalDeltaY == 0)
