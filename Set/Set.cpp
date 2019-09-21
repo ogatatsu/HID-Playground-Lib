@@ -86,6 +86,13 @@ Set &Set::operator-=(const Set &rhs)
   return *this;
 }
 
+void Set::clear()
+{
+  memset(_data, 0, sizeof(_data));
+  _count = 0;
+  _needsRecount = false;
+}
+
 bool Set::contains(uint8_t val) const
 {
   return bitRead(_data[val / 8], val % 8);

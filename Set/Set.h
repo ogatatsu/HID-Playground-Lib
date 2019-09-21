@@ -46,6 +46,8 @@ public:
   void removeAll(const uint8_t vals[], size_t len);
   Set &operator-=(const Set &rhs);
 
+  void clear();
+
   bool contains(uint8_t val) const;
   bool containsAll(const uint8_t vals[], size_t len) const;
   bool containsAny(const uint8_t vals[], size_t len) const;
