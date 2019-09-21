@@ -28,7 +28,7 @@
 namespace hidpg
 {
 
-BLEUart BleControllerSlave::_bleuart;
+BLEUartLight BleControllerSlave::_bleuart;
 BLEBas BleControllerSlave::_blebas;
 BlinkLed BleControllerSlave::_advLed(ADV_LED_PIN, ADV_LED_ACTIVE_STATE, IS_HIGH_DRIVE);
 BleControllerSlave::prphCannotConnectCallback_t BleControllerSlave::_cannotConnectCallback = nullptr;
@@ -101,37 +101,9 @@ bool BleControllerSlave::isPrphRunning()
   return (Bluefruit.Advertising.isRunning() || Bluefruit.Periph.connected());
 }
 
-void BleControllerSlave::sendToMaster(const Set &ids)
+uint16_t BleControllerSlave::sendData(const uint8_t *data, uint16_t len)
 {
-  // 配列にする
-  uint16_t size = ids.count();
-  uint8_t buf[size + 2];
-
-  buf[0] = 0x00;          // KeyDataはヘッダを0x00とする
-  buf[1] = min(size, 18); // 本体データの長さ
-  ids.toArray(&buf[2]);
-  // 1回の通信で送れる分だけ送る、キーボードなら最大20バイトでも十分だと思われる
-  _bleuart.write(buf, min(size + 2, 20));
-}
-
-void BleControllerSlave::sendToMaster(int16_t deltaX, int16_t deltaY, uint8_t id)
-{
-#pragma pack(1)
-  struct
-  {
-    uint8_t header;
-    uint8_t id;
-    int16_t deltaX;
-    int16_t deltaY;
-  } buf;
-#pragma pack()
-
-  // MotionDataはヘッダを0x01とする
-  buf.header = 0x01;
-  buf.id = id;
-  buf.deltaX = deltaX;
-  buf.deltaY = deltaY;
-  _bleuart.write(reinterpret_cast<uint8_t *>(&buf), sizeof(buf));
+  return _bleuart.write(data, len);
 }
 
 void BleControllerSlave::clearBonds()

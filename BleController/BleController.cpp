@@ -313,8 +313,8 @@ void BleController::prph_disconnect_callback(uint16_t connHandle, uint8_t reason
 constexpr uint8_t BleController::_slaveAddrList[][6];
 BleController::SlaveInfo BleController::_slaves[];
 BlinkLed BleController::_scanLed(SCAN_LED_PIN, SCAN_LED_ACTIVE_STATE, IS_HIGH_DRIVE);
-BleController::slaveKeyCallback_t BleController::_slaveKeyCallback = nullptr;
-BleController::slaveMotionCallback_t BleController::_slaveMotionCallback = nullptr;
+BleController::receiveDataCallback_t BleController::_receiveDataCallback = nullptr;
+BleController::centDisconnectCallback_t BleController::_centDisconnectCallback = nullptr;
 
 void BleController::startCentConnection()
 {
@@ -353,14 +353,14 @@ bool BleController::isCentRunnning()
   return (Bluefruit.Scanner.isRunning() || Bluefruit.Central.connected());
 }
 
-void BleController::setSlaveKeyCallback(slaveKeyCallback_t callback)
+void BleController::setReceiveDataCallback(receiveDataCallback_t callback)
 {
-  _slaveKeyCallback = callback;
+  _receiveDataCallback = callback;
 }
 
-void BleController::setSlaveMotionCallback(slaveMotionCallback_t callback)
+void BleController::setCentDisconnectCallback(centDisconnectCallback_t callback)
 {
-  _slaveMotionCallback = callback;
+  _centDisconnectCallback = callback;
 }
 
 /*------------------------------------------------------------------*/
@@ -476,11 +476,10 @@ void BleController::cent_disconnect_callback(uint16_t connHandle, uint8_t reason
   // Mark conn handle as invalid
   _slaves[idx].connHandle = BLE_CONN_HANDLE_INVALID;
 
-  // 切断されたらキーが押しっぱなしにならないように空のデータを送る
-  if (_slaveKeyCallback != nullptr)
+  // invoke callback
+  if (_centDisconnectCallback != nullptr)
   {
-    Set ids;
-    _slaveKeyCallback(ids, idx);
+    _centDisconnectCallback(idx, reason);
   }
 
   // 自分から切断する場合以外はScanner.restartOnDisconnect(true)に設定
@@ -491,49 +490,13 @@ void BleController::cent_disconnect_callback(uint16_t connHandle, uint8_t reason
   }
 }
 
-void BleController::bleuart_rx_callback(BLEClientUart &uart_svc)
+void BleController::bleuart_rx_callback(uint16_t connHandle, uint8_t *data, uint16_t len)
 {
-  int idx = findConnHandle(uart_svc.connHandle());
+  int idx = findConnHandle(connHandle);
 
-  uint8_t header = uart_svc.read();
-
-  if (header == 0x00) // KeyEvent
+  if (_receiveDataCallback != nullptr)
   {
-    int size = uart_svc.read();
-    uint8_t buf[size];
-    uart_svc.read(buf, size);
-
-    Set ids;
-    ids.addAll(buf, size);
-
-    if (_slaveKeyCallback != nullptr)
-    {
-      _slaveKeyCallback(ids, idx);
-    }
-  }
-  else if (header == 0x01) // MotionEvent
-  {
-#pragma pack(1)
-    struct
-    {
-      uint8_t id;
-      int16_t deltaX;
-      int16_t deltaY;
-    } buf;
-#pragma pack()
-
-    uart_svc.read(reinterpret_cast<uint8_t *>(&buf), sizeof(buf));
-    if (_slaveMotionCallback != nullptr)
-    {
-      _slaveMotionCallback(buf.deltaX, buf.deltaY, buf.id, idx);
-    }
-  }
-  else // unknown
-  {
-    while (uart_svc.available())
-    {
-      uart_svc.read();
-    }
+    _receiveDataCallback(idx, data, len);
   }
 }
 

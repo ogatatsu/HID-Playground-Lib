@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "BLEUartLight.h"
 #include "BlinkLed.h"
 #include "Set.h"
 #include <bluefruit.h>
@@ -40,8 +41,7 @@ public:
   static void startPrphConnection();
   static void stopPrphConnection();
   static bool isPrphRunning();
-  static void sendToMaster(const Set &ids);
-  static void sendToMaster(int16_t deltaX, int16_t deltaY, uint8_t id);
+  static uint16_t sendData(const uint8_t *data, uint16_t len);
   static void clearBonds();
   static void setBatteryLevel(uint8_t level);
   static void setPrphCannnotConnectCallback(prphCannotConnectCallback_t callback);
@@ -52,7 +52,7 @@ private:
   static void connect_callback(uint16_t conn_handle);
   static void disconnect_callback(uint16_t conn_handle, uint8_t reason);
 
-  static BLEUart _bleuart;
+  static BLEUartLight _bleuart;
   static BLEBas _blebas;
   static BlinkLed _advLed;
   static prphCannotConnectCallback_t _cannotConnectCallback;

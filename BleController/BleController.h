@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "BLEClientUartLight.h"
 #include "BLEHidAdafruitHidReporter.h"
 #include "BleController_config.h"
 #include "BlinkLed.h"
@@ -55,14 +56,14 @@ public:
   static void setPrphCannnotConnectCallback(prphCannotConnectCallback_t callback);
 
 #ifdef CENTRAL_ENABLE
-  using slaveKeyCallback_t = void (*)(Set &ids, uint8_t index);
-  using slaveMotionCallback_t = void (*)(int16_t deltaX, int16_t deltaY, uint8_t id, uint8_t index);
+  using receiveDataCallback_t = void (*)(uint8_t idx, uint8_t *data, uint16_t len);
+  using centDisconnectCallback_t = void (*)(uint8_t idx, uint8_t reason);
 
   static void startCentConnection();
   static void stopCentConnection();
   static bool isCentRunnning();
-  static void setSlaveKeyCallback(slaveKeyCallback_t callback);
-  static void setSlaveMotionCallback(slaveMotionCallback_t callback);
+  static void setReceiveDataCallback(receiveDataCallback_t callback);
+  static void setCentDisconnectCallback(centDisconnectCallback_t callback);
 #endif
 
 private:
@@ -88,19 +89,19 @@ private:
   static void scan_callback(ble_gap_evt_adv_report_t *report);
   static void cent_connect_callback(uint16_t connHandle);
   static void cent_disconnect_callback(uint16_t connHandle, uint8_t reason);
-  static void bleuart_rx_callback(BLEClientUart &uart_svc);
+  static void bleuart_rx_callback(uint16_t connHandle, uint8_t *data, uint16_t len);
 
   struct SlaveInfo
   {
     uint16_t connHandle;
-    BLEClientUart bleuart;
+    BLEClientUartLight bleuart;
   };
 
   static constexpr uint8_t _slaveAddrList[][6] = SLAVE_ADDR_LIST;
   static SlaveInfo _slaves[arrcount(_slaveAddrList)];
   static BlinkLed _scanLed;
-  static slaveKeyCallback_t _slaveKeyCallback;
-  static slaveMotionCallback_t _slaveMotionCallback;
+  static receiveDataCallback_t _receiveDataCallback;
+  static centDisconnectCallback_t _centDisconnectCallback;
 #endif
 };
 
