@@ -42,7 +42,7 @@ enum class EventType
 
 struct ApplyToKeymapEventData
 {
-  Set ids;
+  Set keyIDs;
 };
 
 struct MouseMoveEventData

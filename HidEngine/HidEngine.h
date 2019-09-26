@@ -31,27 +31,27 @@
 namespace hidpg
 {
 
-struct ID_and_Command
+struct Key
 {
-  uint8_t id;
+  uint8_t keyID;
   Command *command;
 };
 
-struct SimulIDs_and_Command
+struct SimulKey
 {
-  uint8_t ids[MAX_SIMUL_PRESS_COUNT];
-  Command *command;
-  size_t idsLength;
-};
-
-struct SeqIDs_and_Command
-{
-  uint8_t ids[MAX_SEQ_COUNT];
+  uint8_t keyIDs[MAX_SIMUL_PRESS_COUNT];
   Command *command;
   size_t idsLength;
 };
 
-struct TrackID_and_Command
+struct SeqKey
+{
+  uint8_t keyIDs[MAX_SEQ_COUNT];
+  Command *command;
+  size_t idsLength;
+};
+
+struct Track
 {
   uint8_t trackID;
   uint16_t distance;
@@ -67,38 +67,38 @@ class HidEngine
 
 public:
   template <uint8_t keymapLength>
-  static void setKeymap(ID_and_Command (&keymap)[keymapLength])
+  static void setKeymap(Key (&keymap)[keymapLength])
   {
     _keymap = keymap;
     _keymapLength = keymapLength;
   }
 
   template <uint8_t simulKeymapLength>
-  static void setSimulKeymap(SimulIDs_and_Command (&simulKeymap)[simulKeymapLength])
+  static void setSimulKeymap(SimulKey (&simulKeymap)[simulKeymapLength])
   {
     _simulKeymap = simulKeymap;
     _simulKeymapLength = simulKeymapLength;
 
     for (int i = 0; i < _simulKeymapLength; i++)
     {
-      _simulKeymap[i].idsLength = getValidLength(_simulKeymap[i].ids, MAX_SIMUL_PRESS_COUNT);
+      _simulKeymap[i].idsLength = getValidLength(_simulKeymap[i].keyIDs, MAX_SIMUL_PRESS_COUNT);
     }
   }
 
   template <uint8_t seqKeymapLength>
-  static void setSeqKeymap(SeqIDs_and_Command (&seqKeymap)[seqKeymapLength])
+  static void setSeqKeymap(SeqKey (&seqKeymap)[seqKeymapLength])
   {
     _seqKeymap = seqKeymap;
     _seqKeymapLength = seqKeymapLength;
 
     for (int i = 0; i < _seqKeymapLength; i++)
     {
-      _seqKeymap[i].idsLength = getValidLength(_seqKeymap[i].ids, MAX_SEQ_COUNT);
+      _seqKeymap[i].idsLength = getValidLength(_seqKeymap[i].keyIDs, MAX_SEQ_COUNT);
     }
   }
 
   template <uint8_t trackmapLength>
-  static void setTrackmap(TrackID_and_Command (&trackmap)[trackmapLength])
+  static void setTrackmap(Track (&trackmap)[trackmapLength])
   {
     _trackmap = trackmap;
     _trackmapLength = trackmapLength;
@@ -107,7 +107,7 @@ public:
   static void setHidReporter(HidReporter *hidReporter);
   static void init();
   static void startTask();
-  static void applyToKeymap(const Set &ids);
+  static void applyToKeymap(const Set &keyIDs);
   static void mouseMove(int16_t x, int16_t y);
 
   /*------------------------------------------------------------------*/
@@ -122,7 +122,7 @@ public:
   class Tracking : public Command
   {
   public:
-    Tracking(uint8_t id);
+    Tracking(uint8_t trackID);
     uint8_t getID();
 
   protected:
@@ -130,13 +130,13 @@ public:
     void onRelease() override;
 
   private:
-    uint8_t _id;
+    uint8_t _trackID;
   };
 
   class TrackTap : public Tracking
   {
   public:
-    TrackTap(uint8_t id, Command *command);
+    TrackTap(uint8_t trackID, Command *command);
 
   protected:
     void onRelease() override;
@@ -146,15 +146,15 @@ public:
   };
 
 private:
-  static void applyToKeymap_impl(const Set &ids);
+  static void applyToKeymap_impl(const Set &keyIDs);
   static void mouseMove_impl(int16_t x, int16_t y);
-  static int match_with_seqKeymap(const uint8_t ids[], size_t len, SeqIDs_and_Command **matched);
-  static size_t getValidLength(const uint8_t ids[], size_t maxLength);
+  static int match_with_seqKeymap(const uint8_t idSeq[], size_t len, SeqKey **matched);
+  static size_t getValidLength(const uint8_t keyIDs[], size_t maxLength);
 
-  static ID_and_Command *_keymap;
-  static SimulIDs_and_Command *_simulKeymap;
-  static SeqIDs_and_Command *_seqKeymap;
-  static TrackID_and_Command *_trackmap;
+  static Key *_keymap;
+  static SimulKey *_simulKeymap;
+  static SeqKey *_seqKeymap;
+  static Track *_trackmap;
   static uint8_t _keymapLength;
   static uint8_t _simulKeymapLength;
   static uint8_t _seqKeymapLength;

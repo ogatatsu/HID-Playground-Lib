@@ -91,7 +91,7 @@ void HidEngineTask::task(void *pvParameters)
     {
     case EventType::ApplyToKeymap:
     {
-      HidEngine::applyToKeymap_impl(edata->applyToKeymap.ids);
+      HidEngine::applyToKeymap_impl(edata->applyToKeymap.keyIDs);
       break;
     }
     case EventType::MouseMove:
@@ -108,6 +108,7 @@ void HidEngineTask::task(void *pvParameters)
     case EventType::CmdTap:
     {
       CmdTapper::onTimer();
+      break;
     }
     default:
     {

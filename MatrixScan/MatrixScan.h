@@ -34,7 +34,7 @@ namespace hidpg
 class MatrixScan
 {
 public:
-  using callback_t = void (*)(const Set &ids);
+  using callback_t = void (*)(const Set &switchIDs);
 
   template <uint8_t outLength, uint8_t inLength>
   static void init(Switch *matrix[outLength][inLength], const uint8_t (&outPins)[outLength], const uint8_t (&inPins)[inLength])

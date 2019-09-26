@@ -27,7 +27,7 @@
 namespace hidpg
 {
 
-Switch::Switch(uint8_t id, uint16_t debounceDelay) : Bounce(), _id(id)
+Switch::Switch(uint8_t switchID, uint16_t debounceDelay) : Bounce(), _switchID(switchID)
 {
   this->interval(debounceDelay);
 }
@@ -37,17 +37,17 @@ void Switch::init(uint8_t pin)
   this->attach(pin);
 }
 
-void Switch::updateState(Set &ids)
+void Switch::updateState(Set &switchIDs)
 {
   if (this->update())
   {
     if (this->read() == ACTIVE_STATE)
     {
-      ids.add(_id);
+      switchIDs.add(_switchID);
     }
     else
     {
-      ids.remove(_id);
+      switchIDs.remove(_switchID);
     }
   }
 }

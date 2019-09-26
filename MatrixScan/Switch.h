@@ -35,17 +35,17 @@ namespace hidpg
 class Switch : Bounce
 {
 public:
-  // 論理的なキーIDをセットする
-  Switch(uint8_t id, uint16_t debounceDelay = DEBOUNCE_DELAY);
+  // 論理的なIDをセットする
+  Switch(uint8_t switchID, uint16_t debounceDelay = DEBOUNCE_DELAY);
   // 初期化関数
   void init(uint8_t pin);
   // スキャン時に呼ばれる、押されてるかを自分でチェックして自分のIDをセットする
-  void updateState(Set &ids);
+  void updateState(Set &switchIDs);
 
   uint16_t debounceDelay() const;
 
 private:
-  const uint8_t _id;
+  const uint8_t _switchID;
 };
 
 } // namespace hidpg
