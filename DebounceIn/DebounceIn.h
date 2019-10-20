@@ -1,0 +1,65 @@
+/*
+  The MIT License (MIT)
+
+  Copyright (c) 2019 ogatatsu.
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+  THE SOFTWARE.
+*/
+
+#pragma once
+
+#include "Bounce2.h"
+#include "LinkedList.h"
+#include "portFreeRTOS.h"
+#include <stdint.h>
+
+namespace hidpg
+{
+
+class DebounceIn
+{
+public:
+  using callback_t = void (*)(uint8_t pin, bool state);
+
+  static void init();
+  static void addPin(uint8_t pin, int mode, uint16_t debounceDelay = 10);
+  static void setStateChangeCallback(callback_t callback);
+  static void startTask();
+  static void stopTask();
+
+private:
+  struct PinInfo
+  {
+    uint8_t pin;
+    int mode;
+    Bounce bounce;
+  };
+
+  static void task(void *pvParameters);
+  static bool needsUpdate();
+  static void interrupt_callback();
+
+  static TaskHandle_t _taskHandle;
+  static callback_t _callback;
+  static LinkedList<PinInfo *> _list;
+  static uint16_t _maxDebounceDelay;
+  static uint16_t _minDebounceDelay;
+};
+
+} // namespace hidpg

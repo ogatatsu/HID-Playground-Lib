@@ -1,0 +1,15 @@
+{
+  "name": "HID-Playground DebounceIn",
+  "frameworks": "arduino",
+  "dependencies": [
+    {
+      "name": "HID-Playground portFreeRTOS"
+    },
+    {
+      "name": "Bounce2"
+    },
+    {
+      "name": "LinkedList"
+    }
+  ]
+}
