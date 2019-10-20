@@ -68,7 +68,7 @@ void MatrixScan::stopTask_and_setWakeUpInterrupt()
 #endif
 
 // ピンの初期化など
-void MatrixScan::initMatrix()
+void MatrixScan::init()
 {
   // 出力ピンの設定
   for (int i = 0; i < _outLength; i++)

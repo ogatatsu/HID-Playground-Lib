@@ -37,16 +37,15 @@ public:
   using callback_t = void (*)(const Set &switchIDs);
 
   template <uint8_t outLength, uint8_t inLength>
-  static void init(Switch *matrix[outLength][inLength], const uint8_t (&outPins)[outLength], const uint8_t (&inPins)[inLength])
+  static void setMatrix(Switch *matrix[outLength][inLength], const uint8_t (&outPins)[outLength], const uint8_t (&inPins)[inLength])
   {
     _inLength = inLength;
     _outLength = outLength;
     _inPins = inPins;
     _outPins = outPins;
     _matrix = reinterpret_cast<Switch **>(matrix);
-    initMatrix();
   }
-
+  static void init();
   static void setKeyscanCallback(callback_t callback);
   static void startTask();
 
@@ -55,7 +54,6 @@ public:
 #endif
 
 private:
-  static void initMatrix();
   static void interrupt_callback();
   static void outPinsSet(int val);
   static bool needsKeyscan();
