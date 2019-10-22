@@ -36,6 +36,7 @@ class BleControllerSlave
 {
 public:
   using prphCannotConnectCallback_t = void (*)(void);
+  using receiveDataCallback_t = void (*)(uint8_t *data, uint16_t len);
 
   static void init();
   static void startPrphConnection();
@@ -45,17 +46,20 @@ public:
   static void clearBonds();
   static void setBatteryLevel(uint8_t level);
   static void setPrphCannnotConnectCallback(prphCannotConnectCallback_t callback);
+  static void setReceiveDataCallback(receiveDataCallback_t callback);
 
 private:
   static void startAdv();
   static void adv_stop_callback();
   static void connect_callback(uint16_t conn_handle);
   static void disconnect_callback(uint16_t conn_handle, uint8_t reason);
+  static void bleuart_rx_callback(uint16_t connHandle, uint8_t *data, uint16_t len);
 
   static BLEUartLight _bleuart;
   static BLEBas _blebas;
   static BlinkLed _advLed;
   static prphCannotConnectCallback_t _cannotConnectCallback;
+  static receiveDataCallback_t _receiveDataCallback;
 };
 
 } // namespace hidpg

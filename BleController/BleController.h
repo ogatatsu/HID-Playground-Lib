@@ -62,6 +62,7 @@ public:
   static void startCentConnection();
   static void stopCentConnection();
   static bool isCentRunnning();
+  static uint16_t sendData(uint8_t idx, const uint8_t *data, uint16_t len);
   static void setReceiveDataCallback(receiveDataCallback_t callback);
   static void setCentDisconnectCallback(centDisconnectCallback_t callback);
 #endif

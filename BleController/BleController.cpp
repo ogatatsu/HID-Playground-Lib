@@ -353,6 +353,15 @@ bool BleController::isCentRunnning()
   return (Bluefruit.Scanner.isRunning() || Bluefruit.Central.connected());
 }
 
+uint16_t BleController::sendData(uint8_t idx, const uint8_t *data, uint16_t len)
+{
+  if (_slaves[idx].connHandle == BLE_CONN_HANDLE_INVALID)
+  {
+    return 0;
+  }
+  return _slaves[idx].bleuart.write(data, len);
+}
+
 void BleController::setReceiveDataCallback(receiveDataCallback_t callback)
 {
   _receiveDataCallback = callback;

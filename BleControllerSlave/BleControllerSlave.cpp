@@ -32,6 +32,7 @@ BLEUartLight BleControllerSlave::_bleuart;
 BLEBas BleControllerSlave::_blebas;
 BlinkLed BleControllerSlave::_advLed(ADV_LED_PIN, ADV_LED_ACTIVE_STATE, IS_HIGH_DRIVE);
 BleControllerSlave::prphCannotConnectCallback_t BleControllerSlave::_cannotConnectCallback = nullptr;
+BleControllerSlave::receiveDataCallback_t BleControllerSlave::_receiveDataCallback = nullptr;
 
 /*------------------------------------------------------------------*/
 /* public
@@ -57,6 +58,7 @@ void BleControllerSlave::init()
 
   // Configure and Start BLE Uart Service
   _bleuart.begin();
+  _bleuart.setRxCallback(bleuart_rx_callback);
 
   // Start BLE Battery Service
   _blebas.begin();
@@ -119,6 +121,11 @@ void BleControllerSlave::setBatteryLevel(uint8_t level)
 void BleControllerSlave::setPrphCannnotConnectCallback(prphCannotConnectCallback_t callback)
 {
   _cannotConnectCallback = callback;
+}
+
+void BleControllerSlave::setReceiveDataCallback(receiveDataCallback_t callback)
+{
+  _receiveDataCallback = callback;
 }
 
 /*------------------------------------------------------------------*/
@@ -189,6 +196,14 @@ void BleControllerSlave::disconnect_callback(uint16_t connHandle, uint8_t reason
     _advLed.blink();
     break;
   }
+  }
+}
+
+void BleControllerSlave::bleuart_rx_callback(uint16_t connHandle, uint8_t *data, uint16_t len)
+{
+  if (_receiveDataCallback != nullptr)
+  {
+    _receiveDataCallback(data, len);
   }
 }
 
