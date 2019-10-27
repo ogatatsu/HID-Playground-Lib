@@ -86,7 +86,7 @@ public:
     return instances[ID];
   }
 
-  void setMotionCallback(callback_t callback);
+  void setCallback(callback_t callback);
   void init();
   void startTask();
   void changeMode(Mode mode);

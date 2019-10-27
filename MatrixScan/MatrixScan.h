@@ -46,7 +46,7 @@ public:
     _matrix = reinterpret_cast<Switch **>(matrix);
   }
   static void init();
-  static void setKeyscanCallback(callback_t callback);
+  static void setCallback(callback_t callback);
   static void startTask();
 
 #ifdef ARDUINO_ARCH_NRF52

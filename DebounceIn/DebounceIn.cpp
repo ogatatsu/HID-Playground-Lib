@@ -77,7 +77,7 @@ void DebounceIn::stopTask()
   }
 }
 
-void DebounceIn::setStateChangeCallback(callback_t callback)
+void DebounceIn::setCallback(callback_t callback)
 {
   _callback = callback;
 }

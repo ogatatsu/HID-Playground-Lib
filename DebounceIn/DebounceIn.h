@@ -39,7 +39,7 @@ public:
 
   static void init();
   static void addPin(uint8_t pin, int mode, uint16_t debounceDelay = 10);
-  static void setStateChangeCallback(callback_t callback);
+  static void setCallback(callback_t callback);
   static void startTask();
   static void stopTask();
 

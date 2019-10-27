@@ -37,7 +37,7 @@ const uint8_t *MatrixScan::_outPins = nullptr;
 uint8_t MatrixScan::_inLength = 0;
 uint8_t MatrixScan::_outLength = 0;
 
-void MatrixScan::setKeyscanCallback(callback_t callback)
+void MatrixScan::setCallback(callback_t callback)
 {
   _callback = callback;
 }

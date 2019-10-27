@@ -171,7 +171,7 @@ PMW3360::PMW3360(ThreadSafeSPIClass &spi, uint8_t ncsPin, uint8_t interruptPin, 
 {
 }
 
-void PMW3360::setMotionCallback(callback_t callback)
+void PMW3360::setCallback(callback_t callback)
 {
   _callback = callback;
 }
