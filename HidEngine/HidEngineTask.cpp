@@ -94,6 +94,11 @@ void HidEngineTask::task(void *pvParameters)
       HidEngine::applyToKeymap_impl(edata->applyToKeymap.keyIDs);
       break;
     }
+    case EventType::TapCommand:
+    {
+      CmdTapper::tap(edata->tapCommand.command, edata->tapCommand.times);
+      break;
+    }
     case EventType::MouseMove:
     {
       HidEngine::mouseMove_impl(edata->mouseMove.x, edata->mouseMove.y);
@@ -105,7 +110,7 @@ void HidEngineTask::task(void *pvParameters)
       delete edata->timer;
       break;
     }
-    case EventType::CmdTap:
+    case EventType::CmdTapper:
     {
       CmdTapper::onTimer();
       break;

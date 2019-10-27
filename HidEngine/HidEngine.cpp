@@ -71,6 +71,15 @@ void HidEngine::applyToKeymap(const Set &keyIDs)
   HidEngineTask::enqueEvent(data);
 }
 
+void HidEngine::tapCommand(Command *command, uint8_t times)
+{
+  EventData data;
+  data.eventType = EventType::TapCommand;
+  data.tapCommand.command = command;
+  data.tapCommand.times = times;
+  HidEngineTask::enqueEvent(data);
+}
+
 void HidEngine::mouseMove(int16_t x, int16_t y)
 {
   EventData data;

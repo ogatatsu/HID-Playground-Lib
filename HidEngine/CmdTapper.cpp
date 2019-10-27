@@ -109,7 +109,7 @@ void CmdTapper::timeout(TimerHandle_t timerHandle)
 {
   // Software Timersのスタックを消費しないようにstaticで宣言
   static EventData edata;
-  edata.eventType = EventType::CmdTap;
+  edata.eventType = EventType::CmdTapper;
   HidEngineTask::enqueEvent(edata);
 }
 

@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include "Command.h"
 #include "Set.h"
 #include "TimerMixin.h"
 
@@ -35,14 +36,21 @@ enum class EventType
 {
   Invalid,
   ApplyToKeymap,
+  TapCommand,
   MouseMove,
   Timer,
-  CmdTap,
+  CmdTapper,
 };
 
 struct ApplyToKeymapEventData
 {
   Set keyIDs;
+};
+
+struct TapCommandEventData
+{
+  Command *command;
+  uint8_t times;
 };
 
 struct MouseMoveEventData
@@ -57,7 +65,7 @@ struct TimerEventData
   unsigned int number;
 };
 
-struct CmdTapEventData
+struct CmdTapperEventData
 {
   //empty
 };
@@ -68,10 +76,11 @@ struct EventData
 
   EventType eventType;
   union {
-    TimerEventData *timer;
     ApplyToKeymapEventData applyToKeymap;
+    TapCommandEventData tapCommand;
     MouseMoveEventData mouseMove;
-    CmdTapEventData cmdTap;
+    TimerEventData *timer;
+    CmdTapperEventData cmdTapper;
   };
 };
 

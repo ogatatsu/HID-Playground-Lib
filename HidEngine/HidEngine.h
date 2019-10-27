@@ -108,6 +108,7 @@ public:
   static void init();
   static void startTask();
   static void applyToKeymap(const Set &keyIDs);
+  static void tapCommand(Command *command, uint8_t times);
   static void mouseMove(int16_t x, int16_t y);
 
   /*------------------------------------------------------------------*/
