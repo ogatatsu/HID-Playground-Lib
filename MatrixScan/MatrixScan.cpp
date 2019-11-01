@@ -29,8 +29,8 @@ namespace hidpg
 
 MatrixScan::callback_t MatrixScan::_callback = nullptr;
 TaskHandle_t MatrixScan::_taskHandle = nullptr;
-uint16_t MatrixScan::_maxDebounceDelay = 0;
-uint16_t MatrixScan::_minDebounceDelay = UINT16_MAX;
+uint16_t MatrixScan::_pollingInterval = 0;
+uint16_t MatrixScan::_pollingMax = 0;
 Switch **MatrixScan::_matrix = nullptr;
 const uint8_t *MatrixScan::_inPins = nullptr;
 const uint8_t *MatrixScan::_outPins = nullptr;
@@ -107,6 +107,9 @@ void MatrixScan::init()
   attachSenseInterrupt(interrupt_callback);
 #endif
 
+  uint16_t maxDebounceDelay = 0;
+  uint16_t minDebounceDelay = UINT16_MAX;
+
   // スイッチオブジェクトの初期化
   for (int o = 0; o < _outLength; o++)
   {
@@ -119,10 +122,15 @@ void MatrixScan::init()
       }
       _matrix[idx]->init(_inPins[i]);
       uint16_t d = _matrix[idx]->debounceDelay();
-      _maxDebounceDelay = max(d, _maxDebounceDelay);
-      _minDebounceDelay = min(d, _minDebounceDelay);
+      maxDebounceDelay = max(d, maxDebounceDelay);
+      minDebounceDelay = min(d, minDebounceDelay);
     }
   }
+  // debounceDelayの最小値の間隔でポーリングする
+  _pollingInterval = minDebounceDelay;
+  // ポーリング回数は最低でもdebounceDelayの最大値を超える値に設定
+  _pollingMax = (maxDebounceDelay + (_pollingInterval - 1)) / _pollingInterval; // ceil(maxDebounceDelay / _pollingInterval)
+  _pollingMax += 2;
 }
 
 // 起きる
@@ -130,7 +138,8 @@ void MatrixScan::interrupt_callback()
 {
   if (_taskHandle != nullptr)
   {
-    xTaskNotifyFromISR(_taskHandle, 2, eSetValueWithOverwrite, nullptr);
+    // 通知値を_pollingMaxに設定して通知
+    xTaskNotifyFromISR(_taskHandle, _pollingMax, eSetValueWithOverwrite, nullptr);
   }
 }
 
@@ -143,21 +152,14 @@ void MatrixScan::outPinsSet(int val)
   }
 }
 
-// 割り込みが発生してから+(maxDebounceDelay * 3)msまでの間はスキャンする。
-// キー押し時はスキャン中に入力ピンの電圧が変わるので押されてる限り割り込みが発生し続ける
 bool MatrixScan::needsKeyscan()
 {
-  static unsigned long lastInterruptMillis = 0;
-
-  // 割り込みされたら
-  if (ulTaskNotifyTake(pdTRUE, 0) > 0)
-  {
-    lastInterruptMillis = millis();
-    return true;
-  }
-  // 最後に押されてた時間から今の時間までを計算して
-  unsigned long currentMillis = millis();
-  if ((unsigned long)(currentMillis - lastInterruptMillis) <= (_maxDebounceDelay * 3))
+  // ・消費電流を減らすため常にスキャンをせずに割り込みが発生したら起きて一定時間スキャン（ポーリング）をする
+  // ・taskの通知値を利用して残りのポーリング回数を設定する
+  // ・キー押し時はスキャン中に入力ピンの電圧が変わるので押されてる限り割り込みが発生し続ける
+  // ・割り込みが発生し続けてる間（キーが押され続けている間）はtaskの通知値は_pollingMaxに設定され続ける
+  // ・キーが離されたら割り込みが発生しなくなりそこから_pollingMax回ポーリングされ0になったらスキャンを終了
+  if (ulTaskNotifyTake(pdFALSE, 0) > 0)
   {
     return true;
   }
@@ -168,7 +170,7 @@ void MatrixScan::task(void *pvParameters)
 {
   Set currentIDs, previousIDs;
 
-  while (1)
+  while (true)
   {
     if (needsKeyscan())
     {
@@ -200,8 +202,7 @@ void MatrixScan::task(void *pvParameters)
         }
         previousIDs = currentIDs;
       }
-      // poll interval
-      delay(_minDebounceDelay);
+      delay(_pollingInterval);
     }
     else
     {

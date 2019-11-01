@@ -61,8 +61,8 @@ private:
 
   static callback_t _callback;
   static TaskHandle_t _taskHandle;
-  static uint16_t _maxDebounceDelay;
-  static uint16_t _minDebounceDelay;
+  static uint16_t _pollingInterval;
+  static uint16_t _pollingMax;
   static Switch **_matrix;
   static const uint8_t *_inPins;
   static const uint8_t *_outPins;
