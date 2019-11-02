@@ -33,7 +33,8 @@ DebounceIn::callback_t DebounceIn::_callback = nullptr;
 TaskHandle_t DebounceIn::_taskHandle = nullptr;
 LinkedList<DebounceIn::PinInfo *> DebounceIn::_list;
 uint16_t DebounceIn::_maxDebounceDelay = 0;
-uint16_t DebounceIn::_minDebounceDelay = UINT16_MAX;
+uint16_t DebounceIn::_pollingInterval = UINT16_MAX;
+uint16_t DebounceIn::_pollingMax = 0;
 
 void DebounceIn::init()
 {
@@ -43,6 +44,9 @@ void DebounceIn::init()
     info->bounce.attach(info->pin, info->mode);
     attachInterrupt(info->pin, interrupt_callback, CHANGE);
   }
+  // ポーリング回数は最低でもdebounceDelayの最大値を超える値に設定
+  _pollingMax = (_maxDebounceDelay + (_pollingInterval - 1)) / _pollingInterval; // ceil(_maxDebounceDelay / _pollingInterval)
+  _pollingMax += 2;
 }
 
 void DebounceIn::addPin(uint8_t pin, int mode, uint16_t debounceDelay)
@@ -53,8 +57,10 @@ void DebounceIn::addPin(uint8_t pin, int mode, uint16_t debounceDelay)
   info->bounce.interval(debounceDelay);
   _list.add(info);
 
+  // 後でポーリング回数を決めるためにdebounceDelayの最大値を保存しておく
   _maxDebounceDelay = max(debounceDelay, _maxDebounceDelay);
-  _minDebounceDelay = min(debounceDelay, _minDebounceDelay);
+  // debounceDelayの最小値の間隔でポーリングする
+  _pollingInterval = min(debounceDelay, _pollingInterval);
 }
 
 void DebounceIn::startTask()
@@ -86,23 +92,17 @@ void DebounceIn::interrupt_callback()
 {
   if (_taskHandle != nullptr)
   {
-    xTaskNotifyFromISR(_taskHandle, 2, eSetValueWithOverwrite, nullptr);
+    // 通知値を_pollingMaxに設定して通知
+    xTaskNotifyFromISR(_taskHandle, _pollingMax, eSetValueWithOverwrite, nullptr);
   }
 }
 
 bool DebounceIn::needsUpdate()
 {
-  static unsigned long lastInterruptMillis = 0;
-
-  // 割り込みされたら
-  if (ulTaskNotifyTake(pdTRUE, 0) > 0)
-  {
-    lastInterruptMillis = millis();
-    return true;
-  }
-  // 最後に押されてた時間から今の時間までを計算して
-  unsigned long currentMillis = millis();
-  if ((unsigned long)(currentMillis - lastInterruptMillis) <= (_maxDebounceDelay * 3))
+  // ・消費電流を減らすため常にスキャンをせずに割り込みが発生したら起きて一定時間スキャン（ポーリング）をする
+  // ・taskの通知値を利用して残りのポーリング回数を設定する
+  // ・割り込みはCHANGEモードに設定しているのでスイッチを押す場合も離す場合も割り込みが発生する
+  if (ulTaskNotifyTake(pdFALSE, 0) > 0)
   {
     return true;
   }
@@ -127,8 +127,7 @@ void DebounceIn::task(void *pvParameters)
           }
         }
       }
-      // poll interval
-      delay(_minDebounceDelay);
+      delay(_pollingInterval);
     }
     else
     {
