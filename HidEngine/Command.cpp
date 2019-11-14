@@ -52,7 +52,7 @@ static Command *getRootCommand(Command *command)
 }
 
 // instance method
-uint8_t Command::press(uint8_t accrued)
+uint8_t Command::press(uint8_t accumulation)
 {
   uint8_t result = 1;
   if (_prevState == false) //FALL
@@ -67,7 +67,7 @@ uint8_t Command::press(uint8_t accrued)
         listener->onDifferentRootCommandPress();
       }
     }
-    result = onPress(accrued);
+    result = onPress(accumulation);
   }
   _prevState = true;
   return result;
@@ -99,7 +99,7 @@ NormalKey::NormalKey(Keycode keycode) : _keycode(keycode)
 {
 }
 
-uint8_t NormalKey::onPress(uint8_t accrued)
+uint8_t NormalKey::onPress(uint8_t accumulation)
 {
   Hid::setKey(_keycode);
   Hid::sendKeyReport(true);
@@ -119,7 +119,7 @@ ModifierKey::ModifierKey(Modifier modifier) : _modifier(modifier)
 {
 }
 
-uint8_t ModifierKey::onPress(uint8_t accrued)
+uint8_t ModifierKey::onPress(uint8_t accumulation)
 {
   Hid::setModifier(_modifier);
   Hid::sendKeyReport(true);
@@ -139,7 +139,7 @@ CombinationKey::CombinationKey(Modifier modifier, Keycode keycode) : _modifier(m
 {
 }
 
-uint8_t CombinationKey::onPress(uint8_t accrued)
+uint8_t CombinationKey::onPress(uint8_t accumulation)
 {
   Hid::setKey(_keycode);
   Hid::setModifier(_modifier);
@@ -163,7 +163,7 @@ ModifierTap::ModifierTap(Modifier modifier, Command *command)
   _command->setParent(this);
 }
 
-uint8_t ModifierTap::onPress(uint8_t accrued)
+uint8_t ModifierTap::onPress(uint8_t accumulation)
 {
   Hid::setModifier(_modifier);
   return 1;
@@ -190,9 +190,9 @@ OneShotModifier::OneShotModifier(Modifier modifier) : _modifier(modifier)
 {
 }
 
-uint8_t OneShotModifier::onPress(uint8_t accrued)
+uint8_t OneShotModifier::onPress(uint8_t accumulation)
 {
-  Hid::setOneShotModifier(_modifier);
+  Hid::holdOneShotModifier(_modifier);
   return 1;
 }
 
@@ -215,7 +215,7 @@ Layering::Layering(Command *commands[LAYER_SIZE]) : _commands(commands)
   }
 }
 
-uint8_t Layering::onPress(uint8_t accrued)
+uint8_t Layering::onPress(uint8_t accumulation)
 {
   // 現在のレイヤーの状態を取得
   bool layerState[LAYER_SIZE];
@@ -248,7 +248,7 @@ uint8_t Layering::onPress(uint8_t accrued)
   uint8_t result = 1;
   if (_runningCommand != nullptr)
   {
-    result = _runningCommand->press(accrued);
+    result = _runningCommand->press(accumulation);
   }
   return result;
 }
@@ -270,7 +270,7 @@ LayerTap::LayerTap(uint8_t layerNumber, Command *command)
   _command->setParent(this);
 }
 
-uint8_t LayerTap::onPress(uint8_t accrued)
+uint8_t LayerTap::onPress(uint8_t accumulation)
 {
   Layer::on(_layerNumber);
   return 1;
@@ -293,7 +293,7 @@ ToggleLayer::ToggleLayer(uint8_t layerNumber) : _layerNumber(layerNumber)
 {
 }
 
-uint8_t ToggleLayer::onPress(uint8_t accrued)
+uint8_t ToggleLayer::onPress(uint8_t accumulation)
 {
   Layer::toggle(_layerNumber);
   return 1;
@@ -306,7 +306,7 @@ SwitchLayer::SwitchLayer(uint8_t layerNumber) : _layerNumber(layerNumber)
 {
 }
 
-uint8_t SwitchLayer::onPress(uint8_t accrued)
+uint8_t SwitchLayer::onPress(uint8_t accumulation)
 {
   Layer::on(_layerNumber);
   return 1;
@@ -324,7 +324,7 @@ OneShotLayer::OneShotLayer(uint8_t layerNumber) : _layerNumber(layerNumber)
 {
 }
 
-uint8_t OneShotLayer::onPress(uint8_t accrued)
+uint8_t OneShotLayer::onPress(uint8_t accumulation)
 {
   Layer::setOneShot(_layerNumber);
   Layer::peekOneShot(_chainedOSL);
@@ -363,7 +363,7 @@ TapDance::TapDance(Pair pairs[], size_t len)
   }
 }
 
-uint8_t TapDance::onPress(uint8_t accrued)
+uint8_t TapDance::onPress(uint8_t accumulation)
 {
   if (_state == State::Unexecuted || _state == State::Tap_or_NextCommand)
   {
@@ -444,7 +444,7 @@ TapOrHold::TapOrHold(Command *tapCommand, unsigned int ms, Command *holdCommand)
   _holdCommand->setParent(this);
 }
 
-uint8_t TapOrHold::onPress(uint8_t accrued)
+uint8_t TapOrHold::onPress(uint8_t accumulation)
 {
   if (_state == State::Unexecuted)
   {
@@ -486,7 +486,7 @@ ConsumerControll::ConsumerControll(UsageCode usageCode) : _usageCode(usageCode)
 {
 }
 
-uint8_t ConsumerControll::onPress(uint8_t accrued)
+uint8_t ConsumerControll::onPress(uint8_t accumulation)
 {
   Hid::consumerKeyPress(_usageCode);
   return 1;
@@ -554,7 +554,7 @@ MouseMove::MouseMove(int8_t x, int8_t y)
 {
 }
 
-uint8_t MouseMove::onPress(uint8_t accrued)
+uint8_t MouseMove::onPress(uint8_t accumulation)
 {
   _mover.setXY(_x, _y);
   return 1;
@@ -573,7 +573,7 @@ MouseSpeed::MouseSpeed(int16_t percent)
 {
 }
 
-uint8_t MouseSpeed::onPress(uint8_t accrued)
+uint8_t MouseSpeed::onPress(uint8_t accumulation)
 {
   if (_percent == 0)
   {
@@ -605,10 +605,10 @@ MouseScroll::MouseScroll(int8_t scroll, int8_t horiz) : _scroll(scroll), _horiz(
 {
 }
 
-uint8_t MouseScroll::onPress(uint8_t accrued)
+uint8_t MouseScroll::onPress(uint8_t accumulation)
 {
   uint8_t possible = 127 / max(abs(_scroll), abs(_horiz));
-  uint8_t times = min(accrued, possible);
+  uint8_t times = min(accumulation, possible);
 
   Hid::mouseScroll(_scroll * times, _horiz * times);
   return times;
@@ -621,7 +621,7 @@ MouseClick::MouseClick(MouseButton button) : _button(button)
 {
 }
 
-uint8_t MouseClick::onPress(uint8_t accrued)
+uint8_t MouseClick::onPress(uint8_t accumulation)
 {
   Hid::mouseButtonPress(_button);
   return 1;
@@ -692,7 +692,7 @@ Macro::Macro(MacroCommand **mcommands, size_t len) : TimerMixin(), _mcommands(mc
 {
 }
 
-uint8_t Macro::onPress(uint8_t accrued)
+uint8_t Macro::onPress(uint8_t accumulation)
 {
   if (_isRunning)
   {
@@ -732,7 +732,7 @@ If::If(bool (*func)(), Command *trueCommand, Command *falseCommand)
   _falseCommand->setParent(this);
 }
 
-uint8_t If::onPress(uint8_t accrued)
+uint8_t If::onPress(uint8_t accumulation)
 {
   _runningCommand = _func() ? _trueCommand : _falseCommand;
   _runningCommand->press();
@@ -754,7 +754,7 @@ Double::Double(Command *command1, Command *command2)
   _command2->setParent(this);
 }
 
-uint8_t Double::onPress(uint8_t accrued)
+uint8_t Double::onPress(uint8_t accumulation)
 {
   _command1->press();
   _command2->press();

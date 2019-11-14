@@ -34,7 +34,7 @@ public:
   ConnectBluetooth(uint8_t slot);
 
 protected:
-  uint8_t onPress(uint8_t accrued) override;
+  uint8_t onPress(uint8_t accumulation) override;
 
 private:
   const uint8_t _slot;
@@ -44,14 +44,14 @@ private:
 class ResetConnection : public Command
 {
 protected:
-  uint8_t onPress(uint8_t accrued) override;
+  uint8_t onPress(uint8_t accumulation) override;
 };
 
 /*------------------------------------------------------------------*/
 class PrintBatteryLevel : public Command
 {
 protected:
-  uint8_t onPress(uint8_t accrued) override;
+  uint8_t onPress(uint8_t accumulation) override;
 };
 
 /*------------------------------------------------------------------*/

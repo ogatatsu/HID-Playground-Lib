@@ -374,7 +374,7 @@ void HidEngine::stopTracking(HidEngine::Tracking *tracking)
 /*------------------------------------------------------------------*/
 /* SequenceMode
  *------------------------------------------------------------------*/
-uint8_t HidEngine::SequenceMode::onPress(uint8_t accrued)
+uint8_t HidEngine::SequenceMode::onPress(uint8_t accumulation)
 {
   HidEngine::switchSequenceMode();
   return 1;
@@ -392,7 +392,7 @@ uint8_t HidEngine::Tracking::getID()
   return _trackID;
 }
 
-uint8_t HidEngine::Tracking::onPress(uint8_t accrued)
+uint8_t HidEngine::Tracking::onPress(uint8_t accumulation)
 {
   HidEngine::startTracking(this);
   return 1;

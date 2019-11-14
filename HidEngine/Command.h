@@ -38,14 +38,14 @@ class Command
 {
 public:
   Command();
-  uint8_t press(uint8_t accrued = 1);
+  uint8_t press(uint8_t accumulation = 1);
   void release();
   void setParent(Command *parent) { _parent = parent; }
   Command *getParent() { return _parent; }
 
 protected:
   bool isLastPressed();
-  virtual uint8_t onPress(uint8_t accrued) { return 1; }
+  virtual uint8_t onPress(uint8_t accumulation) { return 1; }
   virtual void onRelease() {}
   virtual void onDifferentRootCommandPress() {}
   void addEventListener_DifferentRootCommandPress();
@@ -72,7 +72,7 @@ public:
   NormalKey(Keycode keycode);
 
 protected:
-  uint8_t onPress(uint8_t accrued) override;
+  uint8_t onPress(uint8_t accumulation) override;
   void onRelease() override;
 
 private:
@@ -86,7 +86,7 @@ public:
   ModifierKey(Modifier modifier);
 
 protected:
-  uint8_t onPress(uint8_t accrued) override;
+  uint8_t onPress(uint8_t accumulation) override;
   void onRelease() override;
 
 private:
@@ -100,7 +100,7 @@ public:
   CombinationKey(Modifier modifier, Keycode keycode);
 
 protected:
-  uint8_t onPress(uint8_t accrued) override;
+  uint8_t onPress(uint8_t accumulation) override;
   void onRelease() override;
 
 private:
@@ -115,7 +115,7 @@ public:
   ModifierTap(Modifier modifier, Command *command);
 
 protected:
-  uint8_t onPress(uint8_t accrued) override;
+  uint8_t onPress(uint8_t accumulation) override;
   void onRelease() override;
 
 private:
@@ -130,7 +130,7 @@ public:
   OneShotModifier(Modifier modifier);
 
 protected:
-  uint8_t onPress(uint8_t accrued) override;
+  uint8_t onPress(uint8_t accumulation) override;
   void onRelease() override;
 
 private:
@@ -144,7 +144,7 @@ public:
   Layering(Command *commands[LAYER_SIZE]);
 
 protected:
-  uint8_t onPress(uint8_t accrued) override;
+  uint8_t onPress(uint8_t accumulation) override;
   void onRelease() override;
 
 private:
@@ -159,7 +159,7 @@ public:
   LayerTap(uint8_t layerNumber, Command *command);
 
 protected:
-  uint8_t onPress(uint8_t accrued) override;
+  uint8_t onPress(uint8_t accumulation) override;
   void onRelease() override;
 
 private:
@@ -174,7 +174,7 @@ public:
   ToggleLayer(uint8_t layerNumber);
 
 protected:
-  uint8_t onPress(uint8_t accrued) override;
+  uint8_t onPress(uint8_t accumulation) override;
 
 private:
   const uint8_t _layerNumber;
@@ -187,7 +187,7 @@ public:
   SwitchLayer(uint8_t layerNumber);
 
 protected:
-  uint8_t onPress(uint8_t accrued) override;
+  uint8_t onPress(uint8_t accumulation) override;
   void onRelease() override;
 
 private:
@@ -201,7 +201,7 @@ public:
   OneShotLayer(uint8_t layerNumber);
 
 protected:
-  uint8_t onPress(uint8_t accrued) override;
+  uint8_t onPress(uint8_t accumulation) override;
   void onRelease() override;
 
 private:
@@ -222,7 +222,7 @@ public:
   TapDance(Pair pairs[], size_t len);
 
 protected:
-  uint8_t onPress(uint8_t accrued) override;
+  uint8_t onPress(uint8_t accumulation) override;
   void onRelease() override;
   void onTimer() override;
   void onDifferentRootCommandPress() override;
@@ -250,7 +250,7 @@ public:
   TapOrHold(Command *tapCommand, unsigned int ms, Command *holdCommand);
 
 protected:
-  uint8_t onPress(uint8_t accrued) override;
+  uint8_t onPress(uint8_t accumulation) override;
   void onRelease() override;
   void onTimer() override;
 
@@ -275,7 +275,7 @@ public:
   ConsumerControll(UsageCode usageCode);
 
 protected:
-  uint8_t onPress(uint8_t accrued) override;
+  uint8_t onPress(uint8_t accumulation) override;
   void onRelease() override;
 
 private:
@@ -289,7 +289,7 @@ public:
   MouseMove(int8_t x, int8_t y);
 
 protected:
-  uint8_t onPress(uint8_t accrued) override;
+  uint8_t onPress(uint8_t accumulation) override;
   void onRelease() override;
 
 private:
@@ -324,7 +324,7 @@ public:
   MouseSpeed(int16_t percent);
 
 protected:
-  uint8_t onPress(uint8_t accrued) override;
+  uint8_t onPress(uint8_t accumulation) override;
   void onRelease() override;
 
 private:
@@ -338,7 +338,7 @@ public:
   MouseScroll(int8_t scroll, int8_t horiz);
 
 protected:
-  uint8_t onPress(uint8_t accrued) override;
+  uint8_t onPress(uint8_t accumulation) override;
 
 private:
   const int8_t _scroll;
@@ -352,7 +352,7 @@ public:
   MouseClick(MouseButton button);
 
 protected:
-  uint8_t onPress(uint8_t accrued) override;
+  uint8_t onPress(uint8_t accumulation) override;
   void onRelease() override;
 
 private:
@@ -422,7 +422,7 @@ public:
   Macro(MacroCommand **mcommands, size_t len);
 
 protected:
-  uint8_t onPress(uint8_t accrued) override;
+  uint8_t onPress(uint8_t accumulation) override;
   void onTimer() override;
 
 private:
@@ -439,7 +439,7 @@ public:
   If(bool (*func)(), Command *trueCommand, Command *falseCommand);
 
 protected:
-  uint8_t onPress(uint8_t accrued) override;
+  uint8_t onPress(uint8_t accumulation) override;
   void onRelease() override;
 
 private:
@@ -456,7 +456,7 @@ public:
   Double(Command *command1, Command *command2);
 
 protected:
-  uint8_t onPress(uint8_t accrued) override;
+  uint8_t onPress(uint8_t accumulation) override;
   void onRelease() override;
 
 private:

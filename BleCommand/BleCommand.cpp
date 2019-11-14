@@ -37,7 +37,7 @@ ConnectBluetooth::ConnectBluetooth(uint8_t slot) : _slot(slot)
 {
 }
 
-uint8_t ConnectBluetooth::onPress(uint8_t accrued)
+uint8_t ConnectBluetooth::onPress(uint8_t accumulation)
 {
   BleController::startPrphConnection(_slot);
   return 1;
@@ -46,7 +46,7 @@ uint8_t ConnectBluetooth::onPress(uint8_t accrued)
 /*------------------------------------------------------------------*/
 /* ResetConnection
  *------------------------------------------------------------------*/
-uint8_t ResetConnection::onPress(uint8_t accrued)
+uint8_t ResetConnection::onPress(uint8_t accumulation)
 {
   BleController::clearBonds();
   NVIC_SystemReset();
@@ -71,7 +71,7 @@ static void tap(Keycode keycode)
   Hid::sendKeyReport(false);
 }
 
-uint8_t PrintBatteryLevel::onPress(uint8_t accrued)
+uint8_t PrintBatteryLevel::onPress(uint8_t accumulation)
 {
   uint8_t level = BatteryUtil::readBatteryLevel();
 

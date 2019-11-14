@@ -45,7 +45,7 @@ public:
   static void unsetKey(Keycode keycode);
   static void setModifier(Modifier modifier);
   static void unsetModifier(Modifier modifier);
-  static void setOneShotModifier(Modifier modifier);
+  static void holdOneShotModifier(Modifier modifier);
   static void releaseOneShotModifier(Modifier modifier);
   static void sendKeyReport(bool triggerOneShot);
 

@@ -117,7 +117,7 @@ public:
   class SequenceMode : public Command
   {
   protected:
-    uint8_t onPress(uint8_t accrued) override;
+    uint8_t onPress(uint8_t accumulation) override;
   };
 
   class Tracking : public Command
@@ -127,7 +127,7 @@ public:
     uint8_t getID();
 
   protected:
-    uint8_t onPress(uint8_t accrued) override;
+    uint8_t onPress(uint8_t accumulation) override;
     void onRelease() override;
 
   private:

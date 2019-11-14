@@ -138,7 +138,7 @@ void Hid::unsetModifier(Modifier modifier)
   countDown(_modifierCounter, static_cast<uint8_t>(modifier));
 }
 
-void Hid::setOneShotModifier(Modifier modifier)
+void Hid::holdOneShotModifier(Modifier modifier)
 {
   countUp(_oneShotModifierCounter, static_cast<uint8_t>(modifier));
 }
