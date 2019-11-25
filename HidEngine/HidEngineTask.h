@@ -39,7 +39,7 @@ enum class EventType
   TapCommand,
   MouseMove,
   Timer,
-  CmdTapper,
+  CommandTapper,
 };
 
 struct ApplyToKeymapEventData
@@ -65,7 +65,7 @@ struct TimerEventData
   unsigned int number;
 };
 
-struct CmdTapperEventData
+struct CommandTapperEventData
 {
   //empty
 };
@@ -80,7 +80,7 @@ struct EventData
     TapCommandEventData tapCommand;
     MouseMoveEventData mouseMove;
     TimerEventData *timer;
-    CmdTapperEventData cmdTapper;
+    CommandTapperEventData commandTapper;
   };
 };
 

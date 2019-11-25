@@ -23,7 +23,7 @@
 */
 
 #include "HidEngine.h"
-#include "CmdTapper.h"
+#include "CommandTapper.h"
 #include "HidCore.h"
 #include "HidEngineTask.h"
 #include <Arduino.h>
@@ -55,7 +55,7 @@ void HidEngine::setHidReporter(HidReporter *hidReporter)
 void HidEngine::init()
 {
   HidEngineTask::init();
-  CmdTapper::init();
+  CommandTapper::init();
 }
 
 void HidEngine::startTask()
@@ -293,7 +293,7 @@ void HidEngine::mouseMove_impl(int16_t x, int16_t y)
       _distanceY %= threshold;
       if (_trackmap[idx].upCommand != nullptr)
       {
-        CmdTapper::tap(_trackmap[idx].upCommand, times);
+        CommandTapper::tap(_trackmap[idx].upCommand, times);
       }
     }
     else if (_distanceY >= threshold) // 下
@@ -302,7 +302,7 @@ void HidEngine::mouseMove_impl(int16_t x, int16_t y)
       _distanceY %= threshold;
       if (_trackmap[idx].downCommand != nullptr)
       {
-        CmdTapper::tap(_trackmap[idx].downCommand, times);
+        CommandTapper::tap(_trackmap[idx].downCommand, times);
       }
     }
 
@@ -312,7 +312,7 @@ void HidEngine::mouseMove_impl(int16_t x, int16_t y)
       _distanceX %= threshold;
       if (_trackmap[idx].leftCommand != nullptr)
       {
-        CmdTapper::tap(_trackmap[idx].leftCommand, times);
+        CommandTapper::tap(_trackmap[idx].leftCommand, times);
       }
     }
     else if (_distanceX >= threshold) // 右
@@ -322,7 +322,7 @@ void HidEngine::mouseMove_impl(int16_t x, int16_t y)
 
       if (_trackmap[idx].rightCommand != nullptr)
       {
-        CmdTapper::tap(_trackmap[idx].rightCommand, times);
+        CommandTapper::tap(_trackmap[idx].rightCommand, times);
       }
     }
   }

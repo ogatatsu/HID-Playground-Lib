@@ -27,7 +27,7 @@
 namespace hidpg
 {
 
-class CmdTapper
+class CommandTapper
 {
   friend class HidEngineTask;
 

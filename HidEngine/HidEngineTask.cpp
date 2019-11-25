@@ -23,7 +23,7 @@
 */
 
 #include "HidEngineTask.h"
-#include "CmdTapper.h"
+#include "CommandTapper.h"
 #include "HidEngine.h"
 #include <Arduino.h>
 
@@ -96,7 +96,7 @@ void HidEngineTask::task(void *pvParameters)
     }
     case EventType::TapCommand:
     {
-      CmdTapper::tap(edata->tapCommand.command, edata->tapCommand.times);
+      CommandTapper::tap(edata->tapCommand.command, edata->tapCommand.times);
       break;
     }
     case EventType::MouseMove:
@@ -110,9 +110,9 @@ void HidEngineTask::task(void *pvParameters)
       delete edata->timer;
       break;
     }
-    case EventType::CmdTapper:
+    case EventType::CommandTapper:
     {
-      CmdTapper::onTimer();
+      CommandTapper::onTimer();
       break;
     }
     default:

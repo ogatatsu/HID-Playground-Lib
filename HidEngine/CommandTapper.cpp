@@ -22,7 +22,7 @@
   THE SOFTWARE.
 */
 
-#include "CmdTapper.h"
+#include "CommandTapper.h"
 #include "HidEngineTask.h"
 #include "portFreeRTOS.h"
 #include <Arduino.h>
@@ -30,20 +30,17 @@
 namespace hidpg
 {
 
-/*------------------------------------------------------------------*/
-/* CmdTapper
- *------------------------------------------------------------------*/
-LinkedList<CmdTapper::Pair> CmdTapper::_list;
-CmdTapper::Pair CmdTapper::_running{.command = nullptr, .times = 0};
-CmdTapper::State CmdTapper::_nextState = CmdTapper::State::press;
-TimerHandle_t CmdTapper::_timerHandle = nullptr;
+LinkedList<CommandTapper::Pair> CommandTapper::_list;
+CommandTapper::Pair CommandTapper::_running{.command = nullptr, .times = 0};
+CommandTapper::State CommandTapper::_nextState = CommandTapper::State::press;
+TimerHandle_t CommandTapper::_timerHandle = nullptr;
 
-void CmdTapper::init()
+void CommandTapper::init()
 {
   _timerHandle = xTimerCreate(nullptr, pdMS_TO_TICKS(1), false, nullptr, timeout);
 }
 
-void CmdTapper::tap(Command *command, uint8_t times)
+void CommandTapper::tap(Command *command, uint8_t times)
 {
   if (times == 0 || command == nullptr)
   {
@@ -74,7 +71,7 @@ void CmdTapper::tap(Command *command, uint8_t times)
   _list.add(last);
 }
 
-void CmdTapper::onTimer()
+void CommandTapper::onTimer()
 {
   if (_nextState == State::release)
   {
@@ -105,11 +102,11 @@ void CmdTapper::onTimer()
   }
 }
 
-void CmdTapper::timeout(TimerHandle_t timerHandle)
+void CommandTapper::timeout(TimerHandle_t timerHandle)
 {
   // Software Timersのスタックを消費しないようにstaticで宣言
   static EventData edata;
-  edata.eventType = EventType::CmdTapper;
+  edata.eventType = EventType::CommandTapper;
   HidEngineTask::enqueEvent(edata);
 }
 
