@@ -41,7 +41,7 @@ protected:
   virtual void onTimer() {}
 
 private:
-  static void timeout(TimerHandle_t timerHandle);
+  static void timer_callback(TimerHandle_t timerHandle);
 
   void trigger(unsigned int number);
 

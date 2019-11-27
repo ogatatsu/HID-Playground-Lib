@@ -122,7 +122,7 @@ private:
   PMW3360(ThreadSafeSPIClass &spi, uint8_t ncsPin, uint8_t interruptPin, uint8_t id);
 
   static void task(void *pvParameters);
-  static void timeout(TimerHandle_t th);
+  static void timer_callback(TimerHandle_t th);
   static void interrupt_callback_0();
   static void interrupt_callback_1();
   static TaskHandle_t _taskHandles[2];

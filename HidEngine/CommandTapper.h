@@ -36,7 +36,7 @@ public:
   static void init();
 
 private:
-  static void timeout(TimerHandle_t timerHandle);
+  static void timer_callback(TimerHandle_t timerHandle);
   static void onTimer();
 
   struct Pair

@@ -157,7 +157,7 @@ void PMW3360::task(void *pvParameters)
   }
 }
 
-void PMW3360::timeout(TimerHandle_t th)
+void PMW3360::timer_callback(TimerHandle_t th)
 {
   PMW3360 *that = static_cast<PMW3360 *>(pvTimerGetTimerID(th));
   xTaskNotify(_taskHandles[that->_id], bit(TimerEventBit), eSetBits);
@@ -188,7 +188,7 @@ void PMW3360::init()
   attachInterrupt(digitalPinToInterrupt(_interruptPin), interrupt_callback, FALLING);
 
   // デフォルトはRest mode
-  _timerHandle = xTimerCreate(nullptr, pdMS_TO_TICKS(PMW3360_REST_MODE_CALLBACK_INTERVAL), true, this, timeout);
+  _timerHandle = xTimerCreate(nullptr, pdMS_TO_TICKS(PMW3360_REST_MODE_CALLBACK_INTERVAL), true, this, timer_callback);
 }
 
 void PMW3360::startTask()

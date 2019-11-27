@@ -28,7 +28,7 @@
 namespace hidpg
 {
 
-void TimerMixin::timeout(TimerHandle_t timerHandle)
+void TimerMixin::timer_callback(TimerHandle_t timerHandle)
 {
   // Software Timersのスタックを消費しないようにstaticで宣言
   static EventData edata;
@@ -51,7 +51,7 @@ void TimerMixin::startTimer(unsigned int ms)
   tdata->cls = this;
   tdata->number = ++_timerNumber;
 
-  TimerHandle_t th = xTimerCreate(nullptr, pdMS_TO_TICKS(ms), false, tdata, timeout);
+  TimerHandle_t th = xTimerCreate(nullptr, pdMS_TO_TICKS(ms), false, tdata, timer_callback);
   xTimerStart(th, portMAX_DELAY);
 
   _isActive = true;

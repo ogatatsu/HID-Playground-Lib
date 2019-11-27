@@ -37,7 +37,7 @@ TimerHandle_t CommandTapper::_timerHandle = nullptr;
 
 void CommandTapper::init()
 {
-  _timerHandle = xTimerCreate(nullptr, pdMS_TO_TICKS(1), false, nullptr, timeout);
+  _timerHandle = xTimerCreate(nullptr, pdMS_TO_TICKS(1), false, nullptr, timer_callback);
 }
 
 void CommandTapper::tap(Command *command, uint8_t times)
@@ -102,7 +102,7 @@ void CommandTapper::onTimer()
   }
 }
 
-void CommandTapper::timeout(TimerHandle_t timerHandle)
+void CommandTapper::timer_callback(TimerHandle_t timerHandle)
 {
   // Software Timersのスタックを消費しないようにstaticで宣言
   static EventData edata;
