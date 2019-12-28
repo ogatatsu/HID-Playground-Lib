@@ -32,12 +32,12 @@ namespace hidpg
 
 LinkedList<CommandTapper::Pair> CommandTapper::_list;
 CommandTapper::Pair CommandTapper::_running{.command = nullptr, .times = 0};
-CommandTapper::State CommandTapper::_nextState = CommandTapper::State::press;
-TimerHandle_t CommandTapper::_timerHandle = nullptr;
+CommandTapper::State CommandTapper::_next_state = CommandTapper::State::press;
+TimerHandle_t CommandTapper::_timer_handle = nullptr;
 
 void CommandTapper::init()
 {
-  _timerHandle = xTimerCreate(nullptr, pdMS_TO_TICKS(1), false, nullptr, timer_callback);
+  _timer_handle = xTimerCreate(nullptr, pdMS_TO_TICKS(1), false, nullptr, timer_callback);
 }
 
 void CommandTapper::tap(Command *command, uint8_t times)
@@ -53,8 +53,8 @@ void CommandTapper::tap(Command *command, uint8_t times)
     _running.times = times;
 
     _running.times -= _running.command->press(_running.times);
-    _nextState = State::release;
-    xTimerStart(_timerHandle, portMAX_DELAY);
+    _next_state = State::release;
+    xTimerStart(_timer_handle, portMAX_DELAY);
     return;
   }
 
@@ -73,20 +73,20 @@ void CommandTapper::tap(Command *command, uint8_t times)
 
 void CommandTapper::onTimer()
 {
-  if (_nextState == State::release)
+  if (_next_state == State::release)
   {
     _running.command->release();
-    _nextState = State::press;
+    _next_state = State::press;
     if (_running.times > 0)
     {
-      xTimerStart(_timerHandle, portMAX_DELAY);
+      xTimerStart(_timer_handle, portMAX_DELAY);
     }
     else
     {
       _running.command = nullptr;
       if (_list.size() > 0)
       {
-        xTimerStart(_timerHandle, portMAX_DELAY);
+        xTimerStart(_timer_handle, portMAX_DELAY);
       }
     }
   }
@@ -97,17 +97,17 @@ void CommandTapper::onTimer()
       _running = _list.shift();
     }
     _running.times -= _running.command->press(_running.times);
-    _nextState = State::release;
-    xTimerStart(_timerHandle, portMAX_DELAY);
+    _next_state = State::release;
+    xTimerStart(_timer_handle, portMAX_DELAY);
   }
 }
 
 void CommandTapper::timer_callback(TimerHandle_t timerHandle)
 {
   // Software Timersのスタックを消費しないようにstaticで宣言
-  static EventData edata;
-  edata.eventType = EventType::CommandTapper;
-  HidEngineTask::enqueEvent(edata);
+  static EventData e_data;
+  e_data.event_type = EventType::CommandTapper;
+  HidEngineTask::enqueEvent(e_data);
 }
 
 } // namespace hidpg

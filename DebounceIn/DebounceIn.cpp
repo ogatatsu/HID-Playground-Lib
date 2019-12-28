@@ -30,56 +30,56 @@ namespace hidpg
 {
 
 DebounceIn::callback_t DebounceIn::_callback = nullptr;
-TaskHandle_t DebounceIn::_taskHandle = nullptr;
-LinkedList<DebounceIn::PinInfo *> DebounceIn::_list;
-uint16_t DebounceIn::_maxDebounceDelay = 0;
-uint16_t DebounceIn::_pollingInterval = UINT16_MAX;
-uint16_t DebounceIn::_pollingMax = 0;
+TaskHandle_t DebounceIn::_task_handle = nullptr;
+LinkedList<DebounceIn::PinInfo *> DebounceIn::_pin_info_list;
+uint16_t DebounceIn::_max_debounce_delay_ms = 0;
+uint16_t DebounceIn::_polling_interval_ms = UINT16_MAX;
+uint16_t DebounceIn::_max_polling_count = 0;
 
 void DebounceIn::init()
 {
-  for (int i = 0; i < _list.size(); i++)
+  for (int i = 0; i < _pin_info_list.size(); i++)
   {
-    PinInfo *info = _list.get(i);
+    PinInfo *info = _pin_info_list.get(i);
     info->bounce.attach(info->pin, info->mode);
     attachInterrupt(info->pin, interrupt_callback, CHANGE);
   }
-  // ポーリング回数は最低でもdebounceDelayの最大値を超える値に設定
-  _pollingMax = (_maxDebounceDelay + (_pollingInterval - 1)) / _pollingInterval; // ceil(_maxDebounceDelay / _pollingInterval)
-  _pollingMax += 2;
+  // ポーリング回数は最低でもdebounce_delayの最大値を超える値に設定
+  _max_polling_count = (_max_debounce_delay_ms + (_polling_interval_ms - 1)) / _polling_interval_ms; // ceil(_max_debounce_delay_ms / _polling_interval_ms) 相当
+  _max_polling_count += 2;
 }
 
-void DebounceIn::addPin(uint8_t pin, int mode, uint16_t debounceDelay)
+void DebounceIn::addPin(uint8_t pin, int mode, uint16_t debounce_delay_ms)
 {
   PinInfo *info = new PinInfo;
   info->pin = pin;
   info->mode = mode;
-  info->bounce.interval(debounceDelay);
-  _list.add(info);
+  info->bounce.interval(debounce_delay_ms);
+  _pin_info_list.add(info);
 
-  // 後でポーリング回数を決めるためにdebounceDelayの最大値を保存しておく
-  _maxDebounceDelay = max(debounceDelay, _maxDebounceDelay);
-  // debounceDelayの最小値の間隔でポーリングする
-  _pollingInterval = min(debounceDelay, _pollingInterval);
+  // 後でポーリング回数を決めるためにdebounce_delayの最大値を保存しておく
+  _max_debounce_delay_ms = max(debounce_delay_ms, _max_debounce_delay_ms);
+  // debounce_delayの最小値の間隔でポーリングする
+  _polling_interval_ms = min(debounce_delay_ms, _polling_interval_ms);
 }
 
 void DebounceIn::startTask()
 {
-  if (_taskHandle == nullptr)
+  if (_task_handle == nullptr)
   {
-    xTaskCreate(task, "Debounce", DEBOUNCE_IN_TASK_STACK_SIZE, nullptr, DEBOUNCE_IN_TASK_PRIO, &_taskHandle);
+    xTaskCreate(task, "Debounce", DEBOUNCE_IN_TASK_STACK_SIZE, nullptr, DEBOUNCE_IN_TASK_PRIO, &_task_handle);
   }
   else
   {
-    vTaskResume(_taskHandle);
+    vTaskResume(_task_handle);
   }
 }
 
 void DebounceIn::stopTask()
 {
-  if (_taskHandle != nullptr)
+  if (_task_handle != nullptr)
   {
-    vTaskSuspend(_taskHandle);
+    vTaskSuspend(_task_handle);
   }
 }
 
@@ -90,17 +90,17 @@ void DebounceIn::setCallback(callback_t callback)
 
 void DebounceIn::interrupt_callback()
 {
-  if (_taskHandle != nullptr)
+  if (_task_handle != nullptr)
   {
-    // 通知値を_pollingMaxに設定して通知
-    xTaskNotifyFromISR(_taskHandle, _pollingMax, eSetValueWithOverwrite, nullptr);
+    // 通知値を_max_polling_countに設定して通知
+    xTaskNotifyFromISR(_task_handle, _max_polling_count, eSetValueWithOverwrite, nullptr);
   }
 }
 
 bool DebounceIn::needsUpdate()
 {
   // ・消費電流を減らすため常にスキャンをせずに割り込みが発生したら起きて一定時間スキャン（ポーリング）をする
-  // ・taskの通知値を利用して残りのポーリング回数を設定する
+  // ・FreeRTOSのtask通知を利用して残りのポーリング回数を設定する
   // ・割り込みはCHANGEモードに設定しているのでスイッチを押す場合も離す場合も割り込みが発生する
   if (ulTaskNotifyTake(pdFALSE, 0) > 0)
   {
@@ -116,9 +116,9 @@ void DebounceIn::task(void *pvParameters)
     if (needsUpdate())
     {
       // update
-      for (int i = 0; i < _list.size(); i++)
+      for (int i = 0; i < _pin_info_list.size(); i++)
       {
-        PinInfo *info = _list.get(i);
+        PinInfo *info = _pin_info_list.get(i);
         if (info->bounce.update())
         {
           if (_callback != nullptr)
@@ -127,7 +127,7 @@ void DebounceIn::task(void *pvParameters)
           }
         }
       }
-      delay(_pollingInterval);
+      delay(_polling_interval_ms);
     }
     else
     {

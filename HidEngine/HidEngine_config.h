@@ -30,8 +30,8 @@
 #endif
 
 // TapDanceコマンドのタップ判定時間 (ms)
-#ifndef TAPPING_TERM
-#define TAPPING_TERM 200
+#ifndef TAPPING_TERM_MS
+#define TAPPING_TERM_MS 200
 #endif
 
 // 同時押しキーマップの最大同時押し数
@@ -45,14 +45,14 @@
 #endif
 
 // MouseMoveコマンドの最初のキープレス時のディレイ
-#ifndef MOUSEKEY_DELAY
-#define MOUSEKEY_DELAY 200
+#ifndef MOUSEKEY_DELAY_MS
+#define MOUSEKEY_DELAY_MS 200
 #endif
 
 // MouseMoveのマウスカーソルの動く間隔 (ms)
 // ワイヤレスの場合下げすぎると不安定になるかも
-#ifndef MOUSEKEY_INTERVAL
-#define MOUSEKEY_INTERVAL 15
+#ifndef MOUSEKEY_INTERVAL_MS
+#define MOUSEKEY_INTERVAL_MS 15
 #endif
 
 // HidEngineタスクのスタックサイズ

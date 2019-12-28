@@ -28,53 +28,53 @@
 namespace hidpg
 {
 
-void TimerMixin::timer_callback(TimerHandle_t timerHandle)
+void TimerMixin::timer_callback(TimerHandle_t timer_handle)
 {
   // Software Timersのスタックを消費しないようにstaticで宣言
-  static EventData edata;
-  edata.eventType = EventType::Timer;
+  static EventData e_data;
+  e_data.event_type = EventType::Timer;
 
-  TimerEventData *tdata = static_cast<TimerEventData *>(pvTimerGetTimerID(timerHandle));
-  edata.timer = tdata;
-  HidEngineTask::enqueEvent(edata);
+  TimerEventData *te_data = static_cast<TimerEventData *>(pvTimerGetTimerID(timer_handle));
+  e_data.timer = te_data;
+  HidEngineTask::enqueEvent(e_data);
 
-  xTimerDelete(timerHandle, portMAX_DELAY);
+  xTimerDelete(timer_handle, portMAX_DELAY);
 }
 
-TimerMixin::TimerMixin() : _isActive(false), _timerNumber(0)
+TimerMixin::TimerMixin() : _is_active(false), _num_of_timer(0)
 {
 }
 
 void TimerMixin::startTimer(unsigned int ms)
 {
-  TimerEventData *tdata = new TimerEventData();
-  tdata->cls = this;
-  tdata->number = ++_timerNumber;
+  TimerEventData *te_data = new TimerEventData();
+  te_data->cls = this;
+  te_data->timer_number = ++_num_of_timer;
 
-  TimerHandle_t th = xTimerCreate(nullptr, pdMS_TO_TICKS(ms), false, tdata, timer_callback);
+  TimerHandle_t th = xTimerCreate(nullptr, pdMS_TO_TICKS(ms), false, te_data, timer_callback);
   xTimerStart(th, portMAX_DELAY);
 
-  _isActive = true;
+  _is_active = true;
 }
 
 void TimerMixin::stopTimer()
 {
-  _isActive = false;
+  _is_active = false;
 }
 
 bool TimerMixin::isTimerActive()
 {
-  return _isActive;
+  return _is_active;
 }
 
 // プリエンプティブなマルチタスクだとタスク切換えとstartTimer関数の呼び出しタイミングによっては
 // 2個以上のタイマーイベントがイベントキューに入るかもしれないが
-// timerNumberを見て最後に作ったイベントのみを実行する仕様とする(使用側からはワンショットタイマーが１個だけ動いてるように見せたい)
-void TimerMixin::trigger(unsigned int number)
+// timer_numberを見て最後に作ったイベントのみを実行する仕様とする(使用側からはワンショットタイマーが１個だけ動いてるように見せたい)
+void TimerMixin::trigger(unsigned int timer_number)
 {
-  if (_isActive && (_timerNumber == number))
+  if (_is_active && (_num_of_timer == timer_number))
   {
-    _isActive = false;
+    _is_active = false;
     onTimer();
   }
 }

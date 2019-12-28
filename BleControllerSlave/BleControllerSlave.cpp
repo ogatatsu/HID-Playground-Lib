@@ -28,11 +28,11 @@
 namespace hidpg
 {
 
-BLEUartLight BleControllerSlave::_bleuart;
-BLEBas BleControllerSlave::_blebas;
-BlinkLed BleControllerSlave::_advLed(ADV_LED_PIN, ADV_LED_ACTIVE_STATE, IS_HIGH_DRIVE);
-BleControllerSlave::prphCannotConnectCallback_t BleControllerSlave::_cannotConnectCallback = nullptr;
-BleControllerSlave::receiveDataCallback_t BleControllerSlave::_receiveDataCallback = nullptr;
+BLEUartLight BleControllerSlave::_ble_uart;
+BLEBas BleControllerSlave::_ble_bas;
+BlinkLed BleControllerSlave::_adv_led(ADV_LED_PIN, ADV_LED_ACTIVE_STATE, IS_HIGH_DRIVE);
+BleControllerSlave::prphCannotConnectCallback_t BleControllerSlave::_cannot_connect_cb = nullptr;
+BleControllerSlave::receiveDataCallback_t BleControllerSlave::_receive_data_cb = nullptr;
 
 /*------------------------------------------------------------------*/
 /* public
@@ -57,11 +57,11 @@ void BleControllerSlave::init()
 #endif
 
   // Configure and Start BLE Uart Service
-  _bleuart.begin();
-  _bleuart.setRxCallback(bleuart_rx_callback);
+  _ble_uart.begin();
+  _ble_uart.setRxCallback(bleuart_rx_callback);
 
   // Start BLE Battery Service
-  _blebas.begin();
+  _ble_bas.begin();
 }
 
 // 接続を開始
@@ -95,7 +95,7 @@ void BleControllerSlave::stopPrphConnection()
       delay(1);
     }
   }
-  _advLed.syncOff();
+  _adv_led.syncOff();
 }
 
 bool BleControllerSlave::isPrphRunning()
@@ -105,7 +105,7 @@ bool BleControllerSlave::isPrphRunning()
 
 uint16_t BleControllerSlave::sendData(const uint8_t *data, uint16_t len)
 {
-  return _bleuart.write(data, len);
+  return _ble_uart.write(data, len);
 }
 
 void BleControllerSlave::clearBonds()
@@ -115,17 +115,17 @@ void BleControllerSlave::clearBonds()
 
 void BleControllerSlave::setBatteryLevel(uint8_t level)
 {
-  _blebas.write(level);
+  _ble_bas.write(level);
 }
 
 void BleControllerSlave::setPrphCannnotConnectCallback(prphCannotConnectCallback_t callback)
 {
-  _cannotConnectCallback = callback;
+  _cannot_connect_cb = callback;
 }
 
 void BleControllerSlave::setReceiveDataCallback(receiveDataCallback_t callback)
 {
-  _receiveDataCallback = callback;
+  _receive_data_cb = callback;
 }
 
 /*------------------------------------------------------------------*/
@@ -138,7 +138,7 @@ void BleControllerSlave::startAdv(void)
   Bluefruit.Advertising.addTxPower();
 
   // Include bleuart 128-bit uuid
-  Bluefruit.Advertising.addService(_bleuart);
+  Bluefruit.Advertising.addService(_ble_uart);
 
   // Secondary Scan Response packet (optional)
   // Since there is no room for 'Name' in Advertising packet
@@ -158,28 +158,28 @@ void BleControllerSlave::startAdv(void)
   Bluefruit.Advertising.setInterval(32, 244); // in unit of 0.625 ms
   Bluefruit.Advertising.setFastTimeout(30);   // number of seconds in fast mode
   Bluefruit.Advertising.start(60);            // 0 = Don't stop advertising after n seconds
-  _advLed.blink();                            // advertising status led
+  _adv_led.blink();                           // advertising status led
 }
 
 // 一定時間接続できなかった場合
 void BleControllerSlave::adv_stop_callback()
 {
-  _advLed.syncOff();
-  if (_cannotConnectCallback != nullptr)
+  _adv_led.syncOff();
+  if (_cannot_connect_cb != nullptr)
   {
-    _cannotConnectCallback();
+    _cannot_connect_cb();
   }
 }
 
-void BleControllerSlave::connect_callback(uint16_t connHandle)
+void BleControllerSlave::connect_callback(uint16_t conn_handle)
 {
-  BLEConnection *conn = Bluefruit.Connection(connHandle);
+  BLEConnection *conn = Bluefruit.Connection(conn_handle);
   conn->requestConnectionParameter(CONNECTION_INTERVAL, SLAVE_LATENCY, SUPERVISION_TIMEOUT);
   conn->requestPHY();
-  _advLed.off();
+  _adv_led.off();
 }
 
-void BleControllerSlave::disconnect_callback(uint16_t connHandle, uint8_t reason)
+void BleControllerSlave::disconnect_callback(uint16_t conn_handle, uint8_t reason)
 {
   switch (reason)
   {
@@ -193,17 +193,17 @@ void BleControllerSlave::disconnect_callback(uint16_t connHandle, uint8_t reason
   {
     // 通常はAdvertising.restartOnDisconnect(true)に設定してあるはず
     // Advertisingが自動再開されるはず、ledを点灯
-    _advLed.blink();
+    _adv_led.blink();
     break;
   }
   }
 }
 
-void BleControllerSlave::bleuart_rx_callback(uint16_t connHandle, uint8_t *data, uint16_t len)
+void BleControllerSlave::bleuart_rx_callback(uint16_t conn_handle, uint8_t *data, uint16_t len)
 {
-  if (_receiveDataCallback != nullptr)
+  if (_receive_data_cb != nullptr)
   {
-    _receiveDataCallback(data, len);
+    _receive_data_cb(data, len);
   }
 }
 

@@ -28,14 +28,14 @@
 namespace hidpg
 {
 
-Set::Set() : _data(), _count(0), _needsRecount(false)
+Set::Set() : _data(), _count(0), _needs_recount(false)
 {
 }
 
 void Set::add(uint8_t val)
 {
   bitSet(_data[val / 8], val % 8);
-  _needsRecount = true;
+  _needs_recount = true;
 }
 
 void Set::addAll(const uint8_t vals[], size_t len)
@@ -44,25 +44,25 @@ void Set::addAll(const uint8_t vals[], size_t len)
   {
     bitSet(_data[vals[i] / 8], vals[i] % 8);
   }
-  _needsRecount = true;
+  _needs_recount = true;
 }
 
 Set &Set::operator|=(const Set &rhs)
 {
-  uint32_t *_data_32 = reinterpret_cast<uint32_t *>(_data);
+  uint32_t *data_32 = reinterpret_cast<uint32_t *>(_data);
   uint32_t *rhs_data_32 = reinterpret_cast<uint32_t *>(const_cast<uint8_t *>(rhs._data));
   for (int i = 0; i < 8; i++)
   {
-    _data_32[i] |= rhs_data_32[i];
+    data_32[i] |= rhs_data_32[i];
   }
-  _needsRecount = true;
+  _needs_recount = true;
   return *this;
 }
 
 void Set::remove(uint8_t val)
 {
   bitClear(_data[val / 8], val % 8);
-  _needsRecount = true;
+  _needs_recount = true;
 }
 
 void Set::removeAll(const uint8_t vals[], size_t len)
@@ -71,18 +71,18 @@ void Set::removeAll(const uint8_t vals[], size_t len)
   {
     bitClear(_data[vals[i] / 8], vals[i] % 8);
   }
-  _needsRecount = true;
+  _needs_recount = true;
 }
 
 Set &Set::operator-=(const Set &rhs)
 {
-  uint32_t *_data_32 = reinterpret_cast<uint32_t *>(_data);
+  uint32_t *data_32 = reinterpret_cast<uint32_t *>(_data);
   uint32_t *rhs_data_32 = reinterpret_cast<uint32_t *>(const_cast<uint8_t *>(rhs._data));
   for (int i = 0; i < 8; i++)
   {
-    _data_32[i] &= ~(rhs_data_32[i]);
+    data_32[i] &= ~(rhs_data_32[i]);
   }
-  _needsRecount = true;
+  _needs_recount = true;
   return *this;
 }
 
@@ -90,7 +90,7 @@ void Set::clear()
 {
   memset(_data, 0, sizeof(_data));
   _count = 0;
-  _needsRecount = false;
+  _needs_recount = false;
 }
 
 bool Set::contains(uint8_t val) const
@@ -124,32 +124,33 @@ bool Set::containsAny(const uint8_t vals[], size_t len) const
 
 void Set::toArray(uint8_t buf[]) const
 {
-  uint16_t size = this->count();
-  uint16_t count = 0;
-  for (int i = 0;; i++)
+  uint16_t buf_size = this->count();
+  uint16_t buf_size_cnt = 0;
+
+  for (int num = 0;; num++)
   {
-    if (count == size)
+    if (buf_size_cnt == buf_size)
     {
       return;
     }
-    if (contains(i))
+    if (contains(num))
     {
-      buf[count++] = i;
+      buf[buf_size_cnt++] = num;
     }
   }
 }
 
 uint16_t Set::count() const
 {
-  if (_needsRecount)
+  if (_needs_recount)
   {
     _count = 0;
-    uint32_t *_data_32 = reinterpret_cast<uint32_t *>(const_cast<uint8_t *>(_data));
+    uint32_t *data_32 = reinterpret_cast<uint32_t *>(const_cast<uint8_t *>(_data));
     for (int i = 0; i < 8; i++)
     {
-      _count += __builtin_popcountl(_data_32[i]);
+      _count += __builtin_popcountl(data_32[i]);
     }
-    _needsRecount = false;
+    _needs_recount = false;
   }
   return _count;
 }

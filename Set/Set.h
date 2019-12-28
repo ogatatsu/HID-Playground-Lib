@@ -59,7 +59,7 @@ private:
   // 8 * 32 = 256
   uint8_t _data[32];
   mutable uint16_t _count;
-  mutable bool _needsRecount;
+  mutable bool _needs_recount;
 };
 
 // 比較

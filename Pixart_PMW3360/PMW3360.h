@@ -66,15 +66,15 @@ public:
     _11600 = 0x73, _11700 = 0x74, _11800 = 0x75, _11900 = 0x76, _12000 = 0x77,
   };
 
-  using callback_t = void (*)(int16_t deltaX, int16_t deltaY);
+  using callback_t = void (*)(int16_t delta_x, int16_t delta_y);
 
   template <uint8_t ID>
-  static PMW3360 &create(ThreadSafeSPIClass &spi, uint8_t ncsPin, uint8_t interruptPin)
+  static PMW3360 &create(ThreadSafeSPIClass &spi, uint8_t ncs_pin, uint8_t interrupt_pin)
   {
     static_assert(ID < 2, "Two or more PMW3360 can not be created.");
     if (instances[ID] == nullptr)
     {
-      instances[ID] = new PMW3360(spi, ncsPin, interruptPin, ID);
+      instances[ID] = new PMW3360(spi, ncs_pin, interrupt_pin, ID);
     }
     return *instances[ID];
   }
@@ -108,24 +108,24 @@ private:
       {
         uint8_t motion;
         uint8_t observation;
-        int16_t deltaX;
-        int16_t deltaY;
+        int16_t delta_x;
+        int16_t delta_y;
         uint8_t squal;
-        uint8_t rawDataSum;
-        uint8_t maximumRawData;
-        uint8_t minimumRawData;
+        uint8_t raw_data_sum;
+        uint8_t maximum_raw_data;
+        uint8_t minimum_raw_data;
         uint16_t shutter;
       };
     };
   };
 
-  PMW3360(ThreadSafeSPIClass &spi, uint8_t ncsPin, uint8_t interruptPin, uint8_t id);
+  PMW3360(ThreadSafeSPIClass &spi, uint8_t ncs_pin, uint8_t interrupt_pin, uint8_t id);
 
   static void task(void *pvParameters);
-  static void timer_callback(TimerHandle_t th);
+  static void timer_callback(TimerHandle_t timer_handle);
   static void interrupt_callback_0();
   static void interrupt_callback_1();
-  static TaskHandle_t _taskHandles[2];
+  static TaskHandle_t _task_handles[2];
   static PMW3360 *instances[2];
 
   void writeRegister(uint8_t addr, uint8_t data);
@@ -135,10 +135,10 @@ private:
   void powerUp();
   void initRegisters();
 
-  TimerHandle_t _timerHandle;
+  TimerHandle_t _timer_handle;
   ThreadSafeSPIClass &_spi;
-  const uint8_t _ncsPin;
-  const uint8_t _interruptPin;
+  const uint8_t _ncs_pin;
+  const uint8_t _interrupt_pin;
   const uint8_t _id;
   callback_t _callback;
 };

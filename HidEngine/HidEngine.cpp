@@ -34,22 +34,22 @@ namespace hidpg
 /* HidEngine
  *------------------------------------------------------------------*/
 Key *HidEngine::_keymap = nullptr;
-SimulKey *HidEngine::_simulKeymap = nullptr;
-SeqKey *HidEngine::_seqKeymap = nullptr;
+SimulKey *HidEngine::_simul_keymap = nullptr;
+SeqKey *HidEngine::_seq_keymap = nullptr;
 Track *HidEngine::_trackmap = nullptr;
-uint8_t HidEngine::_keymapLength = 0;
-uint8_t HidEngine::_simulKeymapLength = 0;
-uint8_t HidEngine::_seqKeymapLength = 0;
-uint8_t HidEngine::_trackmapLength = 0;
+uint8_t HidEngine::_keymap_len = 0;
+uint8_t HidEngine::_simul_keymap_len = 0;
+uint8_t HidEngine::_seq_keymap_len = 0;
+uint8_t HidEngine::_trackmap_len = 0;
 
-HidEngine::SeqModeState HidEngine::_seqModeState = HidEngine::SeqModeState::Disable;
-LinkedList<HidEngine::Tracking *> HidEngine::_trackingList;
-int32_t HidEngine::_distanceX = 0;
-int32_t HidEngine::_distanceY = 0;
+HidEngine::SeqModeState HidEngine::_seq_mode_state = HidEngine::SeqModeState::Disable;
+LinkedList<HidEngine::Tracking *> HidEngine::_tracking_list;
+int32_t HidEngine::_distance_x = 0;
+int32_t HidEngine::_distance_y = 0;
 
-void HidEngine::setHidReporter(HidReporter *hidReporter)
+void HidEngine::setHidReporter(HidReporter *hid_reporter)
 {
-  Hid::setReporter(hidReporter);
+  Hid::setReporter(hid_reporter);
 }
 
 void HidEngine::init()
@@ -63,38 +63,38 @@ void HidEngine::startTask()
   HidEngineTask::startTask();
 }
 
-void HidEngine::applyToKeymap(const Set &keyIDs)
+void HidEngine::applyToKeymap(const Set &key_ids)
 {
-  EventData data;
-  data.eventType = EventType::ApplyToKeymap;
-  data.applyToKeymap.keyIDs = keyIDs;
-  HidEngineTask::enqueEvent(data);
+  EventData e_data;
+  e_data.event_type = EventType::ApplyToKeymap;
+  e_data.apply_to_keymap.key_ids = key_ids;
+  HidEngineTask::enqueEvent(e_data);
 }
 
 void HidEngine::tapCommand(Command *command, uint8_t times)
 {
-  EventData data;
-  data.eventType = EventType::TapCommand;
-  data.tapCommand.command = command;
-  data.tapCommand.times = times;
-  HidEngineTask::enqueEvent(data);
+  EventData e_data;
+  e_data.event_type = EventType::TapCommand;
+  e_data.tap_command.command = command;
+  e_data.tap_command.times = times;
+  HidEngineTask::enqueEvent(e_data);
 }
 
 void HidEngine::mouseMove(int16_t x, int16_t y)
 {
-  EventData data;
-  data.eventType = EventType::MouseMove;
-  data.mouseMove.x = x;
-  data.mouseMove.y = y;
-  HidEngineTask::enqueEvent(data);
+  EventData e_data;
+  e_data.event_type = EventType::MouseMove;
+  e_data.mouse_move.x = x;
+  e_data.mouse_move.y = y;
+  HidEngineTask::enqueEvent(e_data);
 }
 
-size_t HidEngine::getValidLength(const uint8_t keyIDs[], size_t maxLength)
+size_t HidEngine::getValidLength(const uint8_t key_ids[], size_t max_len)
 {
   size_t i = 0;
-  for (; i < maxLength; i++)
+  for (; i < max_len; i++)
   {
-    if (keyIDs[i] == 0)
+    if (key_ids[i] == 0)
     {
       break;
     }
@@ -102,33 +102,33 @@ size_t HidEngine::getValidLength(const uint8_t keyIDs[], size_t maxLength)
   return i;
 }
 
-void HidEngine::applyToKeymap_impl(const Set &keyIDs)
+void HidEngine::applyToKeymap_impl(const Set &key_ids)
 {
-  static Set prevIDs, pressedInSeqModeIDs;
-  static uint8_t idSeq[MAX_SEQ_COUNT];
-  static size_t idSeqLen = 0;
+  static Set prev_ids, pressed_in_seq_mode_ids;
+  static uint8_t id_seq[MAX_SEQ_COUNT];
+  static size_t id_seq_len = 0;
   static SeqKey *matched;
 
-  // シーケンスモード中に押されたIDがリリースされるまで監視する
-  if (pressedInSeqModeIDs.count() != 0)
+  // シーケンスモード中に押されたidがリリースされるまで監視する
+  if (pressed_in_seq_mode_ids.count() != 0)
   {
-    // 1つ前のIDs - 現在のIDs = リリースされたIDs
-    Set releaseIDs = prevIDs - keyIDs;
-    pressedInSeqModeIDs -= releaseIDs;
+    // 1つ前のids - 現在のids = リリースされたids
+    Set release_ids = prev_ids - key_ids;
+    pressed_in_seq_mode_ids -= release_ids;
   }
 
-  // apply to keymap
-  for (size_t i = 0; i < _keymapLength; i++)
+  // process keymap
+  for (size_t i = 0; i < _keymap_len; i++)
   {
-    // シーケンスモード中に押されたIDなら何もしない
-    if (pressedInSeqModeIDs.contains(_keymap[i].keyID))
+    // シーケンスモード中に押されたidなら何もしない
+    if (pressed_in_seq_mode_ids.contains(_keymap[i].key_id))
     {
       continue;
     }
-    // IDが押されているかを取得
-    bool pressed = keyIDs.contains(_keymap[i].keyID);
+    // idが押されているかを取得
+    bool pressed = key_ids.contains(_keymap[i].key_id);
     // シーケンスモード中はコマンドを新しく実行しない、リリースのみ許可する
-    if ((pressed == true) && (_seqModeState == SeqModeState::Running))
+    if ((pressed == true) && (_seq_mode_state == SeqModeState::Running))
     {
       continue;
     }
@@ -143,106 +143,110 @@ void HidEngine::applyToKeymap_impl(const Set &keyIDs)
     }
   }
 
-  // apply to simulKeymap
-  for (size_t i = 0; i < _simulKeymapLength; i++)
+  // process simul_keymap
+  for (size_t i = 0; i < _simul_keymap_len; i++)
   {
-    // シーケンスモード中に押されたIDが含まれていたら何もしない
-    if (pressedInSeqModeIDs.containsAny(_simulKeymap[i].keyIDs, _simulKeymap[i].idsLength))
+    // シーケンスモード中に押されたidが含まれていたら何もしない
+    if (pressed_in_seq_mode_ids.containsAny(_simul_keymap[i].key_ids, _simul_keymap[i].key_ids_len))
     {
       continue;
     }
-    // 全てのIDが押されているかを取得
-    bool pressed = keyIDs.containsAll(_simulKeymap[i].keyIDs, _simulKeymap[i].idsLength);
+    // 全てのidが押されているかを取得
+    bool pressed = key_ids.containsAll(_simul_keymap[i].key_ids, _simul_keymap[i].key_ids_len);
     // シーケンスモード中はコマンドを新しく実行しない、リリースのみ許可する
-    if ((pressed == true) && (_seqModeState == SeqModeState::Running))
+    if ((pressed == true) && (_seq_mode_state == SeqModeState::Running))
     {
       continue;
     }
     // コマンドに現在の状態を適用する
     if (pressed)
     {
-      _simulKeymap[i].command->press();
+      _simul_keymap[i].command->press();
     }
     else
     {
-      _simulKeymap[i].command->release();
+      _simul_keymap[i].command->release();
     }
   }
 
-  // apply to seqKeymap
-  if (_seqModeState == SeqModeState::Triggered)
+  // process seq_keymap
+  if (_seq_mode_state == SeqModeState::Triggered)
   {
-    // SEQ_MODEコマンドが実行されたらseqModeStateがTriggeredになりここに来る
+    // SEQ_MODEコマンドが実行されたら_seq_mode_stateがTriggeredになりここに来る
     // 次の入力からシーケンスモードを開始する
-    _seqModeState = SeqModeState::Running;
+    _seq_mode_state = SeqModeState::Running;
   }
-  else if (_seqModeState == SeqModeState::Running)
+  else if (_seq_mode_state == SeqModeState::Running)
   {
-    // 新しく押されたIDを順番に保存していきseqKeymap内で一致している物があるかどうかを調べる
-    // 現在のIDs - 1つ前のIDs = 新しく押されたIDs
-    Set newPressIDs = keyIDs - prevIDs;
+    // 新しく押されたidを順番に保存していきseq_keymap内で一致している物があるかどうかを調べる
+    // 現在のids - 1つ前のids = 新しく押されたids
+    Set new_press_ids = key_ids - prev_ids;
+
     // Setだと直接値を取得できないので配列に変換
-    uint16_t len = newPressIDs.count();
-    uint8_t buf[len];
-    newPressIDs.toArray(buf);
-    // idSeqにシーケンスモードになってから新しく押されたIDを順番に保存する
+    uint16_t new_press_len = new_press_ids.count();
+    uint8_t new_press_arr[new_press_len];
+    new_press_ids.toArray(new_press_arr);
+
+    // id_seqにシーケンスモードになってから新しく押されたidを順番に保存する
     size_t i = 0;
-    while ((idSeqLen < MAX_SEQ_COUNT) && (i < len))
+    while ((id_seq_len < MAX_SEQ_COUNT) && (i < new_press_len))
     {
-      idSeq[idSeqLen++] = buf[i++];
+      id_seq[id_seq_len++] = new_press_arr[i++];
     }
-    // 順番に保存したIDとseqKeymapの比較
-    int matchResult = match_with_seqKeymap(idSeq, idSeqLen, &matched);
-    if (matchResult == 0)
+
+    // 順番に保存したidとseq_keymapの比較
+    int match_result = match_with_seqKeymap(id_seq, id_seq_len, &matched);
+
+    if (match_result == 0)
     { // マッチしなければシーケンスモードを解除
-      idSeqLen = 0;
-      _seqModeState = SeqModeState::Disable;
+      id_seq_len = 0;
+      _seq_mode_state = SeqModeState::Disable;
     }
-    else if (matchResult == 1)
+    else if (match_result == 1)
     { // 部分マッチならば何もしない
       // pass
     }
-    else if (matchResult == 2)
+    else if (match_result == 2)
     { // 完全マッチしたらコマンドを実行してStateをWaitReleaseに移行
-      idSeqLen = 0;
+      id_seq_len = 0;
       matched->command->press();
-      _seqModeState = SeqModeState::WaitRelease;
+      _seq_mode_state = SeqModeState::WaitRelease;
     }
 
-    // シーケンスモード時に押されたIDは1回リリースされるまではkeymap,simulKeymapのコマンドを実行しない
-    // そのためリリースされるまで監視する必要があるのでIDを追加していく
-    pressedInSeqModeIDs |= newPressIDs;
+    // シーケンスモード時に押されたidは1回リリースされるまではkeymap,simul_keymapのコマンドを実行しない
+    // そのためリリースされるまで監視する必要があるのでidを追加していく
+    pressed_in_seq_mode_ids |= new_press_ids;
   }
-  else if (_seqModeState == SeqModeState::WaitRelease)
+  else if (_seq_mode_state == SeqModeState::WaitRelease)
   {
     // 完全マッチ時に実行したコマンドを解除
-    // keyIDs内からマッチしたID列の最後のID無くなったら解除する
-    if (keyIDs.contains(matched->keyIDs[matched->idsLength - 1]) == false)
+    // key_ids内からマッチしたid列の最後のid無くなったら解除する
+    if (key_ids.contains(matched->key_ids[matched->key_ids_len - 1]) == false)
     {
       matched->command->release();
-      _seqModeState = SeqModeState::Disable;
+      _seq_mode_state = SeqModeState::Disable;
     }
   }
 
-  // 1つ前のIDとして保存
-  prevIDs = keyIDs;
+  // 1つ前のidとして保存
+  prev_ids = key_ids;
 }
 
-// 引数のidSeqがseqKeymapの定義とマッチするか調べる
+// 引数のid_seqがseq_keymapの定義とマッチするか調べる
 // 戻り値が
 // 0: マッチしない
 // 1: 部分マッチ
 // 2: 完全にマッチ、完全にマッチした場合はmatchedにマッチしたSeqKeyを入れて返す
-int HidEngine::match_with_seqKeymap(const uint8_t idSeq[], size_t len, SeqKey **matched)
+int HidEngine::match_with_seqKeymap(const uint8_t id_seq[], size_t len, SeqKey **matched)
 {
-  for (size_t i = 0; i < _seqKeymapLength; i++)
+  for (size_t i = 0; i < _seq_keymap_len; i++)
   {
-    size_t minLen = min(len, _seqKeymap[i].idsLength);
-    if (memcmp(idSeq, _seqKeymap[i].keyIDs, minLen) == 0)
+    size_t min_len = min(len, _seq_keymap[i].key_ids_len);
+    if (memcmp(id_seq, _seq_keymap[i].key_ids, min_len) == 0)
     {
-      if (len == _seqKeymap[i].idsLength)
+      if (len == _seq_keymap[i].key_ids_len)
       {
-        *matched = &_seqKeymap[i];
+        *matched = &_seq_keymap[i];
         return 2;
       }
       return 1;
@@ -253,76 +257,82 @@ int HidEngine::match_with_seqKeymap(const uint8_t idSeq[], size_t len, SeqKey **
 
 void HidEngine::mouseMove_impl(int16_t x, int16_t y)
 {
-  static uint8_t beforeID;
+  static uint8_t prev_track_id;
 
-  if (_trackingList.size() > 0) // Tracking Commandが実行中の場合
+  if (_tracking_list.size() > 0) // Tracking Commandが実行中の場合
   {
-    // 一番上のtrackIDを取得
-    uint8_t trackID = _trackingList[0]->getID();
-    // 前回のIDと違うなら0から距離を測る
-    if (trackID != beforeID)
+    // 一番上のtrack_idを取得
+    uint8_t track_id = _tracking_list[0]->getID();
+
+    // 前回のidと違うなら0から距離を測る
+    if (track_id != prev_track_id)
     {
-      _distanceX = _distanceY = 0;
-      beforeID = trackID;
+      _distance_x = _distance_y = 0;
+      prev_track_id = track_id;
     }
+
     // 効率のため、次のイベントがMouseMoveだったら合計してまとめて行う
     HidEngineTask::sumNextMouseMoveEventIfExist(x, y);
+
     // 距離を足す
-    _distanceX += x;
-    _distanceY += y;
-    // trackmapから一致するtrackIDのインデックスを検索
+    _distance_x += x;
+    _distance_y += y;
+
+    // trackmapから一致するtrack_idのインデックスを検索
     int idx = -1;
-    for (int i = 0; i < _trackmapLength; i++)
+    for (int i = 0; i < _trackmap_len; i++)
     {
-      if (_trackmap[i].trackID == trackID)
+      if (_trackmap[i].track_id == track_id)
       {
         idx = i;
         break;
       }
     }
-    // 一致するtrackIDが無かったら抜ける
+
+    // 一致するtrack_idが無かったら抜ける
     if (idx == -1)
     {
       return;
     }
+
     // 測った距離が閾値を超えてたらコマンドを発火する
     int16_t threshold = _trackmap[idx].distance;
-    if (_distanceY <= -threshold) // 上
+    if (_distance_y <= -threshold) // 上
     {
-      uint8_t times = min(static_cast<int>(abs(_distanceY / threshold)), UINT8_MAX);
-      _distanceY %= threshold;
-      if (_trackmap[idx].upCommand != nullptr)
+      uint8_t times = min(static_cast<int>(abs(_distance_y / threshold)), UINT8_MAX);
+      _distance_y %= threshold;
+      if (_trackmap[idx].up_command != nullptr)
       {
-        CommandTapper::tap(_trackmap[idx].upCommand, times);
+        CommandTapper::tap(_trackmap[idx].up_command, times);
       }
     }
-    else if (_distanceY >= threshold) // 下
+    else if (_distance_y >= threshold) // 下
     {
-      uint8_t times = min(static_cast<int>(_distanceY / threshold), UINT8_MAX);
-      _distanceY %= threshold;
-      if (_trackmap[idx].downCommand != nullptr)
+      uint8_t times = min(static_cast<int>(_distance_y / threshold), UINT8_MAX);
+      _distance_y %= threshold;
+      if (_trackmap[idx].down_command != nullptr)
       {
-        CommandTapper::tap(_trackmap[idx].downCommand, times);
+        CommandTapper::tap(_trackmap[idx].down_command, times);
       }
     }
 
-    if (_distanceX <= -threshold) // 左
+    if (_distance_x <= -threshold) // 左
     {
-      uint8_t times = min(static_cast<int>(abs(_distanceX / threshold)), UINT8_MAX);
-      _distanceX %= threshold;
-      if (_trackmap[idx].leftCommand != nullptr)
+      uint8_t times = min(static_cast<int>(abs(_distance_x / threshold)), UINT8_MAX);
+      _distance_x %= threshold;
+      if (_trackmap[idx].left_command != nullptr)
       {
-        CommandTapper::tap(_trackmap[idx].leftCommand, times);
+        CommandTapper::tap(_trackmap[idx].left_command, times);
       }
     }
-    else if (_distanceX >= threshold) // 右
+    else if (_distance_x >= threshold) // 右
     {
-      uint8_t times = min(static_cast<int>(_distanceX / threshold), UINT8_MAX);
-      _distanceX %= threshold;
+      uint8_t times = min(static_cast<int>(_distance_x / threshold), UINT8_MAX);
+      _distance_x %= threshold;
 
-      if (_trackmap[idx].rightCommand != nullptr)
+      if (_trackmap[idx].right_command != nullptr)
       {
-        CommandTapper::tap(_trackmap[idx].rightCommand, times);
+        CommandTapper::tap(_trackmap[idx].right_command, times);
       }
     }
   }
@@ -332,39 +342,41 @@ void HidEngine::mouseMove_impl(int16_t x, int16_t y)
     {
       // 効率のため、次のイベントがMouseMoveだったら合計してまとめて行う
       HidEngineTask::sumNextMouseMoveEventIfExist(x, y);
+
       // １回で動かせる量は -127 ~ 127
-      int8_t deltaX = constrain(x, -127, 127);
-      x -= deltaX;
-      int8_t deltaY = constrain(y, -127, 127);
-      y -= deltaY;
-      Hid::mouseMove(deltaX, deltaY);
+      int8_t delta_x = constrain(x, -127, 127);
+      x -= delta_x;
+      int8_t delta_y = constrain(y, -127, 127);
+      y -= delta_y;
+
+      Hid::mouseMove(delta_x, delta_y);
     }
   }
 }
 
 void HidEngine::switchSequenceMode()
 {
-  if (_seqModeState == SeqModeState::Disable)
+  if (_seq_mode_state == SeqModeState::Disable)
   {
-    _seqModeState = SeqModeState::Triggered;
+    _seq_mode_state = SeqModeState::Triggered;
   }
 }
 
 void HidEngine::startTracking(HidEngine::Tracking *tracking)
 {
-  _trackingList.unshift(tracking);
+  _tracking_list.unshift(tracking);
 }
 
 void HidEngine::stopTracking(HidEngine::Tracking *tracking)
 {
-  for (int i = 0; i < _trackingList.size(); i++)
+  for (int i = 0; i < _tracking_list.size(); i++)
   {
-    if (_trackingList.get(i) == tracking)
+    if (_tracking_list.get(i) == tracking)
     {
-      _trackingList.remove(i);
-      if (_trackingList.size() == 0)
+      _tracking_list.remove(i);
+      if (_tracking_list.size() == 0)
       {
-        _distanceX = _distanceY = 0;
+        _distance_x = _distance_y = 0;
       }
       return;
     }
@@ -383,13 +395,13 @@ uint8_t HidEngine::SequenceMode::onPress(uint8_t accumulation)
 /*------------------------------------------------------------------*/
 /* Tracking
  *------------------------------------------------------------------*/
-HidEngine::Tracking::Tracking(uint8_t trackID) : _trackID(trackID)
+HidEngine::Tracking::Tracking(uint8_t track_id) : _track_id(track_id)
 {
 }
 
 uint8_t HidEngine::Tracking::getID()
 {
-  return _trackID;
+  return _track_id;
 }
 
 uint8_t HidEngine::Tracking::onPress(uint8_t accumulation)
@@ -406,7 +418,7 @@ void HidEngine::Tracking::onRelease()
 /*------------------------------------------------------------------*/
 /* TrackTap
  *------------------------------------------------------------------*/
-HidEngine::TrackTap::TrackTap(uint8_t trackID, Command *command) : Tracking(trackID), _command(command)
+HidEngine::TrackTap::TrackTap(uint8_t track_id, Command *command) : Tracking(track_id), _command(command)
 {
   _command->setParent(this);
 }

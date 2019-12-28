@@ -38,7 +38,7 @@ public:
   using callback_t = void (*)(uint8_t pin, bool state);
 
   static void init();
-  static void addPin(uint8_t pin, int mode, uint16_t debounceDelay = 10);
+  static void addPin(uint8_t pin, int mode, uint16_t debounce_delay_ms = 10);
   static void setCallback(callback_t callback);
   static void startTask();
   static void stopTask();
@@ -55,12 +55,12 @@ private:
   static bool needsUpdate();
   static void interrupt_callback();
 
-  static TaskHandle_t _taskHandle;
+  static TaskHandle_t _task_handle;
   static callback_t _callback;
-  static LinkedList<PinInfo *> _list;
-  static uint16_t _maxDebounceDelay;
-  static uint16_t _pollingInterval;
-  static uint16_t _pollingMax;
+  static LinkedList<PinInfo *> _pin_info_list;
+  static uint16_t _max_debounce_delay_ms;
+  static uint16_t _polling_interval_ms;
+  static uint16_t _max_polling_count;
 };
 
 } // namespace hidpg

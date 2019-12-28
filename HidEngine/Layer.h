@@ -48,9 +48,9 @@ public:
   static void getState(bool (&layer)[LAYER_SIZE]);
 
 private:
-  static bool _layer[LAYER_SIZE];
-  static uint8_t _counter[LAYER_SIZE];
-  static bool _oneShotLayer[LAYER_SIZE];
+  static bool _toggle[LAYER_SIZE];
+  static uint8_t _on_counters[LAYER_SIZE];
+  static bool _one_shot[LAYER_SIZE];
 };
 
 } // namespace hidpg

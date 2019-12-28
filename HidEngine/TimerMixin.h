@@ -41,12 +41,12 @@ protected:
   virtual void onTimer() {}
 
 private:
-  static void timer_callback(TimerHandle_t timerHandle);
+  static void timer_callback(TimerHandle_t timer_handle);
 
-  void trigger(unsigned int number);
+  void trigger(unsigned int timer_number);
 
-  bool _isActive;
-  unsigned int _timerNumber;
+  bool _is_active;
+  unsigned int _num_of_timer;
 };
 
 } // namespace hidpg

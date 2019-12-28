@@ -91,7 +91,7 @@ void Rational::normalize()
 /* MouseSpeedController
  *------------------------------------------------------------------*/
 Rational MouseSpeedController::_rational(1, 1);
-uint8_t MouseSpeedController::_zeroCounter = 0;
+uint8_t MouseSpeedController::_zero_counter = 0;
 
 void MouseSpeedController::accel(int16_t percent)
 {
@@ -105,17 +105,17 @@ void MouseSpeedController::decel(int16_t percent)
 
 void MouseSpeedController::setZero()
 {
-  _zeroCounter++;
+  _zero_counter++;
 }
 
 void MouseSpeedController::unsetZero()
 {
-  _zeroCounter--;
+  _zero_counter--;
 }
 
 double MouseSpeedController::getfactor()
 {
-  if (_zeroCounter == 0)
+  if (_zero_counter == 0)
   {
     return static_cast<double>(_rational.number() / _rational.denom());
   }

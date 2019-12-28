@@ -70,39 +70,39 @@ public:
 private:
   static void startAdv();
   static void adv_stop_callback();
-  static void prph_connect_callback(uint16_t connHandle);
-  static void prph_disconnect_callback(uint16_t connHandle, uint8_t reason);
+  static void prph_connect_callback(uint16_t conn_handle);
+  static void prph_disconnect_callback(uint16_t conn_handle, uint8_t reason);
 
-  static BLEDis _bledis;
-  static BLEBas _blebas;
-  static BLEHidAdafruit _blehid;
-  static BLEHidAdafruitHidReporter _hidReporter;
-  static BlinkLed _advLed;
-  static MemStore _addrStore;
-  static uint8_t _currentSlot;
-  static prphCannotConnectCallback_t _cannotConnectCallback;
+  static BLEDis _ble_dis;
+  static BLEBas _ble_bas;
+  static BLEHidAdafruit _ble_hid;
+  static BLEHidAdafruitHidReporter _hid_reporter;
+  static BlinkLed _adv_led;
+  static MemStore _addr_store;
+  static uint8_t _current_slot;
+  static prphCannotConnectCallback_t _cannot_connect_cb;
 
 #ifdef CENTRAL_ENABLE
   static bool startScan();
   static int countVacantConn();
-  static int findConnHandle(uint16_t connHandle);
+  static int findConnHandle(uint16_t conn_handle);
   static int findSlaveAddr(uint8_t addr[6]);
   static void scan_callback(ble_gap_evt_adv_report_t *report);
-  static void cent_connect_callback(uint16_t connHandle);
-  static void cent_disconnect_callback(uint16_t connHandle, uint8_t reason);
-  static void bleuart_rx_callback(uint16_t connHandle, uint8_t *data, uint16_t len);
+  static void cent_connect_callback(uint16_t conn_handle);
+  static void cent_disconnect_callback(uint16_t conn_handle, uint8_t reason);
+  static void bleuart_rx_callback(uint16_t conn_handle, uint8_t *data, uint16_t len);
 
   struct SlaveInfo
   {
-    uint16_t connHandle;
-    BLEClientUartLight bleuart;
+    uint16_t conn_handle;
+    BLEClientUartLight ble_uart;
   };
 
-  static constexpr uint8_t _slaveAddrList[][6] = SLAVE_ADDR_LIST;
-  static SlaveInfo _slaves[arrcount(_slaveAddrList)];
-  static BlinkLed _scanLed;
-  static receiveDataCallback_t _receiveDataCallback;
-  static centDisconnectCallback_t _centDisconnectCallback;
+  static constexpr uint8_t _slave_addr_list[][6] = SLAVE_ADDR_LIST;
+  static SlaveInfo _slaves[arrcount(_slave_addr_list)];
+  static BlinkLed _scan_led;
+  static receiveDataCallback_t _receive_data_cb;
+  static centDisconnectCallback_t _cent_disconnect_cb;
 #endif
 };
 

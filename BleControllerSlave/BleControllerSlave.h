@@ -53,13 +53,13 @@ private:
   static void adv_stop_callback();
   static void connect_callback(uint16_t conn_handle);
   static void disconnect_callback(uint16_t conn_handle, uint8_t reason);
-  static void bleuart_rx_callback(uint16_t connHandle, uint8_t *data, uint16_t len);
+  static void bleuart_rx_callback(uint16_t conn_handle, uint8_t *data, uint16_t len);
 
-  static BLEUartLight _bleuart;
-  static BLEBas _blebas;
-  static BlinkLed _advLed;
-  static prphCannotConnectCallback_t _cannotConnectCallback;
-  static receiveDataCallback_t _receiveDataCallback;
+  static BLEUartLight _ble_uart;
+  static BLEBas _ble_bas;
+  static BlinkLed _adv_led;
+  static prphCannotConnectCallback_t _cannot_connect_cb;
+  static receiveDataCallback_t _receive_data_cb;
 };
 
 } // namespace hidpg

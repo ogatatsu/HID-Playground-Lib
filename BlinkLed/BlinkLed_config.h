@@ -25,8 +25,8 @@
 #pragma once
 
 // LEDの点滅間隔 (ms)
-#ifndef BLINK_LED_INTERVAL
-#define BLINK_LED_INTERVAL 100
+#ifndef BLINK_LED_INTERVAL_MS
+#define BLINK_LED_INTERVAL_MS 100
 #endif
 
 // LEDタスクのスタックサイズ

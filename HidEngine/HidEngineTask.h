@@ -44,7 +44,7 @@ enum class EventType
 
 struct ApplyToKeymapEventData
 {
-  Set keyIDs;
+  Set key_ids;
 };
 
 struct TapCommandEventData
@@ -62,7 +62,7 @@ struct MouseMoveEventData
 struct TimerEventData
 {
   TimerMixin *cls;
-  unsigned int number;
+  unsigned int timer_number;
 };
 
 struct CommandTapperEventData
@@ -72,15 +72,15 @@ struct CommandTapperEventData
 
 struct EventData
 {
-  EventData() : eventType(EventType::Invalid){};
+  EventData() : event_type(EventType::Invalid){};
 
-  EventType eventType;
+  EventType event_type;
   union {
-    ApplyToKeymapEventData applyToKeymap;
-    TapCommandEventData tapCommand;
-    MouseMoveEventData mouseMove;
+    ApplyToKeymapEventData apply_to_keymap;
+    TapCommandEventData tap_command;
+    MouseMoveEventData mouse_move;
     TimerEventData *timer;
-    CommandTapperEventData commandTapper;
+    CommandTapperEventData command_tapper;
   };
 };
 
@@ -89,15 +89,15 @@ class HidEngineTask
 public:
   static void init();
   static void startTask();
-  static void enqueEvent(const EventData &data);
+  static void enqueEvent(const EventData &e_data);
   static void sumNextMouseMoveEventIfExist(int16_t &x, int16_t &y);
 
 private:
   static void task(void *pvParameters);
 
-  static TaskHandle_t _taskHandle;
-  static QueueHandle_t _eventQueue;
-  static EventData _lookAhead;
+  static TaskHandle_t _task_handle;
+  static QueueHandle_t _event_queue;
+  static EventData _lookahead;
 };
 
 } // namespace hidpg

@@ -39,12 +39,12 @@ private:
   class USBCompositeHidReporter : public HidReporter
   {
   public:
-    void keyboardReport(uint8_t modifier, uint8_t keycode[6]) override;
-    void consumerReport(uint16_t usageCode) override;
+    void keyboardReport(uint8_t modifier, uint8_t key_codes[6]) override;
+    void consumerReport(uint16_t usage_code) override;
     void mouseReport(uint8_t buttons, int8_t x, int8_t y, int8_t wheel, int8_t horiz) override;
   };
 
-  static USBCompositeHidReporter _hidReporter;
+  static USBCompositeHidReporter _hid_reporter;
 };
 
 } // namespace hidpg

@@ -83,28 +83,28 @@ constexpr uint8_t LiftCutoff_Tune2 = 0x65;
 constexpr uint32_t InterruptEventBit = 0;
 constexpr uint32_t TimerEventBit = 1;
 
-// spi setting
-static SPISettings spiSettings(2000000, MSBFIRST, SPI_MODE3);
+// spi parameter
+static SPISettings SpiSettings(2000000, MSBFIRST, SPI_MODE3);
 
 /*------------------------------------------------------------------*/
 /* static member
  *------------------------------------------------------------------*/
-TaskHandle_t PMW3360::_taskHandles[2] = {nullptr, nullptr};
+TaskHandle_t PMW3360::_task_handles[2] = {nullptr, nullptr};
 PMW3360 *PMW3360::instances[2] = {nullptr, nullptr};
 
 void PMW3360::interrupt_callback_0()
 {
-  if (_taskHandles[0] != nullptr)
+  if (_task_handles[0] != nullptr)
   {
-    xTaskNotifyFromISR(_taskHandles[0], bit(InterruptEventBit), eSetBits, nullptr);
+    xTaskNotifyFromISR(_task_handles[0], bit(InterruptEventBit), eSetBits, nullptr);
   }
 }
 
 void PMW3360::interrupt_callback_1()
 {
-  if (_taskHandles[1] != nullptr)
+  if (_task_handles[1] != nullptr)
   {
-    xTaskNotifyFromISR(_taskHandles[1], bit(InterruptEventBit), eSetBits, nullptr);
+    xTaskNotifyFromISR(_task_handles[1], bit(InterruptEventBit), eSetBits, nullptr);
   }
 }
 
@@ -112,9 +112,9 @@ void PMW3360::task(void *pvParameters)
 {
   PMW3360 *that = static_cast<PMW3360 *>(pvParameters);
 
-  int32_t totalDeltaX = 0;
-  int32_t totalDeltaY = 0;
-  bool isTimerActive = false;
+  int32_t total_delta_x = 0;
+  int32_t total_delta_y = 0;
+  bool is_timer_active = false;
 
   while (true)
   {
@@ -122,52 +122,52 @@ void PMW3360::task(void *pvParameters)
 
     if (bitRead(event, InterruptEventBit))
     {
-      MotionBurstData mbdata;
-      that->readMotionBurst(mbdata, 6);
+      MotionBurstData mb_data;
+      that->readMotionBurst(mb_data, 6);
 
-      totalDeltaX += mbdata.deltaX;
-      totalDeltaY += mbdata.deltaY;
+      total_delta_x += mb_data.delta_x;
+      total_delta_y += mb_data.delta_y;
 
-      if (isTimerActive == false)
+      if (is_timer_active == false)
       {
-        xTimerStart(that->_timerHandle, portMAX_DELAY);
-        isTimerActive = true;
+        xTimerStart(that->_timer_handle, portMAX_DELAY);
+        is_timer_active = true;
       }
     }
 
     if (bitRead(event, TimerEventBit))
     {
-      int16_t deltaX = constrain(totalDeltaX, INT16_MIN, INT16_MAX);
-      totalDeltaX -= deltaX;
+      int16_t delta_x = constrain(total_delta_x, INT16_MIN, INT16_MAX);
+      total_delta_x -= delta_x;
 
-      int16_t deltaY = constrain(totalDeltaY, INT16_MIN, INT16_MAX);
-      totalDeltaY -= deltaY;
+      int16_t delta_y = constrain(total_delta_y, INT16_MIN, INT16_MAX);
+      total_delta_y -= delta_y;
 
       if (that->_callback != nullptr)
       {
-        that->_callback(deltaX, deltaY);
+        that->_callback(delta_x, delta_y);
       }
 
-      if (totalDeltaX == 0 && totalDeltaY == 0)
+      if (total_delta_x == 0 && total_delta_y == 0)
       {
-        xTimerStop(that->_timerHandle, portMAX_DELAY);
-        isTimerActive = false;
+        xTimerStop(that->_timer_handle, portMAX_DELAY);
+        is_timer_active = false;
       }
     }
   }
 }
 
-void PMW3360::timer_callback(TimerHandle_t th)
+void PMW3360::timer_callback(TimerHandle_t timer_handle)
 {
-  PMW3360 *that = static_cast<PMW3360 *>(pvTimerGetTimerID(th));
-  xTaskNotify(_taskHandles[that->_id], bit(TimerEventBit), eSetBits);
+  PMW3360 *that = static_cast<PMW3360 *>(pvTimerGetTimerID(timer_handle));
+  xTaskNotify(_task_handles[that->_id], bit(TimerEventBit), eSetBits);
 }
 
 /*------------------------------------------------------------------*/
 /* instance member
  *------------------------------------------------------------------*/
-PMW3360::PMW3360(ThreadSafeSPIClass &spi, uint8_t ncsPin, uint8_t interruptPin, uint8_t id)
-    : _spi(spi), _ncsPin(ncsPin), _interruptPin(interruptPin), _id(id), _callback(nullptr)
+PMW3360::PMW3360(ThreadSafeSPIClass &spi, uint8_t ncs_pin, uint8_t interrupt_pin, uint8_t id)
+    : _spi(spi), _ncs_pin(ncs_pin), _interrupt_pin(interrupt_pin), _id(id), _callback(nullptr)
 {
 }
 
@@ -179,31 +179,31 @@ void PMW3360::setCallback(callback_t callback)
 void PMW3360::init()
 {
   _spi.begin();
-  _spi.usingInterrupt(_interruptPin);
+  _spi.usingInterrupt(_interrupt_pin);
 
-  pinMode(_ncsPin, OUTPUT);
-  pinMode(_interruptPin, INPUT_PULLUP);
+  pinMode(_ncs_pin, OUTPUT);
+  pinMode(_interrupt_pin, INPUT_PULLUP);
 
   void (*interrupt_callback)() = (_id == 0) ? interrupt_callback_0 : interrupt_callback_1;
-  attachInterrupt(digitalPinToInterrupt(_interruptPin), interrupt_callback, FALLING);
+  attachInterrupt(digitalPinToInterrupt(_interrupt_pin), interrupt_callback, FALLING);
 
   // デフォルトはRest mode
-  _timerHandle = xTimerCreate(nullptr, pdMS_TO_TICKS(PMW3360_REST_MODE_CALLBACK_INTERVAL), true, this, timer_callback);
+  _timer_handle = xTimerCreate(nullptr, pdMS_TO_TICKS(PMW3360_REST_MODE_CALLBACK_INTERVAL_MS), true, this, timer_callback);
 }
 
 void PMW3360::startTask()
 {
   char name[] = "3360_0";
   name[5] += _id;
-  xTaskCreate(task, name, PMW3360_TASK_STACK_SIZE, this, PMW3360_TASK_PRIO, &_taskHandles[_id]);
+  xTaskCreate(task, name, PMW3360_TASK_STACK_SIZE, this, PMW3360_TASK_PRIO, &_task_handles[_id]);
 
   powerUp();
 }
 
 void PMW3360::writeRegister(uint8_t addr, uint8_t data)
 {
-  _spi.beginTransaction(spiSettings);
-  digitalWrite(_ncsPin, LOW);
+  _spi.beginTransaction(SpiSettings);
+  digitalWrite(_ncs_pin, LOW);
 
   delayMicroseconds(1); // tNCS-SCLK: 120ns
 
@@ -213,7 +213,7 @@ void PMW3360::writeRegister(uint8_t addr, uint8_t data)
 
   delayMicroseconds(35); // tSCLK-NCS(Write): 35us
 
-  digitalWrite(_ncsPin, HIGH);
+  digitalWrite(_ncs_pin, HIGH);
   _spi.endTransaction();
 
   delayMicroseconds(145); // (tSWW/tSWR: 180us) - (tSCLK-NCS: 35us) = 145us
@@ -221,8 +221,8 @@ void PMW3360::writeRegister(uint8_t addr, uint8_t data)
 
 uint8_t PMW3360::readRegister(uint8_t addr)
 {
-  _spi.beginTransaction(spiSettings);
-  digitalWrite(_ncsPin, LOW);
+  _spi.beginTransaction(SpiSettings);
+  digitalWrite(_ncs_pin, LOW);
 
   delayMicroseconds(1); // tNCS-SCLK (120ns)
 
@@ -234,7 +234,7 @@ uint8_t PMW3360::readRegister(uint8_t addr)
 
   delayMicroseconds(1); // tSCLK-NCS(Read): 120ns
 
-  digitalWrite(_ncsPin, HIGH);
+  digitalWrite(_ncs_pin, HIGH);
   _spi.endTransaction();
 
   delayMicroseconds(19); // (tSRW/tSRR: 20us) - (tSCLK-NCS: 35us) = 19us
@@ -250,8 +250,8 @@ void PMW3360::readMotionBurst(MotionBurstData &data, uint8_t length)
   writeRegister(Motion_Burst, 0);
 
   // 2.Lower NCS
-  _spi.beginTransaction(spiSettings);
-  digitalWrite(_ncsPin, LOW);
+  _spi.beginTransaction(SpiSettings);
+  digitalWrite(_ncs_pin, LOW);
 
   // 3.Send Motion_Burst address (0x50).
   _spi.transfer(0x50);
@@ -262,7 +262,7 @@ void PMW3360::readMotionBurst(MotionBurstData &data, uint8_t length)
   // 5.Start reading SPI Data continuously up to 12 bytes. Motion burst may be terminated by pulling NCS high for at least tBEXIT.
   _spi.transfer(data.raw, length);
 
-  digitalWrite(_ncsPin, HIGH);
+  digitalWrite(_ncs_pin, HIGH);
   _spi.endTransaction();
 
   delayMicroseconds(1); // tBEXIT: 500ns
@@ -289,8 +289,8 @@ void PMW3360::SROM_Download()
 
   // 6.Write SROM file into SROM_Load_Burst register, 1st data must start with SROM_Load_Burst address.
   // All the SROM data must be downloaded before SROM starts running.
-  _spi.beginTransaction(spiSettings);
-  digitalWrite(_ncsPin, LOW);
+  _spi.beginTransaction(SpiSettings);
+  digitalWrite(_ncs_pin, LOW);
 
   _spi.transfer(SROM_Load_Burst | 0b10000000);
   delayMicroseconds(15);
@@ -303,8 +303,8 @@ void PMW3360::SROM_Download()
   }
 
   _spi.endTransaction();
-  digitalWrite(_ncsPin, HIGH); // exit burst mode
-  delayMicroseconds(185);      // 200us-15us
+  digitalWrite(_ncs_pin, HIGH); // exit burst mode
+  delayMicroseconds(185);       // 200us-15us
 
   // 7.Read the SROM_ID register to verify the ID before any other register reads or writes.
   readRegister(SROM_ID);
@@ -318,8 +318,8 @@ void PMW3360::powerUp()
   // 1.Apply power to VDD and VDDIO in any order, with a delay of no more than 100ms in between each supply. Ensure all supplies are stable.
 
   // 2.Drive NCS high, and then low to reset the SPI port.
-  digitalWrite(_ncsPin, HIGH);
-  digitalWrite(_ncsPin, LOW);
+  digitalWrite(_ncs_pin, HIGH);
+  digitalWrite(_ncs_pin, LOW);
   // 3.Write 0x5A to Power_Up_Reset register (or, alternatively toggle the NRESET pin).
   writeRegister(Power_Up_Reset, 0x5a);
   // 4.Wait for at least 50ms.
@@ -360,7 +360,7 @@ void PMW3360::initRegisters()
 
 void PMW3360::changeMode(Mode mode)
 {
-  if (_taskHandles[_id] == nullptr)
+  if (_task_handles[_id] == nullptr)
   {
     return;
   }
@@ -370,22 +370,22 @@ void PMW3360::changeMode(Mode mode)
 
   if (mode == Mode::Run)
   {
-    ms = PMW3360_RUN_MODE_CALLBACK_INTERVAL;
+    ms = PMW3360_RUN_MODE_CALLBACK_INTERVAL_MS;
     data = 0b00000000;
   }
   else
   {
-    ms = PMW3360_REST_MODE_CALLBACK_INTERVAL;
+    ms = PMW3360_REST_MODE_CALLBACK_INTERVAL_MS;
     data = 0b00100000;
   }
 
   writeRegister(Config2, data);
-  xTimerChangePeriod(_timerHandle, pdMS_TO_TICKS(ms), portMAX_DELAY);
+  xTimerChangePeriod(_timer_handle, pdMS_TO_TICKS(ms), portMAX_DELAY);
 }
 
 void PMW3360::changeCpi(Cpi cpi)
 {
-  if (_taskHandles[_id] == nullptr)
+  if (_task_handles[_id] == nullptr)
   {
     return;
   }
@@ -395,7 +395,7 @@ void PMW3360::changeCpi(Cpi cpi)
 
 void PMW3360::resetCpi()
 {
-  if (_taskHandles[_id] == nullptr)
+  if (_task_handles[_id] == nullptr)
   {
     return;
   }
@@ -405,7 +405,7 @@ void PMW3360::resetCpi()
 
 void PMW3360::enableAngleSnap()
 {
-  if (_taskHandles[_id] == nullptr)
+  if (_task_handles[_id] == nullptr)
   {
     return;
   }
@@ -415,7 +415,7 @@ void PMW3360::enableAngleSnap()
 
 void PMW3360::disableAngleSnap()
 {
-  if (_taskHandles[_id] == nullptr)
+  if (_task_handles[_id] == nullptr)
   {
     return;
   }
@@ -426,9 +426,9 @@ void PMW3360::disableAngleSnap()
 #ifdef ARDUINO_ARCH_NRF52
 void PMW3360::stopTask_and_setWakeUpInterrupt()
 {
-  vTaskSuspend(_taskHandles[_id]);
+  vTaskSuspend(_task_handles[_id]);
 
-  NRF_GPIO->PIN_CNF[_interruptPin] |= ((uint32_t)(GPIO_PIN_CNF_SENSE_Low) << GPIO_PIN_CNF_SENSE_Pos);
+  NRF_GPIO->PIN_CNF[_interrupt_pin] |= ((uint32_t)(GPIO_PIN_CNF_SENSE_Low) << GPIO_PIN_CNF_SENSE_Pos);
 }
 #endif
 

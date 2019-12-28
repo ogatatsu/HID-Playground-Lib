@@ -29,7 +29,7 @@
 namespace hidpg
 {
 
-STM32Hid::USBCompositeHidReporter STM32Hid::_hidReporter;
+STM32Hid::USBCompositeHidReporter STM32Hid::_hid_reporter;
 
 void STM32Hid::init()
 {
@@ -38,19 +38,19 @@ void STM32Hid::init()
 
 HidReporter *STM32Hid::getHidReporter()
 {
-  return &_hidReporter;
+  return &_hid_reporter;
 }
 
-void STM32Hid::USBCompositeHidReporter::keyboardReport(uint8_t modifier, uint8_t keycode[6])
+void STM32Hid::USBCompositeHidReporter::keyboardReport(uint8_t modifier, uint8_t key_codes[6])
 {
-  uint8_t buf[8] = {modifier, 0, keycode[0], keycode[1], keycode[2], keycode[3], keycode[4], keycode[5]};
+  uint8_t buf[8] = {modifier, 0, key_codes[0], key_codes[1], key_codes[2], key_codes[3], key_codes[4], key_codes[5]};
   while (HID_Composite_keyboard_sendReport(buf, 8) == false)
   {
     delay(1);
   }
 }
 
-void STM32Hid::USBCompositeHidReporter::consumerReport(uint16_t usageCode)
+void STM32Hid::USBCompositeHidReporter::consumerReport(uint16_t usage_code)
 {
   // todo
 }

@@ -30,14 +30,14 @@ namespace hidpg
 #define SLOT_FILE_NAME "Slot"
 #define STORE_DIR_ENAME "AddrStore"
 
-BLEDis BleController::_bledis;
-BLEBas BleController::_blebas;
-BLEHidAdafruit BleController::_blehid;
-BLEHidAdafruitHidReporter BleController::_hidReporter(_blehid);
-BlinkLed BleController::_advLed(ADV_LED_PIN, ADV_LED_ACTIVE_STATE, IS_HIGH_DRIVE);
-MemStore BleController::_addrStore(STORE_DIR_ENAME);
-uint8_t BleController::_currentSlot;
-BleController::prphCannotConnectCallback_t BleController::_cannotConnectCallback = nullptr;
+BLEDis BleController::_ble_dis;
+BLEBas BleController::_ble_bas;
+BLEHidAdafruit BleController::_ble_hid;
+BLEHidAdafruitHidReporter BleController::_hid_reporter(_ble_hid);
+BlinkLed BleController::_adv_led(ADV_LED_PIN, ADV_LED_ACTIVE_STATE, IS_HIGH_DRIVE);
+MemStore BleController::_addr_store(STORE_DIR_ENAME);
+uint8_t BleController::_current_slot;
+BleController::prphCannotConnectCallback_t BleController::_cannot_connect_cb = nullptr;
 
 // Random Static Addressを生成
 static void genRandomAddr(uint8_t addr[6])
@@ -59,7 +59,7 @@ void BleController::init()
   Bluefruit.configPrphConn(BLE_GATT_ATT_MTU_DEFAULT, BLE_GAP_EVENT_LENGTH_DEFAULT, HVN_TX_QUEUE_SIZE, BLE_GATTC_WRITE_CMD_TX_QUEUE_SIZE_DEFAULT);
 
 #ifdef CENTRAL_ENABLE
-  Bluefruit.begin(1, arrcount(_slaveAddrList));
+  Bluefruit.begin(1, arrcount(_slave_addr_list));
 #else
   Bluefruit.begin(1, 0);
 #endif
@@ -72,12 +72,12 @@ void BleController::init()
   Bluefruit.Periph.setDisconnectCallback(prph_disconnect_callback);
 
   // Configure and Start Device Information Service
-  _bledis.setManufacturer(MANUFACTURER_NAME);
-  _bledis.setModel(MODEL_NUMBER);
-  _bledis.begin();
+  _ble_dis.setManufacturer(MANUFACTURER_NAME);
+  _ble_dis.setModel(MODEL_NUMBER);
+  _ble_dis.begin();
 
   // Start BLE Battery Service
-  _blebas.begin();
+  _ble_bas.begin();
 
   /* Start BLE HID
    * Note: Apple requires BLE device must have min connection interval >= 20m
@@ -88,30 +88,29 @@ void BleController::init()
    * connection interval to 11.25  ms and 15 ms respectively for best
    * performance.
    */
-  _blehid.begin();
+  _ble_hid.begin();
   /* Set connection interval (min, max) to your perferred value.
    * Note: It is already set by BLEHidAdafruit::begin() to 11.25ms - 15ms
    * min = 9*1.25=11.25 ms, max = 12*1.25= 15 ms
    */
   /* Bluefruit.setConnInterval(9, 12); */
 
-  // Storeの初期化とcurrentSlotのロード
-  _addrStore.init();
-
-  if (_addrStore.load(SLOT_FILE_NAME, &_currentSlot, sizeof(_currentSlot)) == false)
+  // storeの初期化とcurrent_slotのロード
+  _addr_store.init();
+  if (_addr_store.load(SLOT_FILE_NAME, &_current_slot, sizeof(_current_slot)) == false)
   {
-    _currentSlot = 1;
+    _current_slot = 1;
   }
 
 #ifdef CENTRAL_ENABLE
   for (size_t i = 0; i < arrcount(_slaves); i++)
   {
     // Invalid all connection handle
-    _slaves[i].connHandle = BLE_CONN_HANDLE_INVALID;
+    _slaves[i].conn_handle = BLE_CONN_HANDLE_INVALID;
 
     // All of BLE Central Uart Serivce
-    _slaves[i].bleuart.begin();
-    _slaves[i].bleuart.setRxCallback(bleuart_rx_callback);
+    _slaves[i].ble_uart.begin();
+    _slaves[i].ble_uart.setRxCallback(bleuart_rx_callback);
   }
 
   // Callbacks for Central
@@ -137,11 +136,11 @@ void BleController::startPrphConnection(uint8_t slot)
 {
   if (slot == 0)
   {
-    slot = _currentSlot;
+    slot = _current_slot;
   }
 
   // 指定されたslotですでに開始している場合は何もしない
-  if (slot == _currentSlot && isPrphRunning())
+  if (slot == _current_slot && isPrphRunning())
   {
     return;
   }
@@ -150,23 +149,23 @@ void BleController::startPrphConnection(uint8_t slot)
   stopPrphConnection();
 
   // 電源off後、次に起動した時に同じslotで再接続するためにセーブしておく
-  if (_currentSlot != slot)
+  if (_current_slot != slot)
   {
-    _currentSlot = slot;
-    _addrStore.save(SLOT_FILE_NAME, &_currentSlot, sizeof(_currentSlot));
+    _current_slot = slot;
+    _addr_store.save(SLOT_FILE_NAME, &_current_slot, sizeof(_current_slot));
   }
 
-  char addrFileName[] = "000";
-  addrFileName[0] += _currentSlot / 100;
-  addrFileName[1] += _currentSlot % 100 / 10;
-  addrFileName[2] += _currentSlot % 10;
+  char addr_filename[] = "000";
+  addr_filename[0] += _current_slot / 100;
+  addr_filename[1] += _current_slot % 100 / 10;
+  addr_filename[2] += _current_slot % 10;
 
   // slot番号に対応したアドレスをロード、無ければ生成してセーブする
   uint8_t addr[6];
-  if (_addrStore.load(addrFileName, addr, sizeof(addr)) == false)
+  if (_addr_store.load(addr_filename, addr, sizeof(addr)) == false)
   {
     genRandomAddr(addr);
-    _addrStore.save(addrFileName, addr, sizeof(addr));
+    _addr_store.save(addr_filename, addr, sizeof(addr));
   }
 
   // アドレスを設定
@@ -198,7 +197,7 @@ void BleController::stopPrphConnection()
       delay(1);
     }
   }
-  _advLed.syncOff();
+  _adv_led.syncOff();
 }
 
 bool BleController::isPrphRunning()
@@ -208,28 +207,28 @@ bool BleController::isPrphRunning()
 
 uint8_t BleController::getCurrentSlot()
 {
-  return _currentSlot;
+  return _current_slot;
 }
 
 void BleController::clearBonds()
 {
   Bluefruit.clearBonds();
-  _addrStore.clear();
+  _addr_store.clear();
 }
 
 HidReporter *BleController::getHidReporter()
 {
-  return &_hidReporter;
+  return &_hid_reporter;
 }
 
 void BleController::setBatteryLevel(uint8_t level)
 {
-  _blebas.write(level);
+  _ble_bas.write(level);
 }
 
 void BleController::setPrphCannnotConnectCallback(prphCannotConnectCallback_t callback)
 {
-  _cannotConnectCallback = callback;
+  _cannot_connect_cb = callback;
 }
 
 /*------------------------------------------------------------------*/
@@ -245,7 +244,7 @@ void BleController::startAdv()
   Bluefruit.Advertising.addAppearance(BLE_APPEARANCE);
 
   // Include BLE HID service
-  Bluefruit.Advertising.addService(_blehid);
+  Bluefruit.Advertising.addService(_ble_hid);
 
   // There is enough room for the dev name in the advertising packet
   Bluefruit.Advertising.addName();
@@ -264,28 +263,28 @@ void BleController::startAdv()
   Bluefruit.Advertising.setInterval(32, 244); // in unit of 0.625 ms
   Bluefruit.Advertising.setFastTimeout(30);   // number of seconds in fast mode
   Bluefruit.Advertising.start(60);            // 0 = Don't stop advertising after n seconds
-  _advLed.blink(_currentSlot);                // advertising status led
+  _adv_led.blink(_current_slot);              // advertising status led
 }
 
 // 一定時間接続できなかった場合
 void BleController::adv_stop_callback()
 {
-  _advLed.syncOff();
-  if (_cannotConnectCallback != nullptr)
+  _adv_led.syncOff();
+  if (_cannot_connect_cb != nullptr)
   {
-    _cannotConnectCallback();
+    _cannot_connect_cb();
   }
 }
 
-void BleController::prph_connect_callback(uint16_t connHandle)
+void BleController::prph_connect_callback(uint16_t conn_handle)
 {
-  BLEConnection *conn = Bluefruit.Connection(connHandle);
+  BLEConnection *conn = Bluefruit.Connection(conn_handle);
   conn->requestConnectionParameter(CONNECTION_INTERVAL, SLAVE_LATENCY, SUPERVISION_TIMEOUT);
   conn->requestPHY();
-  _advLed.off();
+  _adv_led.off();
 }
 
-void BleController::prph_disconnect_callback(uint16_t connHandle, uint8_t reason)
+void BleController::prph_disconnect_callback(uint16_t conn_handle, uint8_t reason)
 {
   switch (reason)
   {
@@ -299,7 +298,7 @@ void BleController::prph_disconnect_callback(uint16_t connHandle, uint8_t reason
   {
     // 通常はAdvertising.restartOnDisconnect(true)に設定してあるはず
     // Advertisingが自動再開されるはず、ledを点灯
-    _advLed.blink(_currentSlot);
+    _adv_led.blink(_current_slot);
     break;
   }
   }
@@ -310,11 +309,11 @@ void BleController::prph_disconnect_callback(uint16_t connHandle, uint8_t reason
  *------------------------------------------------------------------*/
 #ifdef CENTRAL_ENABLE
 
-constexpr uint8_t BleController::_slaveAddrList[][6];
+constexpr uint8_t BleController::_slave_addr_list[][6];
 BleController::SlaveInfo BleController::_slaves[];
-BlinkLed BleController::_scanLed(SCAN_LED_PIN, SCAN_LED_ACTIVE_STATE, IS_HIGH_DRIVE);
-BleController::receiveDataCallback_t BleController::_receiveDataCallback = nullptr;
-BleController::centDisconnectCallback_t BleController::_centDisconnectCallback = nullptr;
+BlinkLed BleController::_scan_led(SCAN_LED_PIN, SCAN_LED_ACTIVE_STATE, IS_HIGH_DRIVE);
+BleController::receiveDataCallback_t BleController::_receive_data_cb = nullptr;
+BleController::centDisconnectCallback_t BleController::_cent_disconnect_cb = nullptr;
 
 void BleController::startCentConnection()
 {
@@ -334,9 +333,9 @@ void BleController::stopCentConnection()
   {
     for (size_t i = 0; i < arrcount(_slaves); i++)
     {
-      if (_slaves[i].connHandle != BLE_CONN_HANDLE_INVALID)
+      if (_slaves[i].conn_handle != BLE_CONN_HANDLE_INVALID)
       {
-        Bluefruit.disconnect(_slaves[i].connHandle);
+        Bluefruit.disconnect(_slaves[i].conn_handle);
       }
     }
     // 切断されるまで少し待つ必要がある
@@ -345,7 +344,7 @@ void BleController::stopCentConnection()
       delay(1);
     }
   }
-  _scanLed.syncOff();
+  _scan_led.syncOff();
 }
 
 bool BleController::isCentRunnning()
@@ -355,21 +354,21 @@ bool BleController::isCentRunnning()
 
 uint16_t BleController::sendData(uint8_t idx, const uint8_t *data, uint16_t len)
 {
-  if (_slaves[idx].connHandle == BLE_CONN_HANDLE_INVALID)
+  if (_slaves[idx].conn_handle == BLE_CONN_HANDLE_INVALID)
   {
     return 0;
   }
-  return _slaves[idx].bleuart.write(data, len);
+  return _slaves[idx].ble_uart.write(data, len);
 }
 
 void BleController::setReceiveDataCallback(receiveDataCallback_t callback)
 {
-  _receiveDataCallback = callback;
+  _receive_data_cb = callback;
 }
 
 void BleController::setCentDisconnectCallback(centDisconnectCallback_t callback)
 {
-  _centDisconnectCallback = callback;
+  _cent_disconnect_cb = callback;
 }
 
 /*------------------------------------------------------------------*/
@@ -380,7 +379,7 @@ int BleController::countVacantConn()
   int sum = 0;
   for (size_t i = 0; i < arrcount(_slaves); i++)
   {
-    if (_slaves[i].connHandle == BLE_CONN_HANDLE_INVALID)
+    if (_slaves[i].conn_handle == BLE_CONN_HANDLE_INVALID)
     {
       sum++;
     }
@@ -388,11 +387,11 @@ int BleController::countVacantConn()
   return sum;
 }
 
-int BleController::findConnHandle(uint16_t connHandle)
+int BleController::findConnHandle(uint16_t conn_handle)
 {
   for (size_t i = 0; i < arrcount(_slaves); i++)
   {
-    if (connHandle == _slaves[i].connHandle)
+    if (conn_handle == _slaves[i].conn_handle)
     {
       return i;
     }
@@ -402,9 +401,9 @@ int BleController::findConnHandle(uint16_t connHandle)
 
 int BleController::findSlaveAddr(uint8_t addr[6])
 {
-  for (size_t i = 0; i < arrcount(_slaveAddrList); i++)
+  for (size_t i = 0; i < arrcount(_slave_addr_list); i++)
   {
-    if (memcmp(addr, _slaveAddrList[i], 6) == 0)
+    if (memcmp(addr, _slave_addr_list[i], 6) == 0)
     {
       return i;
     }
@@ -420,7 +419,7 @@ bool BleController::startScan()
   {
     Bluefruit.Scanner.restartOnDisconnect(true);
     Bluefruit.Scanner.start(0); // 0 = Don't stop scanning after n seconds
-    _scanLed.blink(cnt);        // scan status led
+    _scan_led.blink(cnt);       // scan status led
     return true;
   }
   return false;
@@ -439,9 +438,9 @@ void BleController::scan_callback(ble_gap_evt_adv_report_t *report)
   }
 }
 
-void BleController::cent_connect_callback(uint16_t connHandle)
+void BleController::cent_connect_callback(uint16_t conn_handle)
 {
-  ble_gap_addr_t addr = Bluefruit.Connection(connHandle)->getPeerAddr();
+  ble_gap_addr_t addr = Bluefruit.Connection(conn_handle)->getPeerAddr();
   int idx = findSlaveAddr(addr.addr);
 
   // Eeek: Exceeded the number of connections !!!
@@ -450,17 +449,17 @@ void BleController::cent_connect_callback(uint16_t connHandle)
     return;
   }
 
-  if (_slaves[idx].bleuart.discover(connHandle))
+  if (_slaves[idx].ble_uart.discover(conn_handle))
   {
-    _slaves[idx].connHandle = connHandle;
+    _slaves[idx].conn_handle = conn_handle;
 
     // Enable TXD's notify
-    _slaves[idx].bleuart.enableTXD();
+    _slaves[idx].ble_uart.enableTXD();
 
     // Continue scanning for more peripherals
     if (startScan() == false)
     {
-      _scanLed.off();
+      _scan_led.off();
     };
   }
   else
@@ -472,9 +471,9 @@ void BleController::cent_connect_callback(uint16_t connHandle)
   }
 }
 
-void BleController::cent_disconnect_callback(uint16_t connHandle, uint8_t reason)
+void BleController::cent_disconnect_callback(uint16_t conn_handle, uint8_t reason)
 {
-  int idx = findConnHandle(connHandle);
+  int idx = findConnHandle(conn_handle);
 
   // Non-existant connection, something went wrong, DBG !!!
   if (idx < 0)
@@ -483,29 +482,29 @@ void BleController::cent_disconnect_callback(uint16_t connHandle, uint8_t reason
   }
 
   // Mark conn handle as invalid
-  _slaves[idx].connHandle = BLE_CONN_HANDLE_INVALID;
+  _slaves[idx].conn_handle = BLE_CONN_HANDLE_INVALID;
 
   // invoke callback
-  if (_centDisconnectCallback != nullptr)
+  if (_cent_disconnect_cb != nullptr)
   {
-    _centDisconnectCallback(idx, reason);
+    _cent_disconnect_cb(idx, reason);
   }
 
   // 自分から切断する場合以外はScanner.restartOnDisconnect(true)に設定
   // Scanningが自動再開されるはず、ledを点灯
   if (reason != BLE_HCI_LOCAL_HOST_TERMINATED_CONNECTION)
   {
-    _scanLed.blink(countVacantConn());
+    _scan_led.blink(countVacantConn());
   }
 }
 
-void BleController::bleuart_rx_callback(uint16_t connHandle, uint8_t *data, uint16_t len)
+void BleController::bleuart_rx_callback(uint16_t conn_handle, uint8_t *data, uint16_t len)
 {
-  int idx = findConnHandle(connHandle);
+  int idx = findConnHandle(conn_handle);
 
-  if (_receiveDataCallback != nullptr)
+  if (_receive_data_cb != nullptr)
   {
-    _receiveDataCallback(idx, data, len);
+    _receive_data_cb(idx, data, len);
   }
 }
 

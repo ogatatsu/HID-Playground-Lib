@@ -25,8 +25,8 @@
 #pragma once
 
 // cherry mx bounce time is <= 5ms
-#ifndef DEBOUNCE_DELAY
-#define DEBOUNCE_DELAY 6
+#ifndef DEBOUNCE_DELAY_MS
+#define DEBOUNCE_DELAY_MS 6
 #endif
 
 // スイッチがHIGHとLOWどちらでONになるか

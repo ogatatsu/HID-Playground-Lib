@@ -56,7 +56,7 @@ public:
 
 private:
   static Rational _rational;
-  static uint8_t _zeroCounter;
+  static uint8_t _zero_counter;
 };
 
 } // namespace hidpg

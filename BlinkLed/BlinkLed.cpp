@@ -29,41 +29,41 @@ namespace hidpg
 {
 
 #ifdef ARDUINO_ARCH_NRF52
-static void pinMode_OutputEx(uint32_t ulPin, bool isHighDrive)
+static void pinMode_OutputEx(uint32_t pin, bool is_high_drive)
 {
-  if (ulPin >= PINS_COUNT)
+  if (pin >= PINS_COUNT)
   {
     return;
   }
 
-  ulPin = g_ADigitalPinMap[ulPin];
+  pin = g_ADigitalPinMap[pin];
 
-  uint32_t driveMode = isHighDrive ? GPIO_PIN_CNF_DRIVE_H0H1 : GPIO_PIN_CNF_DRIVE_S0S1;
+  uint32_t drive_mode = is_high_drive ? GPIO_PIN_CNF_DRIVE_H0H1 : GPIO_PIN_CNF_DRIVE_S0S1;
 
-  NRF_GPIO->PIN_CNF[ulPin] = ((uint32_t)GPIO_PIN_CNF_DIR_Output << GPIO_PIN_CNF_DIR_Pos) |
-                             ((uint32_t)GPIO_PIN_CNF_INPUT_Disconnect << GPIO_PIN_CNF_INPUT_Pos) |
-                             ((uint32_t)GPIO_PIN_CNF_PULL_Disabled << GPIO_PIN_CNF_PULL_Pos) |
-                             (driveMode << GPIO_PIN_CNF_DRIVE_Pos) |
-                             ((uint32_t)GPIO_PIN_CNF_SENSE_Disabled << GPIO_PIN_CNF_SENSE_Pos);
+  NRF_GPIO->PIN_CNF[pin] = ((uint32_t)GPIO_PIN_CNF_DIR_Output << GPIO_PIN_CNF_DIR_Pos) |
+                           ((uint32_t)GPIO_PIN_CNF_INPUT_Disconnect << GPIO_PIN_CNF_INPUT_Pos) |
+                           ((uint32_t)GPIO_PIN_CNF_PULL_Disabled << GPIO_PIN_CNF_PULL_Pos) |
+                           (drive_mode << GPIO_PIN_CNF_DRIVE_Pos) |
+                           ((uint32_t)GPIO_PIN_CNF_SENSE_Disabled << GPIO_PIN_CNF_SENSE_Pos);
 }
 #endif
 
-BlinkLed::BlinkLed(uint8_t pin, uint8_t activeState, bool isHighDrive)
-    : _pin(pin), _activeState(activeState), _isBlink(false), _times(0)
+BlinkLed::BlinkLed(uint8_t pin, uint8_t active_state, bool is_high_drive)
+    : _pin(pin), _active_state(active_state), _is_blink(false), _times(0)
 {
 
 #ifdef ARDUINO_ARCH_NRF52
-  pinMode_OutputEx(pin, isHighDrive);
+  pinMode_OutputEx(pin, is_high_drive);
 #else
   pinMode(pin, OUTPUT);
 #endif
 
-  char taskName[] = "Led000";
-  taskName[3] += pin / 100;
-  taskName[4] += pin % 100 / 10;
-  taskName[5] += pin % 10;
+  char task_name[] = "Led000";
+  task_name[3] += pin / 100;
+  task_name[4] += pin % 100 / 10;
+  task_name[5] += pin % 10;
 
-  xTaskCreate(task, taskName, BLINK_LED_TASK_STACK_SIZE, this, BLINK_LED_TASK_PRIO, &_taskHandle);
+  xTaskCreate(task, task_name, BLINK_LED_TASK_STACK_SIZE, this, BLINK_LED_TASK_PRIO, &_task_handle);
 }
 
 void BlinkLed::task(void *pvParameters)
@@ -72,19 +72,19 @@ void BlinkLed::task(void *pvParameters)
 
   while (true)
   {
-    that->_isBlink = false;
+    that->_is_blink = false;
     xTaskNotifyWait(0, 0, nullptr, portMAX_DELAY);
     while (that->_times != 0)
     {
-      that->_isBlink = true;
+      that->_is_blink = true;
       for (int i = 0; i < that->_times; i++)
       {
-        digitalWrite(that->_pin, that->_activeState);
-        delay(BLINK_LED_INTERVAL);
-        digitalWrite(that->_pin, !that->_activeState);
-        delay(BLINK_LED_INTERVAL);
+        digitalWrite(that->_pin, that->_active_state);
+        delay(BLINK_LED_INTERVAL_MS);
+        digitalWrite(that->_pin, !that->_active_state);
+        delay(BLINK_LED_INTERVAL_MS);
       }
-      delay(BLINK_LED_INTERVAL * 3);
+      delay(BLINK_LED_INTERVAL_MS * 3);
     }
   }
 }
@@ -92,7 +92,7 @@ void BlinkLed::task(void *pvParameters)
 void BlinkLed::blink(uint8_t times)
 {
   _times = times;
-  xTaskNotify(_taskHandle, 0, eNoAction);
+  xTaskNotify(_task_handle, 0, eNoAction);
 }
 
 void BlinkLed::off()
@@ -103,7 +103,7 @@ void BlinkLed::off()
 void BlinkLed::syncOff()
 {
   _times = 0;
-  while (_isBlink)
+  while (_is_blink)
   {
     delay(1);
   }
@@ -111,7 +111,7 @@ void BlinkLed::syncOff()
 
 bool BlinkLed::isBlink() const
 {
-  return _isBlink;
+  return _is_blink;
 }
 
 } // namespace hidpg

@@ -56,18 +56,18 @@ uint8_t ResetConnection::onPress(uint8_t accumulation)
 /*------------------------------------------------------------------*/
 /* PrintBatteryLevel
  *------------------------------------------------------------------*/
-static Keycode numToKeycode(uint8_t num)
+static KeyCode numToKeycode(uint8_t num)
 {
   if (num == 0)
-    return Keycode::_0;
-  return static_cast<Keycode>(num + 29);
+    return KeyCode::_0;
+  return static_cast<KeyCode>(num + 29);
 }
 
-static void tap(Keycode keycode)
+static void tap(KeyCode key_code)
 {
-  Hid::setKey(keycode);
+  Hid::setKey(key_code);
   Hid::sendKeyReport(true);
-  Hid::unsetKey(keycode);
+  Hid::unsetKey(key_code);
   Hid::sendKeyReport(false);
 }
 
@@ -75,9 +75,9 @@ uint8_t PrintBatteryLevel::onPress(uint8_t accumulation)
 {
   uint8_t level = BatteryUtil::readBatteryLevel();
 
-  Keycode level1 = numToKeycode(level % 10);
-  Keycode level2 = numToKeycode(level % 100 / 10);
-  Keycode level3 = numToKeycode(level / 100);
+  KeyCode level1 = numToKeycode(level % 10);
+  KeyCode level2 = numToKeycode(level % 100 / 10);
+  KeyCode level3 = numToKeycode(level / 100);
 
   tap(level3);
   tap(level2);

@@ -27,7 +27,7 @@
 #include "HidEngine_config.h"
 #include "LinkedList.h"
 #include "TimerMixin.h"
-#include "keycode.h"
+#include "KeyCode.h"
 #include <stddef.h>
 
 namespace hidpg
@@ -54,29 +54,29 @@ private:
   // keymap(グローバル変数)の定義で特定のコマンドがnewされたときにaddEventListener_DifferentRootCommandPress()が呼ばれる
   // _listenerListはその内部で使用するので単純なstatic変数にすると初期化順序が問題になる。
   // https://isocpp.org/wiki/faq/ctors#static-init-order-on-first-use
-  static LinkedList<Command *> &_listenerList()
+  static LinkedList<Command *> &_listener_list()
   {
-    static LinkedList<Command *> *listenerList = new LinkedList<Command *>;
-    return *listenerList;
+    static LinkedList<Command *> *list = new LinkedList<Command *>;
+    return *list;
   };
-  static Command *_lastPressedCommand;
+  static Command *_last_pressed_command;
 
   Command *_parent;
-  bool _prevState;
+  bool _prev_state;
 };
 
 /*------------------------------------------------------------------*/
 class NormalKey : public Command
 {
 public:
-  NormalKey(Keycode keycode);
+  NormalKey(KeyCode key_code);
 
 protected:
   uint8_t onPress(uint8_t accumulation) override;
   void onRelease() override;
 
 private:
-  const Keycode _keycode;
+  const KeyCode _key_code;
 };
 
 /*------------------------------------------------------------------*/
@@ -97,7 +97,7 @@ private:
 class CombinationKey : public Command
 {
 public:
-  CombinationKey(Modifier modifier, Keycode keycode);
+  CombinationKey(Modifier modifier, KeyCode key_code);
 
 protected:
   uint8_t onPress(uint8_t accumulation) override;
@@ -105,7 +105,7 @@ protected:
 
 private:
   const Modifier _modifier;
-  const Keycode _keycode;
+  const KeyCode _key_code;
 };
 
 /*------------------------------------------------------------------*/
@@ -149,21 +149,21 @@ protected:
 
 private:
   Command **const _commands;
-  Command *_runningCommand;
+  Command *_running_command;
 };
 
 /*------------------------------------------------------------------*/
 class LayerTap : public Command
 {
 public:
-  LayerTap(uint8_t layerNumber, Command *command);
+  LayerTap(uint8_t layer_number, Command *command);
 
 protected:
   uint8_t onPress(uint8_t accumulation) override;
   void onRelease() override;
 
 private:
-  const uint8_t _layerNumber;
+  const uint8_t _layer_number;
   Command *_command;
 };
 
@@ -171,42 +171,42 @@ private:
 class ToggleLayer : public Command
 {
 public:
-  ToggleLayer(uint8_t layerNumber);
+  ToggleLayer(uint8_t layer_number);
 
 protected:
   uint8_t onPress(uint8_t accumulation) override;
 
 private:
-  const uint8_t _layerNumber;
+  const uint8_t _layer_number;
 };
 
 /*------------------------------------------------------------------*/
 class SwitchLayer : public Command
 {
 public:
-  SwitchLayer(uint8_t layerNumber);
+  SwitchLayer(uint8_t layer_number);
 
 protected:
   uint8_t onPress(uint8_t accumulation) override;
   void onRelease() override;
 
 private:
-  const uint8_t _layerNumber;
+  const uint8_t _layer_number;
 };
 
 /*------------------------------------------------------------------*/
 class OneShotLayer : public Command
 {
 public:
-  OneShotLayer(uint8_t layerNumber);
+  OneShotLayer(uint8_t layer_number);
 
 protected:
   uint8_t onPress(uint8_t accumulation) override;
   void onRelease() override;
 
 private:
-  const uint8_t _layerNumber;
-  bool _chainedOSL[LAYER_SIZE];
+  const uint8_t _layer_number;
+  bool _chained_osl[LAYER_SIZE];
 };
 
 /*------------------------------------------------------------------*/
@@ -215,8 +215,8 @@ class TapDance : public Command, public TimerMixin
 public:
   struct Pair
   {
-    Command *tapCommand;
-    Command *holdCommand;
+    Command *tap_command;
+    Command *hold_command;
   };
 
   TapDance(Pair pairs[], size_t len);
@@ -237,7 +237,7 @@ private:
   };
 
   Pair *const _pairs;
-  Command *_runningCommand;
+  Command *_running_command;
   const size_t _len;
   size_t _count;
   State _state;
@@ -247,7 +247,7 @@ private:
 class TapOrHold : public Command, public TimerMixin
 {
 public:
-  TapOrHold(Command *tapCommand, unsigned int ms, Command *holdCommand);
+  TapOrHold(Command *tap_command, unsigned int ms, Command *hold_command);
 
 protected:
   uint8_t onPress(uint8_t accumulation) override;
@@ -264,22 +264,22 @@ private:
 
   const unsigned int _ms;
   State _state;
-  Command *const _tapCommand;
-  Command *const _holdCommand;
+  Command *const _tap_command;
+  Command *const _hold_command;
 };
 
 /*------------------------------------------------------------------*/
 class ConsumerControll : public Command
 {
 public:
-  ConsumerControll(UsageCode usageCode);
+  ConsumerControll(UsageCode usage_code);
 
 protected:
   uint8_t onPress(uint8_t accumulation) override;
   void onRelease() override;
 
 private:
-  const UsageCode _usageCode;
+  const UsageCode _usage_code;
 };
 
 /*------------------------------------------------------------------*/
@@ -372,21 +372,21 @@ public:
   class DownKey : public MacroCommand
   {
   public:
-    DownKey(Keycode keycode);
+    DownKey(KeyCode key_code);
     unsigned int apply() override;
 
   private:
-    const Keycode _keycode;
+    const KeyCode _key_code;
   };
 
   class UpKey : public MacroCommand
   {
   public:
-    UpKey(Keycode keycode);
+    UpKey(KeyCode key_code);
     unsigned int apply() override;
 
   private:
-    const Keycode _keycode;
+    const KeyCode _key_code;
   };
 
   class DownModifier : public MacroCommand
@@ -419,24 +419,24 @@ public:
     const unsigned int _delay;
   };
 
-  Macro(MacroCommand **mcommands, size_t len);
+  Macro(MacroCommand **m_commands, size_t len);
 
 protected:
   uint8_t onPress(uint8_t accumulation) override;
   void onTimer() override;
 
 private:
-  MacroCommand **const _mcommands;
+  MacroCommand **const _m_commands;
   const size_t _len;
   unsigned int _count;
-  bool _isRunning;
+  bool _is_running;
 };
 
 /*------------------------------------------------------------------*/
 class If : public Command
 {
 public:
-  If(bool (*func)(), Command *trueCommand, Command *falseCommand);
+  If(bool (*func)(), Command *true_command, Command *false_command);
 
 protected:
   uint8_t onPress(uint8_t accumulation) override;
@@ -444,9 +444,9 @@ protected:
 
 private:
   bool (*const _func)();
-  Command *const _trueCommand;
-  Command *const _falseCommand;
-  Command *_runningCommand;
+  Command *const _true_command;
+  Command *const _false_command;
+  Command *_running_command;
 };
 
 /*------------------------------------------------------------------*/
@@ -471,13 +471,13 @@ private:
 #define NOP (new Command)
 
 // Normal Key
-static inline Command *NK(Keycode keycode) { return (new NormalKey(keycode)); }
+static inline Command *NK(KeyCode key_code) { return (new NormalKey(key_code)); }
 
 // Modifier Key
 static inline Command *MO(Modifier modifier) { return (new ModifierKey(modifier)); }
 
 // Combination Key
-static inline Command *CK(Modifier modifier, Keycode keycode) { return (new CombinationKey(modifier, keycode)); }
+static inline Command *CK(Modifier modifier, KeyCode key_code) { return (new CombinationKey(modifier, key_code)); }
 
 // Modifier or Tap
 static inline Command *MT(Modifier modifier, Command *command) { return (new ModifierTap(modifier, command)); }
@@ -505,16 +505,16 @@ static Command *LY(const CommandPtr (&arr)[N])
 #define _______ (static_cast<Command *>(nullptr))
 
 // Layer or Tap
-static inline Command *LT(uint8_t layerNumber, Command *command) { return (new LayerTap(layerNumber, command)); }
+static inline Command *LT(uint8_t layer_number, Command *command) { return (new LayerTap(layer_number, command)); }
 
 // Toggle Layer (alternate)
-static inline Command *TL(uint8_t layerNumber) { return (new ToggleLayer(layerNumber)); }
+static inline Command *TL(uint8_t layer_number) { return (new ToggleLayer(layer_number)); }
 
 // Switch Layer (momentary)
-static inline Command *SL(uint8_t layerNumber) { return (new SwitchLayer(layerNumber)); }
+static inline Command *SL(uint8_t layer_number) { return (new SwitchLayer(layer_number)); }
 
 // Oneshot Layer
-static inline Command *OSL(uint8_t layerNumber) { return (new OneShotLayer(layerNumber)); }
+static inline Command *OSL(uint8_t layer_number) { return (new OneShotLayer(layer_number)); }
 
 // Tap Dance
 template <size_t N>
@@ -523,17 +523,17 @@ static Command *TD(const TapDance::Pair (&arr)[N])
   TapDance::Pair *arg = new TapDance::Pair[N];
   for (size_t i = 0; i < N; i++)
   {
-    arg[i].tapCommand = arr[i].tapCommand;
-    arg[i].holdCommand = arr[i].holdCommand;
+    arg[i].tap_command = arr[i].tap_command;
+    arg[i].hold_command = arr[i].hold_command;
   }
   return (new TapDance(arg, N));
 }
 
 // Tap or Hold
-static inline Command *ToH(Command *tapCommand, unsigned int ms, Command *holdCommand) { return (new TapOrHold(tapCommand, ms, holdCommand)); }
+static inline Command *ToH(Command *tap_command, unsigned int ms, Command *hold_command) { return (new TapOrHold(tap_command, ms, hold_command)); }
 
 // Consumer Controll
-static inline Command *CC(UsageCode usageCode) { return (new ConsumerControll(usageCode)); }
+static inline Command *CC(UsageCode usage_code) { return (new ConsumerControll(usage_code)); }
 
 // Mouse Move
 static inline Command *MS_MOV(int8_t x, int8_t y) { return (new MouseMove(x, y)); }
@@ -561,14 +561,14 @@ static Command *MACRO(const MacroCommandPtr (&arr)[N])
   return (new Macro(arg, N));
 }
 
-static inline Macro::MacroCommand *D(Keycode keycode) { return (new Macro::DownKey(keycode)); }
+static inline Macro::MacroCommand *D(KeyCode key_code) { return (new Macro::DownKey(key_code)); }
 static inline Macro::MacroCommand *D(Modifier modifier) { return (new Macro::DownModifier(modifier)); }
-static inline Macro::MacroCommand *U(Keycode keycode) { return (new Macro::UpKey(keycode)); }
+static inline Macro::MacroCommand *U(KeyCode key_code) { return (new Macro::UpKey(key_code)); }
 static inline Macro::MacroCommand *U(Modifier modifier) { return (new Macro::UpModifier(modifier)); }
 static inline Macro::MacroCommand *W(unsigned int delay) { return (new Macro::Wait(delay)); }
 
 // If
-static inline Command *IF(bool (*func)(), Command *trueCommand, Command *falseCommand) { return (new If(func, trueCommand, falseCommand)); }
+static inline Command *IF(bool (*func)(), Command *true_command, Command *false_command) { return (new If(func, true_command, false_command)); }
 
 // Double
 static inline Command *DBL(Command *command1, Command *command2) { return (new Double(command1, command2)); }

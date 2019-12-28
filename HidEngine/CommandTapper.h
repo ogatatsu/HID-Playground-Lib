@@ -36,7 +36,7 @@ public:
   static void init();
 
 private:
-  static void timer_callback(TimerHandle_t timerHandle);
+  static void timer_callback(TimerHandle_t timer_handle);
   static void onTimer();
 
   struct Pair
@@ -53,8 +53,8 @@ private:
 
   static LinkedList<Pair> _list;
   static Pair _running;
-  static State _nextState;
-  static TimerHandle_t _timerHandle;
+  static State _next_state;
+  static TimerHandle_t _timer_handle;
 };
 
 } // namespace hidpg

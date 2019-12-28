@@ -25,7 +25,7 @@
 #pragma once
 
 #include "HidReporter.h"
-#include "keycode.h"
+#include "KeyCode.h"
 
 namespace hidpg
 {
@@ -34,23 +34,23 @@ namespace hidpg
 class Hid
 {
 public:
-  static void setReporter(HidReporter *hidReporter);
+  static void setReporter(HidReporter *hid_reporter);
 
   // Keyboard API
   // setKeyをした後でsendKeyReportを呼び出すことでキーを送る。
   // 何回キーをsetしたかを覚えてるので複数回同じキーコードでsetKeyを呼び出したら、
   // 同じ回数unsetKeyを呼び出すまではそのキーコードはsetされ続ける。
   // これにより別のスイッチに同じキーコードを割り当てたとしても正しく動作する。
-  static void setKey(Keycode keycode);
-  static void unsetKey(Keycode keycode);
+  static void setKey(KeyCode key_code);
+  static void unsetKey(KeyCode key_code);
   static void setModifier(Modifier modifier);
   static void unsetModifier(Modifier modifier);
   static void holdOneShotModifier(Modifier modifier);
   static void releaseOneShotModifier(Modifier modifier);
-  static void sendKeyReport(bool triggerOneShot);
+  static void sendKeyReport(bool trigger_one_shot);
 
   // Consumer API
-  static void consumerKeyPress(UsageCode usageCode);
+  static void consumerKeyPress(UsageCode usage_code);
   static void consumerKeyRelease();
 
   // Mouse API
@@ -61,25 +61,22 @@ public:
   static void mouseButtonRelease(MouseButton button);
 
 private:
-  static void addKey(uint8_t keycode);
-  static void removeKey(uint8_t keycode);
-
   static void sendMouseButtonReport();
 
-  static HidReporter *_hidReporter;
+  static HidReporter *_hid_reporter;
 
-  static uint8_t _pressedKeys[7];
-  static uint8_t _prevSentKeys[6];
-  static uint8_t _keyCounter[256];
+  static uint8_t _pressed_keys[7];
+  static uint8_t _prev_sent_keys[6];
+  static uint8_t _key_counters[256];
 
-  static uint8_t _modifierCounter[8];
-  static int32_t _oneShotModifierCounter[8];
-  static int32_t _triggeredOneShotModifierCounter[8];
+  static uint8_t _modifier_counters[8];
+  static int32_t _one_shot_modifier_counters[8];
+  static int32_t _triggered_one_shot_modifier_counters[8];
 
-  static uint8_t _prevSentModifier;
+  static uint8_t _prev_sent_modifier;
 
-  static uint8_t _prevSentButton;
-  static uint8_t _buttonCounter[5];
+  static uint8_t _prev_sent_button;
+  static uint8_t _button_counters[5];
 };
 
 } // namespace hidpg

@@ -34,15 +34,15 @@ namespace hidpg
 class MatrixScan
 {
 public:
-  using callback_t = void (*)(const Set &switchIDs);
+  using callback_t = void (*)(const Set &switch_ids);
 
-  template <uint8_t outLength, uint8_t inLength>
-  static void setMatrix(Switch *matrix[outLength][inLength], const uint8_t (&outPins)[outLength], const uint8_t (&inPins)[inLength])
+  template <uint8_t out_pins_len, uint8_t in_pins_len>
+  static void setMatrix(Switch *matrix[out_pins_len][in_pins_len], const uint8_t (&out_pins)[out_pins_len], const uint8_t (&in_pins)[in_pins_len])
   {
-    _inLength = inLength;
-    _outLength = outLength;
-    _inPins = inPins;
-    _outPins = outPins;
+    _in_pins_len = in_pins_len;
+    _out_pins_len = out_pins_len;
+    _in_pins = in_pins;
+    _out_pins = out_pins;
     _matrix = reinterpret_cast<Switch **>(matrix);
   }
   static void init();
@@ -56,18 +56,18 @@ public:
 private:
   static void interrupt_callback();
   static void outPinsSet(int val);
-  static bool needsKeyscan();
+  static bool needsKeyScan();
   static void task(void *pvParameters);
 
   static callback_t _callback;
-  static TaskHandle_t _taskHandle;
-  static uint16_t _pollingInterval;
-  static uint16_t _pollingMax;
+  static TaskHandle_t _task_handle;
+  static uint16_t _polling_interval_ms;
+  static uint16_t _max_polling_count;
   static Switch **_matrix;
-  static const uint8_t *_inPins;
-  static const uint8_t *_outPins;
-  static uint8_t _inLength;
-  static uint8_t _outLength;
+  static const uint8_t *_in_pins;
+  static const uint8_t *_out_pins;
+  static uint8_t _in_pins_len;
+  static uint8_t _out_pins_len;
 };
 
 } // namespace hidpg

@@ -30,45 +30,45 @@
 namespace hidpg
 {
 
-TaskHandle_t HidEngineTask::_taskHandle = nullptr;
-QueueHandle_t HidEngineTask::_eventQueue = nullptr;
-EventData HidEngineTask::_lookAhead;
+TaskHandle_t HidEngineTask::_task_handle = nullptr;
+QueueHandle_t HidEngineTask::_event_queue = nullptr;
+EventData HidEngineTask::_lookahead;
 
 void HidEngineTask::init()
 {
-  _eventQueue = xQueueCreate(HID_ENGINE_EVENT_QUEUE_SIZE, sizeof(EventData));
+  _event_queue = xQueueCreate(HID_ENGINE_EVENT_QUEUE_SIZE, sizeof(EventData));
 }
 
 void HidEngineTask::startTask()
 {
-  xTaskCreate(task, "HidEngine", HID_ENGINE_TASK_STACK_SIZE, nullptr, TASK_PRIO_LOW, &_taskHandle);
+  xTaskCreate(task, "HidEngine", HID_ENGINE_TASK_STACK_SIZE, nullptr, TASK_PRIO_LOW, &_task_handle);
 }
 
-void HidEngineTask::enqueEvent(const EventData &data)
+void HidEngineTask::enqueEvent(const EventData &e_data)
 {
-  xQueueSend(_eventQueue, &data, portMAX_DELAY);
+  xQueueSend(_event_queue, &e_data, portMAX_DELAY);
 }
 
 void HidEngineTask::sumNextMouseMoveEventIfExist(int16_t &x, int16_t &y)
 {
-  if (_lookAhead.eventType != EventType::Invalid)
+  if (_lookahead.event_type != EventType::Invalid)
   {
     return;
   }
 
   while (true)
   {
-    if (xQueueReceive(_eventQueue, &_lookAhead, 0) == pdFALSE)
+    if (xQueueReceive(_event_queue, &_lookahead, 0) == pdFALSE)
     {
       return;
     }
-    if (_lookAhead.eventType != EventType::MouseMove)
+    if (_lookahead.event_type != EventType::MouseMove)
     {
       return;
     }
-    x = constrain(_lookAhead.mouseMove.x + x, INT16_MIN, INT16_MAX);
-    y = constrain(_lookAhead.mouseMove.y + y, INT16_MIN, INT16_MAX);
-    _lookAhead.eventType = EventType::Invalid;
+    x = constrain(_lookahead.mouse_move.x + x, INT16_MIN, INT16_MAX);
+    y = constrain(_lookahead.mouse_move.y + y, INT16_MIN, INT16_MAX);
+    _lookahead.event_type = EventType::Invalid;
   }
 }
 
@@ -76,38 +76,38 @@ void HidEngineTask::task(void *pvParameters)
 {
   while (true)
   {
-    EventData buf, *edata;
-    if (_lookAhead.eventType != EventType::Invalid)
+    EventData buf, *e_data;
+    if (_lookahead.event_type != EventType::Invalid)
     {
-      edata = &_lookAhead;
+      e_data = &_lookahead;
     }
     else
     {
-      xQueueReceive(_eventQueue, &buf, portMAX_DELAY);
-      edata = &buf;
+      xQueueReceive(_event_queue, &buf, portMAX_DELAY);
+      e_data = &buf;
     }
 
-    switch (edata->eventType)
+    switch (e_data->event_type)
     {
     case EventType::ApplyToKeymap:
     {
-      HidEngine::applyToKeymap_impl(edata->applyToKeymap.keyIDs);
+      HidEngine::applyToKeymap_impl(e_data->apply_to_keymap.key_ids);
       break;
     }
     case EventType::TapCommand:
     {
-      CommandTapper::tap(edata->tapCommand.command, edata->tapCommand.times);
+      CommandTapper::tap(e_data->tap_command.command, e_data->tap_command.times);
       break;
     }
     case EventType::MouseMove:
     {
-      HidEngine::mouseMove_impl(edata->mouseMove.x, edata->mouseMove.y);
+      HidEngine::mouseMove_impl(e_data->mouse_move.x, e_data->mouse_move.y);
       break;
     }
     case EventType::Timer:
     {
-      edata->timer->cls->trigger(edata->timer->number);
-      delete edata->timer;
+      e_data->timer->cls->trigger(e_data->timer->timer_number);
+      delete e_data->timer;
       break;
     }
     case EventType::CommandTapper:
@@ -120,7 +120,7 @@ void HidEngineTask::task(void *pvParameters)
       break;
     }
     }
-    edata->eventType = EventType::Invalid;
+    e_data->event_type = EventType::Invalid;
   }
 }
 
