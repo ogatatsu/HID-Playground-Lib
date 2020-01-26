@@ -30,17 +30,17 @@
 namespace hidpg
 {
 
-LinkedList<CommandTapper::Pair> CommandTapper::_list;
-CommandTapper::Pair CommandTapper::_running{.command = nullptr, .times = 0};
-CommandTapper::State CommandTapper::_next_state = CommandTapper::State::press;
-TimerHandle_t CommandTapper::_timer_handle = nullptr;
+LinkedList<CommandTapper_::Pair> CommandTapper_::_list;
+CommandTapper_::Pair CommandTapper_::_running{.command = nullptr, .times = 0};
+CommandTapper_::State CommandTapper_::_next_state = CommandTapper_::State::press;
+TimerHandle_t CommandTapper_::_timer_handle = nullptr;
 
-void CommandTapper::init()
+void CommandTapper_::init()
 {
   _timer_handle = xTimerCreate(nullptr, pdMS_TO_TICKS(1), false, nullptr, timer_callback);
 }
 
-void CommandTapper::tap(Command *command, uint8_t times)
+void CommandTapper_::tap(Command *command, uint8_t times)
 {
   if (times == 0 || command == nullptr)
   {
@@ -71,7 +71,7 @@ void CommandTapper::tap(Command *command, uint8_t times)
   _list.add(last);
 }
 
-void CommandTapper::onTimer()
+void CommandTapper_::onTimer()
 {
   if (_next_state == State::release)
   {
@@ -102,12 +102,14 @@ void CommandTapper::onTimer()
   }
 }
 
-void CommandTapper::timer_callback(TimerHandle_t timerHandle)
+void CommandTapper_::timer_callback(TimerHandle_t timerHandle)
 {
   // Software Timersのスタックを消費しないようにstaticで宣言
   static EventData e_data;
   e_data.event_type = EventType::CommandTapper;
-  HidEngineTask::enqueEvent(e_data);
+  HidEngineTask.enqueEvent(e_data);
 }
+
+CommandTapper_ CommandTapper;
 
 } // namespace hidpg

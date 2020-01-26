@@ -39,7 +39,7 @@ ConnectBluetooth::ConnectBluetooth(uint8_t slot) : _slot(slot)
 
 uint8_t ConnectBluetooth::onPress(uint8_t accumulation)
 {
-  BleController::startPrphConnection(_slot);
+  BleController.startPrphConnection(_slot);
   return 1;
 }
 
@@ -48,7 +48,7 @@ uint8_t ConnectBluetooth::onPress(uint8_t accumulation)
  *------------------------------------------------------------------*/
 uint8_t ResetConnection::onPress(uint8_t accumulation)
 {
-  BleController::clearBonds();
+  BleController.clearBonds();
   NVIC_SystemReset();
   return 1;
 }
@@ -65,15 +65,15 @@ static KeyCode numToKeycode(uint8_t num)
 
 static void tap(KeyCode key_code)
 {
-  Hid::setKey(key_code);
-  Hid::sendKeyReport(true);
-  Hid::unsetKey(key_code);
-  Hid::sendKeyReport(false);
+  Hid.setKey(key_code);
+  Hid.sendKeyReport(true);
+  Hid.unsetKey(key_code);
+  Hid.sendKeyReport(false);
 }
 
 uint8_t PrintBatteryLevel::onPress(uint8_t accumulation)
 {
-  uint8_t level = BatteryUtil::readBatteryLevel();
+  uint8_t level = BatteryUtil.readBatteryLevel();
 
   KeyCode level1 = numToKeycode(level % 10);
   KeyCode level2 = numToKeycode(level % 100 / 10);

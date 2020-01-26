@@ -90,30 +90,30 @@ void Rational::normalize()
 /*------------------------------------------------------------------*/
 /* MouseSpeedController
  *------------------------------------------------------------------*/
-Rational MouseSpeedController::_rational(1, 1);
-uint8_t MouseSpeedController::_zero_counter = 0;
+Rational MouseSpeedController_::_rational(1, 1);
+uint8_t MouseSpeedController_::_zero_counter = 0;
 
-void MouseSpeedController::accel(int16_t percent)
+void MouseSpeedController_::accel(int16_t percent)
 {
   _rational *= Rational(percent, 100);
 }
 
-void MouseSpeedController::decel(int16_t percent)
+void MouseSpeedController_::decel(int16_t percent)
 {
   _rational /= Rational(percent, 100);
 }
 
-void MouseSpeedController::setZero()
+void MouseSpeedController_::setZero()
 {
   _zero_counter++;
 }
 
-void MouseSpeedController::unsetZero()
+void MouseSpeedController_::unsetZero()
 {
   _zero_counter--;
 }
 
-double MouseSpeedController::getfactor()
+double MouseSpeedController_::getfactor()
 {
   if (_zero_counter == 0)
   {
@@ -124,5 +124,7 @@ double MouseSpeedController::getfactor()
     return 0;
   }
 }
+
+MouseSpeedController_ MouseSpeedController;
 
 } // namespace hidpg

@@ -31,7 +31,7 @@ namespace hidpg
 
 class TimerMixin
 {
-  friend class HidEngineTask;
+  friend class HidEngineTask_;
 
 protected:
   TimerMixin();

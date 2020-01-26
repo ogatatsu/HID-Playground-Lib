@@ -33,63 +33,63 @@ namespace hidpg
 /*------------------------------------------------------------------*/
 /* HidEngine
  *------------------------------------------------------------------*/
-Key *HidEngine::_keymap = nullptr;
-SimulKey *HidEngine::_simul_keymap = nullptr;
-SeqKey *HidEngine::_seq_keymap = nullptr;
-Track *HidEngine::_trackmap = nullptr;
-uint8_t HidEngine::_keymap_len = 0;
-uint8_t HidEngine::_simul_keymap_len = 0;
-uint8_t HidEngine::_seq_keymap_len = 0;
-uint8_t HidEngine::_trackmap_len = 0;
+Key *HidEngine_::_keymap = nullptr;
+SimulKey *HidEngine_::_simul_keymap = nullptr;
+SeqKey *HidEngine_::_seq_keymap = nullptr;
+Track *HidEngine_::_trackmap = nullptr;
+uint8_t HidEngine_::_keymap_len = 0;
+uint8_t HidEngine_::_simul_keymap_len = 0;
+uint8_t HidEngine_::_seq_keymap_len = 0;
+uint8_t HidEngine_::_trackmap_len = 0;
 
-HidEngine::SeqModeState HidEngine::_seq_mode_state = HidEngine::SeqModeState::Disable;
-LinkedList<HidEngine::Tracking *> HidEngine::_tracking_list;
-int32_t HidEngine::_distance_x = 0;
-int32_t HidEngine::_distance_y = 0;
+HidEngine_::SeqModeState HidEngine_::_seq_mode_state = HidEngine_::SeqModeState::Disable;
+LinkedList<HidEngine_::Tracking *> HidEngine_::_tracking_list;
+int32_t HidEngine_::_distance_x = 0;
+int32_t HidEngine_::_distance_y = 0;
 
-void HidEngine::setHidReporter(HidReporter *hid_reporter)
+void HidEngine_::setHidReporter(HidReporter *hid_reporter)
 {
-  Hid::setReporter(hid_reporter);
+  Hid.setReporter(hid_reporter);
 }
 
-void HidEngine::init()
+void HidEngine_::init()
 {
-  HidEngineTask::init();
-  CommandTapper::init();
+  HidEngineTask.init();
+  CommandTapper.init();
 }
 
-void HidEngine::startTask()
+void HidEngine_::startTask()
 {
-  HidEngineTask::startTask();
+  HidEngineTask.startTask();
 }
 
-void HidEngine::applyToKeymap(const Set &key_ids)
+void HidEngine_::applyToKeymap(const Set &key_ids)
 {
   EventData e_data;
   e_data.event_type = EventType::ApplyToKeymap;
   e_data.apply_to_keymap.key_ids = key_ids;
-  HidEngineTask::enqueEvent(e_data);
+  HidEngineTask.enqueEvent(e_data);
 }
 
-void HidEngine::tapCommand(Command *command, uint8_t times)
+void HidEngine_::tapCommand(Command *command, uint8_t times)
 {
   EventData e_data;
   e_data.event_type = EventType::TapCommand;
   e_data.tap_command.command = command;
   e_data.tap_command.times = times;
-  HidEngineTask::enqueEvent(e_data);
+  HidEngineTask.enqueEvent(e_data);
 }
 
-void HidEngine::mouseMove(int16_t x, int16_t y)
+void HidEngine_::mouseMove(int16_t x, int16_t y)
 {
   EventData e_data;
   e_data.event_type = EventType::MouseMove;
   e_data.mouse_move.x = x;
   e_data.mouse_move.y = y;
-  HidEngineTask::enqueEvent(e_data);
+  HidEngineTask.enqueEvent(e_data);
 }
 
-size_t HidEngine::getValidLength(const uint8_t key_ids[], size_t max_len)
+size_t HidEngine_::getValidLength(const uint8_t key_ids[], size_t max_len)
 {
   size_t i = 0;
   for (; i < max_len; i++)
@@ -102,7 +102,7 @@ size_t HidEngine::getValidLength(const uint8_t key_ids[], size_t max_len)
   return i;
 }
 
-void HidEngine::applyToKeymap_impl(const Set &key_ids)
+void HidEngine_::applyToKeymap_impl(const Set &key_ids)
 {
   static Set prev_ids, pressed_in_seq_mode_ids;
   static uint8_t id_seq[MAX_SEQ_COUNT];
@@ -237,7 +237,7 @@ void HidEngine::applyToKeymap_impl(const Set &key_ids)
 // 0: マッチしない
 // 1: 部分マッチ
 // 2: 完全にマッチ、完全にマッチした場合はmatchedにマッチしたSeqKeyを入れて返す
-int HidEngine::match_with_seqKeymap(const uint8_t id_seq[], size_t len, SeqKey **matched)
+int HidEngine_::match_with_seqKeymap(const uint8_t id_seq[], size_t len, SeqKey **matched)
 {
   for (size_t i = 0; i < _seq_keymap_len; i++)
   {
@@ -255,7 +255,7 @@ int HidEngine::match_with_seqKeymap(const uint8_t id_seq[], size_t len, SeqKey *
   return 0;
 }
 
-void HidEngine::mouseMove_impl(int16_t x, int16_t y)
+void HidEngine_::mouseMove_impl(int16_t x, int16_t y)
 {
   static uint8_t prev_track_id;
 
@@ -272,7 +272,7 @@ void HidEngine::mouseMove_impl(int16_t x, int16_t y)
     }
 
     // 効率のため、次のイベントがMouseMoveだったら合計してまとめて行う
-    HidEngineTask::sumNextMouseMoveEventIfExist(x, y);
+    HidEngineTask.sumNextMouseMoveEventIfExist(x, y);
 
     // 距離を足す
     _distance_x += x;
@@ -303,7 +303,7 @@ void HidEngine::mouseMove_impl(int16_t x, int16_t y)
       _distance_y %= threshold;
       if (_trackmap[idx].up_command != nullptr)
       {
-        CommandTapper::tap(_trackmap[idx].up_command, times);
+        CommandTapper.tap(_trackmap[idx].up_command, times);
       }
     }
     else if (_distance_y >= threshold) // 下
@@ -312,7 +312,7 @@ void HidEngine::mouseMove_impl(int16_t x, int16_t y)
       _distance_y %= threshold;
       if (_trackmap[idx].down_command != nullptr)
       {
-        CommandTapper::tap(_trackmap[idx].down_command, times);
+        CommandTapper.tap(_trackmap[idx].down_command, times);
       }
     }
 
@@ -322,7 +322,7 @@ void HidEngine::mouseMove_impl(int16_t x, int16_t y)
       _distance_x %= threshold;
       if (_trackmap[idx].left_command != nullptr)
       {
-        CommandTapper::tap(_trackmap[idx].left_command, times);
+        CommandTapper.tap(_trackmap[idx].left_command, times);
       }
     }
     else if (_distance_x >= threshold) // 右
@@ -332,7 +332,7 @@ void HidEngine::mouseMove_impl(int16_t x, int16_t y)
 
       if (_trackmap[idx].right_command != nullptr)
       {
-        CommandTapper::tap(_trackmap[idx].right_command, times);
+        CommandTapper.tap(_trackmap[idx].right_command, times);
       }
     }
   }
@@ -341,7 +341,7 @@ void HidEngine::mouseMove_impl(int16_t x, int16_t y)
     while (!(x == 0 && y == 0))
     {
       // 効率のため、次のイベントがMouseMoveだったら合計してまとめて行う
-      HidEngineTask::sumNextMouseMoveEventIfExist(x, y);
+      HidEngineTask.sumNextMouseMoveEventIfExist(x, y);
 
       // １回で動かせる量は -127 ~ 127
       int8_t delta_x = constrain(x, -127, 127);
@@ -349,12 +349,12 @@ void HidEngine::mouseMove_impl(int16_t x, int16_t y)
       int8_t delta_y = constrain(y, -127, 127);
       y -= delta_y;
 
-      Hid::mouseMove(delta_x, delta_y);
+      Hid.mouseMove(delta_x, delta_y);
     }
   }
 }
 
-void HidEngine::switchSequenceMode()
+void HidEngine_::switchSequenceMode()
 {
   if (_seq_mode_state == SeqModeState::Disable)
   {
@@ -362,12 +362,12 @@ void HidEngine::switchSequenceMode()
   }
 }
 
-void HidEngine::startTracking(HidEngine::Tracking *tracking)
+void HidEngine_::startTracking(HidEngine_::Tracking *tracking)
 {
   _tracking_list.unshift(tracking);
 }
 
-void HidEngine::stopTracking(HidEngine::Tracking *tracking)
+void HidEngine_::stopTracking(HidEngine_::Tracking *tracking)
 {
   for (int i = 0; i < _tracking_list.size(); i++)
   {
@@ -383,47 +383,49 @@ void HidEngine::stopTracking(HidEngine::Tracking *tracking)
   }
 }
 
+HidEngine_ HidEngine;
+
 /*------------------------------------------------------------------*/
 /* SequenceMode
  *------------------------------------------------------------------*/
-uint8_t HidEngine::SequenceMode::onPress(uint8_t accumulation)
+uint8_t HidEngine_::SequenceMode::onPress(uint8_t accumulation)
 {
-  HidEngine::switchSequenceMode();
+  HidEngine_::switchSequenceMode();
   return 1;
 }
 
 /*------------------------------------------------------------------*/
 /* Tracking
  *------------------------------------------------------------------*/
-HidEngine::Tracking::Tracking(uint8_t track_id) : _track_id(track_id)
+HidEngine_::Tracking::Tracking(uint8_t track_id) : _track_id(track_id)
 {
 }
 
-uint8_t HidEngine::Tracking::getID()
+uint8_t HidEngine_::Tracking::getID()
 {
   return _track_id;
 }
 
-uint8_t HidEngine::Tracking::onPress(uint8_t accumulation)
+uint8_t HidEngine_::Tracking::onPress(uint8_t accumulation)
 {
-  HidEngine::startTracking(this);
+  HidEngine_::startTracking(this);
   return 1;
 }
 
-void HidEngine::Tracking::onRelease()
+void HidEngine_::Tracking::onRelease()
 {
-  HidEngine::stopTracking(this);
+  HidEngine_::stopTracking(this);
 }
 
 /*------------------------------------------------------------------*/
 /* TrackTap
  *------------------------------------------------------------------*/
-HidEngine::TrackTap::TrackTap(uint8_t track_id, Command *command) : Tracking(track_id), _command(command)
+HidEngine_::TrackTap::TrackTap(uint8_t track_id, Command *command) : Tracking(track_id), _command(command)
 {
   _command->setParent(this);
 }
 
-void HidEngine::TrackTap::onRelease()
+void HidEngine_::TrackTap::onRelease()
 {
   Tracking::onRelease();
   if (this->isLastPressed())

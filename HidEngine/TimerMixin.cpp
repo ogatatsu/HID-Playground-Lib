@@ -36,7 +36,7 @@ void TimerMixin::timer_callback(TimerHandle_t timer_handle)
 
   TimerEventData *te_data = static_cast<TimerEventData *>(pvTimerGetTimerID(timer_handle));
   e_data.timer = te_data;
-  HidEngineTask::enqueEvent(e_data);
+  HidEngineTask.enqueEvent(e_data);
 
   xTimerDelete(timer_handle, portMAX_DELAY);
 }

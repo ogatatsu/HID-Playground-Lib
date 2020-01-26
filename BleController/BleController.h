@@ -40,7 +40,7 @@ namespace hidpg
 #define CENTRAL_ENABLE
 #endif
 
-class BleController
+class BleController_
 {
 public:
   using prphCannotConnectCallback_t = void (*)(void);
@@ -105,5 +105,7 @@ private:
   static centDisconnectCallback_t _cent_disconnect_cb;
 #endif
 };
+
+extern BleController_ BleController;
 
 } // namespace hidpg

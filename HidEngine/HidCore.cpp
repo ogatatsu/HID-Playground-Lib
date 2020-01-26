@@ -29,23 +29,23 @@
 namespace hidpg
 {
 
-HidReporter *Hid::_hid_reporter = nullptr;
-uint8_t Hid::_pressed_keys[7] = {};
-uint8_t Hid::_prev_sent_keys[6] = {};
-uint8_t Hid::_key_counters[256] = {};
-uint8_t Hid::_modifier_counters[8] = {};
-int32_t Hid::_one_shot_modifier_counters[8] = {};
-int32_t Hid::_triggered_one_shot_modifier_counters[8] = {};
-uint8_t Hid::_prev_sent_modifier = 0;
-uint8_t Hid::_prev_sent_button = 0;
-uint8_t Hid::_button_counters[5] = {};
+HidReporter *Hid_::_hid_reporter = nullptr;
+uint8_t Hid_::_pressed_keys[7] = {};
+uint8_t Hid_::_prev_sent_keys[6] = {};
+uint8_t Hid_::_key_counters[256] = {};
+uint8_t Hid_::_modifier_counters[8] = {};
+int32_t Hid_::_one_shot_modifier_counters[8] = {};
+int32_t Hid_::_triggered_one_shot_modifier_counters[8] = {};
+uint8_t Hid_::_prev_sent_modifier = 0;
+uint8_t Hid_::_prev_sent_button = 0;
+uint8_t Hid_::_button_counters[5] = {};
 
-void Hid::setReporter(HidReporter *hid_reporter)
+void Hid_::setReporter(HidReporter *hid_reporter)
 {
   _hid_reporter = hid_reporter;
 }
 
-void Hid::setKey(KeyCode key_code)
+void Hid_::setKey(KeyCode key_code)
 {
   uint8_t kc = static_cast<uint8_t>(key_code);
 
@@ -73,7 +73,7 @@ void Hid::setKey(KeyCode key_code)
   _pressed_keys[5] = kc;
 }
 
-void Hid::unsetKey(KeyCode key_code)
+void Hid_::unsetKey(KeyCode key_code)
 {
   uint8_t kc = static_cast<uint8_t>(key_code);
 
@@ -123,32 +123,32 @@ static void countDown(T (&counters)[SIZE], uint8_t bit8)
   }
 }
 
-void Hid::setModifier(Modifier modifier)
+void Hid_::setModifier(Modifier modifier)
 {
   uint8_t mod = static_cast<uint8_t>(modifier);
   countUp(_modifier_counters, mod);
 }
 
-void Hid::unsetModifier(Modifier modifier)
+void Hid_::unsetModifier(Modifier modifier)
 {
   uint8_t mod = static_cast<uint8_t>(modifier);
   countDown(_modifier_counters, mod);
 }
 
-void Hid::holdOneShotModifier(Modifier modifier)
+void Hid_::holdOneShotModifier(Modifier modifier)
 {
   uint8_t mod = static_cast<uint8_t>(modifier);
   countUp(_one_shot_modifier_counters, mod);
 }
 
-void Hid::releaseOneShotModifier(Modifier modifier)
+void Hid_::releaseOneShotModifier(Modifier modifier)
 {
   uint8_t mod = static_cast<uint8_t>(modifier);
   countDown(_triggered_one_shot_modifier_counters, mod);
   sendKeyReport(false);
 }
 
-void Hid::sendKeyReport(bool trigger_one_shot)
+void Hid_::sendKeyReport(bool trigger_one_shot)
 {
   // 前回送ったreportと比較して変更があるか
   bool is_changed = false;
@@ -237,7 +237,7 @@ void Hid::sendKeyReport(bool trigger_one_shot)
   }
 }
 
-void Hid::consumerKeyPress(UsageCode usage_code)
+void Hid_::consumerKeyPress(UsageCode usage_code)
 {
   if (_hid_reporter != nullptr)
   {
@@ -245,7 +245,7 @@ void Hid::consumerKeyPress(UsageCode usage_code)
   }
 }
 
-void Hid::consumerKeyRelease()
+void Hid_::consumerKeyRelease()
 {
   if (_hid_reporter != nullptr)
   {
@@ -253,7 +253,7 @@ void Hid::consumerKeyRelease()
   }
 }
 
-void Hid::mouseMove(int8_t x, int8_t y)
+void Hid_::mouseMove(int8_t x, int8_t y)
 {
   if (_hid_reporter != nullptr)
   {
@@ -261,7 +261,7 @@ void Hid::mouseMove(int8_t x, int8_t y)
   }
 }
 
-void Hid::mouseScroll(int8_t scroll, int8_t horiz)
+void Hid_::mouseScroll(int8_t scroll, int8_t horiz)
 {
   sendKeyReport(true);
   if (_hid_reporter != nullptr)
@@ -271,7 +271,7 @@ void Hid::mouseScroll(int8_t scroll, int8_t horiz)
   sendKeyReport(false);
 }
 
-void Hid::mouseButtonPress(MouseButton button)
+void Hid_::mouseButtonPress(MouseButton button)
 {
   uint8_t btn = static_cast<uint8_t>(button);
   countUp(_button_counters, btn);
@@ -279,7 +279,7 @@ void Hid::mouseButtonPress(MouseButton button)
   sendMouseButtonReport();
 }
 
-void Hid::mouseButtonRelease(MouseButton button)
+void Hid_::mouseButtonRelease(MouseButton button)
 {
   uint8_t btn = static_cast<uint8_t>(button);
   countDown(_button_counters, btn);
@@ -287,7 +287,7 @@ void Hid::mouseButtonRelease(MouseButton button)
   sendMouseButtonReport();
 }
 
-void Hid::sendMouseButtonReport()
+void Hid_::sendMouseButtonReport()
 {
   uint8_t button = 0;
 
@@ -307,5 +307,7 @@ void Hid::sendMouseButtonReport()
     }
   }
 }
+
+Hid_ Hid;
 
 } // namespace hidpg

@@ -29,7 +29,7 @@
 namespace hidpg
 {
 
-class STM32Hid
+class STM32Hid_
 {
 public:
   static void init();
@@ -46,5 +46,7 @@ private:
 
   static USBCompositeHidReporter _hid_reporter;
 };
+
+extern STM32Hid_ STM32Hid;
 
 } // namespace hidpg

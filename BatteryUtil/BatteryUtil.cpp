@@ -126,7 +126,7 @@ static uint16_t analogReadVdd()
   return result;
 }
 
-uint8_t BatteryUtil::readBatteryLevel()
+uint8_t BatteryUtil_::readBatteryLevel()
 {
 #ifdef BATTERY_READ_PIN
   analogReference(AR_INTERNAL);
@@ -139,5 +139,7 @@ uint8_t BatteryUtil::readBatteryLevel()
   int level = map(val, MIN_ANALOG_VALUE, MAX_ANALOG_VALUE, 0, 100);
   return constrain(level, 0, 100);
 }
+
+BatteryUtil_ BatteryUtil;
 
 } // namespace hidpg

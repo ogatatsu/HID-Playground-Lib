@@ -45,7 +45,7 @@ private:
   int _denom;
 };
 
-class MouseSpeedController
+class MouseSpeedController_
 {
 public:
   static void accel(int16_t percent);
@@ -58,5 +58,7 @@ private:
   static Rational _rational;
   static uint8_t _zero_counter;
 };
+
+extern MouseSpeedController_ MouseSpeedController;
 
 } // namespace hidpg

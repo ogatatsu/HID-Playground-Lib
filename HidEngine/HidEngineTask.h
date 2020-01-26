@@ -84,7 +84,7 @@ struct EventData
   };
 };
 
-class HidEngineTask
+class HidEngineTask_
 {
 public:
   static void init();
@@ -99,5 +99,7 @@ private:
   static QueueHandle_t _event_queue;
   static EventData _lookahead;
 };
+
+extern HidEngineTask_ HidEngineTask;
 
 } // namespace hidpg

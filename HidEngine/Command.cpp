@@ -101,15 +101,15 @@ NormalKey::NormalKey(KeyCode key_code) : _key_code(key_code)
 
 uint8_t NormalKey::onPress(uint8_t accumulation)
 {
-  Hid::setKey(_key_code);
-  Hid::sendKeyReport(true);
+  Hid.setKey(_key_code);
+  Hid.sendKeyReport(true);
   return 1;
 }
 
 void NormalKey::onRelease()
 {
-  Hid::unsetKey(_key_code);
-  Hid::sendKeyReport(false);
+  Hid.unsetKey(_key_code);
+  Hid.sendKeyReport(false);
 }
 
 /*------------------------------------------------------------------*/
@@ -121,15 +121,15 @@ ModifierKey::ModifierKey(Modifier modifier) : _modifier(modifier)
 
 uint8_t ModifierKey::onPress(uint8_t accumulation)
 {
-  Hid::setModifier(_modifier);
-  Hid::sendKeyReport(true);
+  Hid.setModifier(_modifier);
+  Hid.sendKeyReport(true);
   return 1;
 }
 
 void ModifierKey::onRelease()
 {
-  Hid::unsetModifier(_modifier);
-  Hid::sendKeyReport(false);
+  Hid.unsetModifier(_modifier);
+  Hid.sendKeyReport(false);
 }
 
 /*------------------------------------------------------------------*/
@@ -141,17 +141,17 @@ CombinationKey::CombinationKey(Modifier modifier, KeyCode key_code) : _modifier(
 
 uint8_t CombinationKey::onPress(uint8_t accumulation)
 {
-  Hid::setKey(_key_code);
-  Hid::setModifier(_modifier);
-  Hid::sendKeyReport(true);
+  Hid.setKey(_key_code);
+  Hid.setModifier(_modifier);
+  Hid.sendKeyReport(true);
   return 1;
 }
 
 void CombinationKey::onRelease()
 {
-  Hid::unsetKey(_key_code);
-  Hid::unsetModifier(_modifier);
-  Hid::sendKeyReport(false);
+  Hid.unsetKey(_key_code);
+  Hid.unsetModifier(_modifier);
+  Hid.sendKeyReport(false);
 }
 
 /*------------------------------------------------------------------*/
@@ -165,13 +165,13 @@ ModifierTap::ModifierTap(Modifier modifier, Command *command)
 
 uint8_t ModifierTap::onPress(uint8_t accumulation)
 {
-  Hid::setModifier(_modifier);
+  Hid.setModifier(_modifier);
   return 1;
 }
 
 void ModifierTap::onRelease()
 {
-  Hid::unsetModifier(_modifier);
+  Hid.unsetModifier(_modifier);
   if (this->isLastPressed())
   {
     _command->press();
@@ -179,7 +179,7 @@ void ModifierTap::onRelease()
   }
   else
   {
-    Hid::sendKeyReport(false);
+    Hid.sendKeyReport(false);
   }
 }
 
@@ -192,13 +192,13 @@ OneShotModifier::OneShotModifier(Modifier modifier) : _modifier(modifier)
 
 uint8_t OneShotModifier::onPress(uint8_t accumulation)
 {
-  Hid::holdOneShotModifier(_modifier);
+  Hid.holdOneShotModifier(_modifier);
   return 1;
 }
 
 void OneShotModifier::onRelease()
 {
-  Hid::releaseOneShotModifier(_modifier);
+  Hid.releaseOneShotModifier(_modifier);
 }
 
 /*------------------------------------------------------------------*/
@@ -219,7 +219,7 @@ uint8_t Layering::onPress(uint8_t accumulation)
 {
   // 現在のレイヤーの状態を取得
   bool layer_state[LAYER_SIZE];
-  Layer::getState(layer_state);
+  Layer.getState(layer_state);
 
   _running_command = nullptr;
 
@@ -272,13 +272,13 @@ LayerTap::LayerTap(uint8_t layer_number, Command *command)
 
 uint8_t LayerTap::onPress(uint8_t accumulation)
 {
-  Layer::on(_layer_number);
+  Layer.on(_layer_number);
   return 1;
 }
 
 void LayerTap::onRelease()
 {
-  Layer::off(_layer_number);
+  Layer.off(_layer_number);
   if (this->isLastPressed())
   {
     _command->press();
@@ -295,7 +295,7 @@ ToggleLayer::ToggleLayer(uint8_t layer_number) : _layer_number(layer_number)
 
 uint8_t ToggleLayer::onPress(uint8_t accumulation)
 {
-  Layer::toggle(_layer_number);
+  Layer.toggle(_layer_number);
   return 1;
 }
 
@@ -308,13 +308,13 @@ SwitchLayer::SwitchLayer(uint8_t layer_number) : _layer_number(layer_number)
 
 uint8_t SwitchLayer::onPress(uint8_t accumulation)
 {
-  Layer::on(_layer_number);
+  Layer.on(_layer_number);
   return 1;
 }
 
 void SwitchLayer::onRelease()
 {
-  Layer::off(_layer_number);
+  Layer.off(_layer_number);
 }
 
 /*------------------------------------------------------------------*/
@@ -326,13 +326,13 @@ OneShotLayer::OneShotLayer(uint8_t layer_number) : _layer_number(layer_number)
 
 uint8_t OneShotLayer::onPress(uint8_t accumulation)
 {
-  Layer::setOneShot(_layer_number);
-  Layer::peekOneShot(_chained_osl);
+  Layer.setOneShot(_layer_number);
+  Layer.peekOneShot(_chained_osl);
   for (int i = 0; i < LAYER_SIZE; i++)
   {
     if (_chained_osl[i])
     {
-      Layer::on(i);
+      Layer.on(i);
     }
   }
   return 1;
@@ -344,7 +344,7 @@ void OneShotLayer::onRelease()
   {
     if (_chained_osl[i])
     {
-      Layer::off(i);
+      Layer.off(i);
     }
   }
 }
@@ -488,12 +488,12 @@ ConsumerControll::ConsumerControll(UsageCode usage_code) : _usage_code(usage_cod
 
 uint8_t ConsumerControll::onPress(uint8_t accumulation)
 {
-  Hid::consumerKeyPress(_usage_code);
+  Hid.consumerKeyPress(_usage_code);
   return 1;
 }
 void ConsumerControll::onRelease()
 {
-  Hid::consumerKeyRelease();
+  Hid.consumerKeyRelease();
 }
 
 /*------------------------------------------------------------------*/
@@ -509,7 +509,7 @@ void MouseMove::Mover::setXY(int8_t x, int8_t y)
   _x += x;
   _y += y;
   calcXY(x, y);
-  Hid::mouseMove(x, y);
+  Hid.mouseMove(x, y);
   if (_count == 1)
   {
     startTimer(MOUSEKEY_DELAY_MS);
@@ -531,13 +531,13 @@ void MouseMove::Mover::onTimer()
 {
   int8_t x, y;
   calcXY(x, y);
-  Hid::mouseMove(x, y);
+  Hid.mouseMove(x, y);
   startTimer(MOUSEKEY_INTERVAL_MS);
 }
 
 void MouseMove::Mover::calcXY(int8_t &x, int8_t &y)
 {
-  double factor = MouseSpeedController::getfactor();
+  double factor = MouseSpeedController.getfactor();
   int ix, iy;
   ix = round(_x * factor);
   ix = constrain(ix, -127, 127);
@@ -577,11 +577,11 @@ uint8_t MouseSpeed::onPress(uint8_t accumulation)
 {
   if (_percent == 0)
   {
-    MouseSpeedController::setZero();
+    MouseSpeedController.setZero();
   }
   else
   {
-    MouseSpeedController::accel(_percent);
+    MouseSpeedController.accel(_percent);
   }
   return 1;
 }
@@ -590,11 +590,11 @@ void MouseSpeed::onRelease()
 {
   if (_percent == 0)
   {
-    MouseSpeedController::unsetZero();
+    MouseSpeedController.unsetZero();
   }
   else
   {
-    MouseSpeedController::decel(_percent);
+    MouseSpeedController.decel(_percent);
   }
 }
 
@@ -610,7 +610,7 @@ uint8_t MouseScroll::onPress(uint8_t accumulation)
   uint8_t possible = 127 / max(abs(_scroll), abs(_horiz));
   uint8_t times = min(accumulation, possible);
 
-  Hid::mouseScroll(_scroll * times, _horiz * times);
+  Hid.mouseScroll(_scroll * times, _horiz * times);
   return times;
 }
 
@@ -623,13 +623,13 @@ MouseClick::MouseClick(MouseButton button) : _button(button)
 
 uint8_t MouseClick::onPress(uint8_t accumulation)
 {
-  Hid::mouseButtonPress(_button);
+  Hid.mouseButtonPress(_button);
   return 1;
 }
 
 void MouseClick::onRelease()
 {
-  Hid::mouseButtonRelease(_button);
+  Hid.mouseButtonRelease(_button);
 }
 
 /*------------------------------------------------------------------*/
@@ -641,8 +641,8 @@ Macro::DownKey::DownKey(KeyCode key_code) : _key_code(key_code)
 
 unsigned int Macro::DownKey::apply()
 {
-  Hid::setKey(_key_code);
-  Hid::sendKeyReport(true);
+  Hid.setKey(_key_code);
+  Hid.sendKeyReport(true);
   return 0;
 }
 
@@ -652,8 +652,8 @@ Macro::UpKey::UpKey(KeyCode key_code) : _key_code(key_code)
 
 unsigned int Macro::UpKey::apply()
 {
-  Hid::unsetKey(_key_code);
-  Hid::sendKeyReport(false);
+  Hid.unsetKey(_key_code);
+  Hid.sendKeyReport(false);
   return 0;
 }
 
@@ -663,8 +663,8 @@ Macro::DownModifier::DownModifier(Modifier modifier) : _modifier(modifier)
 
 unsigned int Macro::DownModifier::apply()
 {
-  Hid::setModifier(_modifier);
-  Hid::sendKeyReport(true);
+  Hid.setModifier(_modifier);
+  Hid.sendKeyReport(true);
   return 0;
 }
 
@@ -674,8 +674,8 @@ Macro::UpModifier::UpModifier(Modifier modifier) : _modifier(modifier)
 
 unsigned int Macro::UpModifier::apply()
 {
-  Hid::unsetModifier(_modifier);
-  Hid::sendKeyReport(false);
+  Hid.unsetModifier(_modifier);
+  Hid.sendKeyReport(false);
   return 0;
 }
 

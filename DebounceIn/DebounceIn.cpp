@@ -29,14 +29,14 @@
 namespace hidpg
 {
 
-DebounceIn::callback_t DebounceIn::_callback = nullptr;
-TaskHandle_t DebounceIn::_task_handle = nullptr;
-LinkedList<DebounceIn::PinInfo *> DebounceIn::_pin_info_list;
-uint16_t DebounceIn::_max_debounce_delay_ms = 0;
-uint16_t DebounceIn::_polling_interval_ms = UINT16_MAX;
-uint16_t DebounceIn::_max_polling_count = 0;
+DebounceIn_::callback_t DebounceIn_::_callback = nullptr;
+TaskHandle_t DebounceIn_::_task_handle = nullptr;
+LinkedList<DebounceIn_::PinInfo *> DebounceIn_::_pin_info_list;
+uint16_t DebounceIn_::_max_debounce_delay_ms = 0;
+uint16_t DebounceIn_::_polling_interval_ms = UINT16_MAX;
+uint16_t DebounceIn_::_max_polling_count = 0;
 
-void DebounceIn::init()
+void DebounceIn_::init()
 {
   for (int i = 0; i < _pin_info_list.size(); i++)
   {
@@ -49,7 +49,7 @@ void DebounceIn::init()
   _max_polling_count += 2;
 }
 
-void DebounceIn::addPin(uint8_t pin, int mode, uint16_t debounce_delay_ms)
+void DebounceIn_::addPin(uint8_t pin, int mode, uint16_t debounce_delay_ms)
 {
   PinInfo *info = new PinInfo;
   info->pin = pin;
@@ -63,7 +63,7 @@ void DebounceIn::addPin(uint8_t pin, int mode, uint16_t debounce_delay_ms)
   _polling_interval_ms = min(debounce_delay_ms, _polling_interval_ms);
 }
 
-void DebounceIn::startTask()
+void DebounceIn_::startTask()
 {
   if (_task_handle == nullptr)
   {
@@ -75,7 +75,7 @@ void DebounceIn::startTask()
   }
 }
 
-void DebounceIn::stopTask()
+void DebounceIn_::stopTask()
 {
   if (_task_handle != nullptr)
   {
@@ -83,12 +83,12 @@ void DebounceIn::stopTask()
   }
 }
 
-void DebounceIn::setCallback(callback_t callback)
+void DebounceIn_::setCallback(callback_t callback)
 {
   _callback = callback;
 }
 
-void DebounceIn::interrupt_callback()
+void DebounceIn_::interrupt_callback()
 {
   if (_task_handle != nullptr)
   {
@@ -97,7 +97,7 @@ void DebounceIn::interrupt_callback()
   }
 }
 
-bool DebounceIn::needsUpdate()
+bool DebounceIn_::needsUpdate()
 {
   // ・消費電流を減らすため常にスキャンをせずに割り込みが発生したら起きて一定時間スキャン（ポーリング）をする
   // ・FreeRTOSのtask通知を利用して残りのポーリング回数を設定する
@@ -109,7 +109,7 @@ bool DebounceIn::needsUpdate()
   return false;
 }
 
-void DebounceIn::task(void *pvParameters)
+void DebounceIn_::task(void *pvParameters)
 {
   while (true)
   {
@@ -136,5 +136,7 @@ void DebounceIn::task(void *pvParameters)
     }
   }
 }
+
+DebounceIn_ DebounceIn;
 
 } // namespace hidpg

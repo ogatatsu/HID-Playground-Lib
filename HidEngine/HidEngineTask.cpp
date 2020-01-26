@@ -30,26 +30,26 @@
 namespace hidpg
 {
 
-TaskHandle_t HidEngineTask::_task_handle = nullptr;
-QueueHandle_t HidEngineTask::_event_queue = nullptr;
-EventData HidEngineTask::_lookahead;
+TaskHandle_t HidEngineTask_::_task_handle = nullptr;
+QueueHandle_t HidEngineTask_::_event_queue = nullptr;
+EventData HidEngineTask_::_lookahead;
 
-void HidEngineTask::init()
+void HidEngineTask_::init()
 {
   _event_queue = xQueueCreate(HID_ENGINE_EVENT_QUEUE_SIZE, sizeof(EventData));
 }
 
-void HidEngineTask::startTask()
+void HidEngineTask_::startTask()
 {
   xTaskCreate(task, "HidEngine", HID_ENGINE_TASK_STACK_SIZE, nullptr, TASK_PRIO_LOW, &_task_handle);
 }
 
-void HidEngineTask::enqueEvent(const EventData &e_data)
+void HidEngineTask_::enqueEvent(const EventData &e_data)
 {
   xQueueSend(_event_queue, &e_data, portMAX_DELAY);
 }
 
-void HidEngineTask::sumNextMouseMoveEventIfExist(int16_t &x, int16_t &y)
+void HidEngineTask_::sumNextMouseMoveEventIfExist(int16_t &x, int16_t &y)
 {
   if (_lookahead.event_type != EventType::Invalid)
   {
@@ -72,7 +72,7 @@ void HidEngineTask::sumNextMouseMoveEventIfExist(int16_t &x, int16_t &y)
   }
 }
 
-void HidEngineTask::task(void *pvParameters)
+void HidEngineTask_::task(void *pvParameters)
 {
   while (true)
   {
@@ -91,17 +91,17 @@ void HidEngineTask::task(void *pvParameters)
     {
     case EventType::ApplyToKeymap:
     {
-      HidEngine::applyToKeymap_impl(e_data->apply_to_keymap.key_ids);
+      HidEngine.applyToKeymap_impl(e_data->apply_to_keymap.key_ids);
       break;
     }
     case EventType::TapCommand:
     {
-      CommandTapper::tap(e_data->tap_command.command, e_data->tap_command.times);
+      CommandTapper.tap(e_data->tap_command.command, e_data->tap_command.times);
       break;
     }
     case EventType::MouseMove:
     {
-      HidEngine::mouseMove_impl(e_data->mouse_move.x, e_data->mouse_move.y);
+      HidEngine.mouseMove_impl(e_data->mouse_move.x, e_data->mouse_move.y);
       break;
     }
     case EventType::Timer:
@@ -112,7 +112,7 @@ void HidEngineTask::task(void *pvParameters)
     }
     case EventType::CommandTapper:
     {
-      CommandTapper::onTimer();
+      CommandTapper.onTimer();
       break;
     }
     default:
@@ -123,5 +123,7 @@ void HidEngineTask::task(void *pvParameters)
     e_data->event_type = EventType::Invalid;
   }
 }
+
+HidEngineTask_ HidEngineTask;
 
 } // namespace hidpg
