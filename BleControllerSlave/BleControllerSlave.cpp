@@ -31,7 +31,7 @@ namespace hidpg
 BLEUartLight BleControllerSlave_::_ble_uart;
 BLEBas BleControllerSlave_::_ble_bas;
 BlinkLed BleControllerSlave_::_adv_led(ADV_LED_PIN, ADV_LED_ACTIVE_STATE, IS_HIGH_DRIVE);
-BleControllerSlave_::prphCannotConnectCallback_t BleControllerSlave_::_cannot_connect_cb = nullptr;
+BleControllerSlave_::cannotConnectCallback_t BleControllerSlave_::_cannot_connect_cb = nullptr;
 BleControllerSlave_::receiveDataCallback_t BleControllerSlave_::_receive_data_cb = nullptr;
 
 /*------------------------------------------------------------------*/
@@ -65,10 +65,10 @@ void BleControllerSlave_::init()
 }
 
 // 接続を開始
-void BleControllerSlave_::startPrphConnection()
+void BleControllerSlave_::startConnection()
 {
   // すでに開始している場合は何もしない
-  if (isPrphRunning())
+  if (isRunning())
   {
     return;
   }
@@ -77,7 +77,7 @@ void BleControllerSlave_::startPrphConnection()
 }
 
 // ペリファラル接続もしくはアドバタイズを停止する
-void BleControllerSlave_::stopPrphConnection()
+void BleControllerSlave_::stopConnection()
 {
   Bluefruit.Advertising.restartOnDisconnect(false);
   if (Bluefruit.Advertising.isRunning())
@@ -98,7 +98,7 @@ void BleControllerSlave_::stopPrphConnection()
   _adv_led.syncOff();
 }
 
-bool BleControllerSlave_::isPrphRunning()
+bool BleControllerSlave_::isRunning()
 {
   return (Bluefruit.Advertising.isRunning() || Bluefruit.Periph.connected());
 }
@@ -118,7 +118,7 @@ void BleControllerSlave_::setBatteryLevel(uint8_t level)
   _ble_bas.write(level);
 }
 
-void BleControllerSlave_::setPrphCannnotConnectCallback(prphCannotConnectCallback_t callback)
+void BleControllerSlave_::setCannnotConnectCallback(cannotConnectCallback_t callback)
 {
   _cannot_connect_cb = callback;
 }
