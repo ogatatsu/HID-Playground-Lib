@@ -180,7 +180,7 @@ enum class Modifier : uint8_t
   RightGui   = 128,
 };
 
-inline Modifier operator|(const Modifier &a, const Modifier &b)
+constexpr Modifier operator+(const Modifier &a, const Modifier &b)
 {
   return static_cast<Modifier>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
 }
@@ -195,7 +195,7 @@ enum class MouseButton : uint8_t
   Forward  = 16,
 };
 
-inline MouseButton operator|(const MouseButton &a, const MouseButton &b)
+constexpr MouseButton operator+(const MouseButton &a, const MouseButton &b)
 {
   return static_cast<MouseButton>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
 }
