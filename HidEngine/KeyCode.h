@@ -167,154 +167,6 @@ enum class KeyCode : uint8_t
   Lang9           = 152,
 };
 
-// undef ctype.h macro
-#undef _U
-#undef _L
-#undef _N
-#undef _S
-#undef _P
-#undef _C
-#undef _X
-#undef _B
-
-static constexpr KeyCode _None = KeyCode::None;
-
-static constexpr KeyCode _A               = KeyCode::A;
-static constexpr KeyCode _B               = KeyCode::B;
-static constexpr KeyCode _C               = KeyCode::C;
-static constexpr KeyCode _D               = KeyCode::D;
-static constexpr KeyCode _E               = KeyCode::E;
-static constexpr KeyCode _F               = KeyCode::F;
-static constexpr KeyCode _G               = KeyCode::G;
-static constexpr KeyCode _H               = KeyCode::H;
-static constexpr KeyCode _I               = KeyCode::I;
-static constexpr KeyCode _J               = KeyCode::J;
-static constexpr KeyCode _K               = KeyCode::K;
-static constexpr KeyCode _L               = KeyCode::L;
-static constexpr KeyCode _M               = KeyCode::M;
-static constexpr KeyCode _N               = KeyCode::N;
-static constexpr KeyCode _O               = KeyCode::O;
-static constexpr KeyCode _P               = KeyCode::P;
-static constexpr KeyCode _Q               = KeyCode::Q;
-static constexpr KeyCode _R               = KeyCode::R;
-static constexpr KeyCode _S               = KeyCode::S;
-static constexpr KeyCode _T               = KeyCode::T;
-static constexpr KeyCode _U               = KeyCode::U;
-static constexpr KeyCode _V               = KeyCode::V;
-static constexpr KeyCode _W               = KeyCode::W;
-static constexpr KeyCode _X               = KeyCode::X;
-static constexpr KeyCode _Y               = KeyCode::Y;
-static constexpr KeyCode _Z               = KeyCode::Z;
-
-static constexpr KeyCode _1               = KeyCode::_1;
-static constexpr KeyCode _2               = KeyCode::_2;
-static constexpr KeyCode _3               = KeyCode::_3;
-static constexpr KeyCode _4               = KeyCode::_4;
-static constexpr KeyCode _5               = KeyCode::_5;
-static constexpr KeyCode _6               = KeyCode::_6;
-static constexpr KeyCode _7               = KeyCode::_7;
-static constexpr KeyCode _8               = KeyCode::_8;
-static constexpr KeyCode _9               = KeyCode::_9;
-static constexpr KeyCode _0               = KeyCode::_0;
-
-static constexpr KeyCode _Enter           = KeyCode::Enter;
-static constexpr KeyCode _Escape          = KeyCode::Escape;
-static constexpr KeyCode _Backspace       = KeyCode::Backspace;
-static constexpr KeyCode _Tab             = KeyCode::Tab;
-static constexpr KeyCode _Space           = KeyCode::Space;
-static constexpr KeyCode _Minus           = KeyCode::Minus;
-static constexpr KeyCode _Equal           = KeyCode::Equal;
-static constexpr KeyCode _BracketLeft     = KeyCode::BracketLeft;
-static constexpr KeyCode _BracketRight    = KeyCode::BracketRight;
-static constexpr KeyCode _Backslash       = KeyCode::Backslash;
-static constexpr KeyCode _NonUsNumberSign = KeyCode::NonUsNumberSign;
-static constexpr KeyCode _Semicolon       = KeyCode::Semicolon;
-static constexpr KeyCode _Quote           = KeyCode::Quote;
-static constexpr KeyCode _Grave           = KeyCode::Grave;
-static constexpr KeyCode _Comma           = KeyCode::Comma;
-static constexpr KeyCode _Period          = KeyCode::Period;
-static constexpr KeyCode _Slash           = KeyCode::Slash;
-static constexpr KeyCode _CapsLock        = KeyCode::CapsLock;
-
-static constexpr KeyCode _F1              = KeyCode::F1;
-static constexpr KeyCode _F2              = KeyCode::F2;
-static constexpr KeyCode _F3              = KeyCode::F3;
-static constexpr KeyCode _F4              = KeyCode::F4;
-static constexpr KeyCode _F5              = KeyCode::F5;
-static constexpr KeyCode _F6              = KeyCode::F6;
-static constexpr KeyCode _F7              = KeyCode::F7;
-static constexpr KeyCode _F8              = KeyCode::F8;
-static constexpr KeyCode _F9              = KeyCode::F9;
-static constexpr KeyCode _F10             = KeyCode::F10;
-static constexpr KeyCode _F11             = KeyCode::F11;
-static constexpr KeyCode _F12             = KeyCode::F12;
-
-static constexpr KeyCode _PrintScreen     = KeyCode::PrintScreen;
-static constexpr KeyCode _ScrollLock      = KeyCode::ScrollLock;
-static constexpr KeyCode _Pause           = KeyCode::Pause;
-static constexpr KeyCode _Insert          = KeyCode::Insert;
-static constexpr KeyCode _Home            = KeyCode::Home;
-static constexpr KeyCode _PageUp          = KeyCode::PageUp;
-static constexpr KeyCode _Delete          = KeyCode::Delete;
-static constexpr KeyCode _End             = KeyCode::End;
-static constexpr KeyCode _PageDown        = KeyCode::PageDown;
-static constexpr KeyCode _ArrowRight      = KeyCode::ArrowRight;
-static constexpr KeyCode _ArrowLeft       = KeyCode::ArrowLeft;
-static constexpr KeyCode _ArrowDown       = KeyCode::ArrowDown;
-static constexpr KeyCode _ArrowUp         = KeyCode::ArrowUp;
-static constexpr KeyCode _NumLock         = KeyCode::NumLock;
-static constexpr KeyCode _KeypadDivide    = KeyCode::KeypadDivide;
-static constexpr KeyCode _KeypadMultiply  = KeyCode::KeypadMultiply;
-static constexpr KeyCode _KeypadSubtract  = KeyCode::KeypadSubtract;
-static constexpr KeyCode _KeypadAdd       = KeyCode::KeypadAdd;
-static constexpr KeyCode _KeypadEnter     = KeyCode::KeypadEnter;
-static constexpr KeyCode _Keypad1         = KeyCode::Keypad1;
-static constexpr KeyCode _Keypad2         = KeyCode::Keypad2;
-static constexpr KeyCode _Keypad3         = KeyCode::Keypad3;
-static constexpr KeyCode _Keypad4         = KeyCode::Keypad4;
-static constexpr KeyCode _Keypad5         = KeyCode::Keypad5;
-static constexpr KeyCode _Keypad6         = KeyCode::Keypad6;
-static constexpr KeyCode _Keypad7         = KeyCode::Keypad7;
-static constexpr KeyCode _Keypad8         = KeyCode::Keypad8;
-static constexpr KeyCode _Keypad9         = KeyCode::Keypad9;
-static constexpr KeyCode _Keypad0         = KeyCode::Keypad0;
-static constexpr KeyCode _KeypadPeriod    = KeyCode::KeypadPeriod;
-static constexpr KeyCode _NonUsBackslash  = KeyCode::NonUsBackslash;
-static constexpr KeyCode _Application     = KeyCode::Application;
-static constexpr KeyCode _Power           = KeyCode::Power;
-static constexpr KeyCode _KeypadEqual     = KeyCode::KeypadEqual;
-static constexpr KeyCode _F13             = KeyCode::F13;
-static constexpr KeyCode _F14             = KeyCode::F14;
-static constexpr KeyCode _F15             = KeyCode::F15;
-static constexpr KeyCode _F16             = KeyCode::F16;
-static constexpr KeyCode _F17             = KeyCode::F17;
-static constexpr KeyCode _F18             = KeyCode::F18;
-static constexpr KeyCode _F19             = KeyCode::F19;
-static constexpr KeyCode _F20             = KeyCode::F20;
-static constexpr KeyCode _F21             = KeyCode::F21;
-static constexpr KeyCode _F22             = KeyCode::F22;
-static constexpr KeyCode _F23             = KeyCode::F23;
-static constexpr KeyCode _F24             = KeyCode::F24;
-
-static constexpr KeyCode _Int1            = KeyCode::Int1;
-static constexpr KeyCode _Int2            = KeyCode::Int2;
-static constexpr KeyCode _Int3            = KeyCode::Int3;
-static constexpr KeyCode _Int4            = KeyCode::Int4;
-static constexpr KeyCode _Int5            = KeyCode::Int5;
-static constexpr KeyCode _Int6            = KeyCode::Int6;
-static constexpr KeyCode _Int7            = KeyCode::Int7;
-static constexpr KeyCode _Int8            = KeyCode::Int8;
-static constexpr KeyCode _Int9            = KeyCode::Int9;
-static constexpr KeyCode _Lang1           = KeyCode::Lang1;
-static constexpr KeyCode _Lang2           = KeyCode::Lang2;
-static constexpr KeyCode _Lang3           = KeyCode::Lang3;
-static constexpr KeyCode _Lang4           = KeyCode::Lang4;
-static constexpr KeyCode _Lang5           = KeyCode::Lang5;
-static constexpr KeyCode _Lang6           = KeyCode::Lang6;
-static constexpr KeyCode _Lang7           = KeyCode::Lang7;
-static constexpr KeyCode _Lang8           = KeyCode::Lang8;
-static constexpr KeyCode _Lang9           = KeyCode::Lang9;
-
 // ModifierKeys
 enum class Modifier : uint8_t
 {
@@ -333,19 +185,6 @@ inline Modifier operator|(const Modifier &a, const Modifier &b)
   return static_cast<Modifier>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
 }
 
-static constexpr Modifier _Ctrl       = Modifier::LeftCtrl;
-static constexpr Modifier _Shift      = Modifier::LeftShift;
-static constexpr Modifier _Alt        = Modifier::LeftAlt;
-static constexpr Modifier _Gui        = Modifier::LeftGui;
-static constexpr Modifier _LeftCtrl   = Modifier::LeftCtrl;
-static constexpr Modifier _LeftShift  = Modifier::LeftShift;
-static constexpr Modifier _LeftAlt    = Modifier::LeftAlt;
-static constexpr Modifier _LeftGui    = Modifier::LeftGui;
-static constexpr Modifier _RightCtrl  = Modifier::RightCtrl;
-static constexpr Modifier _RightShift = Modifier::RightShift;
-static constexpr Modifier _RightAlt   = Modifier::RightAlt;
-static constexpr Modifier _RightGui   = Modifier::RightGui;
-
 // Mouse
 enum class MouseButton : uint8_t
 {
@@ -361,12 +200,6 @@ inline MouseButton operator|(const MouseButton &a, const MouseButton &b)
   return static_cast<MouseButton>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
 }
 
-static constexpr MouseButton _LeftButton     = MouseButton::Left;
-static constexpr MouseButton _RightButton    = MouseButton::Right;
-static constexpr MouseButton _MiddleButton   = MouseButton::Middle;
-static constexpr MouseButton _BackwardButton = MouseButton::Backward;
-static constexpr MouseButton _ForwardButton  = MouseButton::Forward;
-
 // Consumer Controll
 enum class UsageCode : uint16_t
 {
@@ -379,14 +212,5 @@ enum class UsageCode : uint16_t
   VolumeUp    = 233,
   VolumeDown  = 234,
 };
-
-static constexpr UsageCode _PlayPause   = UsageCode::PlayPause;
-static constexpr UsageCode _FastForward = UsageCode::FastForward;
-static constexpr UsageCode _Rewind      = UsageCode::Rewind;
-static constexpr UsageCode _Next        = UsageCode::Next;
-static constexpr UsageCode _Prev        = UsageCode::Prev;
-static constexpr UsageCode _Mute        = UsageCode::Mute;
-static constexpr UsageCode _VolumeUp    = UsageCode::VolumeUp;
-static constexpr UsageCode _VolumeDown  = UsageCode::VolumeDown;
 
 } // namespace hidpg

@@ -561,11 +561,11 @@ static Command *MACRO(const MacroCommandPtr (&arr)[N])
   return (new Macro(arg, N));
 }
 
-static inline Macro::MacroCommand *D(KeyCode key_code) { return (new Macro::DownKey(key_code)); }
-static inline Macro::MacroCommand *D(Modifier modifier) { return (new Macro::DownModifier(modifier)); }
-static inline Macro::MacroCommand *U(KeyCode key_code) { return (new Macro::UpKey(key_code)); }
-static inline Macro::MacroCommand *U(Modifier modifier) { return (new Macro::UpModifier(modifier)); }
-static inline Macro::MacroCommand *W(unsigned int delay) { return (new Macro::Wait(delay)); }
+static inline Macro::MacroCommand *DN(KeyCode key_code) { return (new Macro::DownKey(key_code)); }
+static inline Macro::MacroCommand *DN(Modifier modifier) { return (new Macro::DownModifier(modifier)); }
+static inline Macro::MacroCommand *UP(KeyCode key_code) { return (new Macro::UpKey(key_code)); }
+static inline Macro::MacroCommand *UP(Modifier modifier) { return (new Macro::UpModifier(modifier)); }
+static inline Macro::MacroCommand *WT(unsigned int delay) { return (new Macro::Wait(delay)); }
 
 // If
 static inline Command *IF(bool (*func)(), Command *true_command, Command *false_command) { return (new If(func, true_command, false_command)); }
