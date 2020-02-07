@@ -24,20 +24,49 @@
 
 #pragma once
 
-#include "BleControllerPeripheral.h"
-#include "BleControllerCentral.h"
+#include "BLEHidAdafruitHidReporter.h"
+#include "BleController_config.h"
+#include "BlinkLed.h"
+#include "HidReporter.h"
+#include "MemStore.h"
+#include <bluefruit.h>
 
 namespace hidpg
 {
 
-class BleController_
+class BleControllerPeripheral_
 {
+  friend class BleController_;
+
 public:
+  using cannotConnectCallback_t = void (*)(void);
+
+  static void startConnection(uint8_t slot = 0);
+  static void stopConnection();
+  static bool isRunning();
+  static uint8_t getCurrentSlot();
+  static void clearBonds();
+  static HidReporter *getHidReporter();
+  static void setBatteryLevel(uint8_t level);
+  static void setCannnotConnectCallback(cannotConnectCallback_t callback);
+
+private:
   static void init();
-  static BleControllerPeripheral_ Periph;
-  static BleControllerCentral_ Central;
+  static void startAdv();
+  static void adv_stop_callback();
+  static void connect_callback(uint16_t conn_handle);
+  static void disconnect_callback(uint16_t conn_handle, uint8_t reason);
+
+  static BLEDis _ble_dis;
+  static BLEBas _ble_bas;
+  static BLEHidAdafruit _ble_hid;
+  static BLEHidAdafruitHidReporter _hid_reporter;
+  static BlinkLed _adv_led;
+  static MemStore _addr_store;
+  static uint8_t _current_slot;
+  static cannotConnectCallback_t _cannot_connect_cb;
 };
 
-extern BleController_ BleController;
+extern BleControllerPeripheral_ BleControllerPeripheral;
 
 } // namespace hidpg

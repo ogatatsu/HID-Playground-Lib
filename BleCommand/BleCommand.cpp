@@ -39,7 +39,7 @@ ConnectBluetooth::ConnectBluetooth(uint8_t slot) : _slot(slot)
 
 uint8_t ConnectBluetooth::onPress(uint8_t accumulation)
 {
-  BleController.startPrphConnection(_slot);
+  BleController.Periph.startConnection(_slot);
   return 1;
 }
 
@@ -48,7 +48,7 @@ uint8_t ConnectBluetooth::onPress(uint8_t accumulation)
  *------------------------------------------------------------------*/
 uint8_t ResetConnection::onPress(uint8_t accumulation)
 {
-  BleController.clearBonds();
+  BleController.Periph.clearBonds();
   NVIC_SystemReset();
   return 1;
 }
