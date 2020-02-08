@@ -104,6 +104,12 @@ void bleuart_central_notify_cb(BLEClientCharacteristic *chr, uint8_t *data, uint
 
 uint16_t BLEClientUartLight::write(const uint8_t *content, uint16_t len)
 {
+  BLEConnection *conn = Bluefruit.Connection(this->connHandle());
+  VERIFY(conn, 0);
+
+  uint16_t const max_payload = conn->getMtu() - 3;
+  len = min(max_payload, len);
+
   // write without response
   return _rxd.write(content, len);
 }
