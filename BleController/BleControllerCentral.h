@@ -68,7 +68,7 @@ private:
     BLEClientUartLight ble_uart;
   };
 
-  static constexpr uint8_t _slave_addr_list[][6] = SLAVE_ADDR_LIST;
+  static uint8_t _slave_addr_list[sizeof((uint8_t[][6])SLAVE_ADDR_LIST) / 6][6];
   static SlaveInfo _slaves[arrcount(_slave_addr_list)];
   static BlinkLed _scan_led;
   static receiveDataCallback_t _receive_data_cb;

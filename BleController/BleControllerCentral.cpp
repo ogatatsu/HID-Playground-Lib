@@ -27,7 +27,7 @@
 namespace hidpg
 {
 
-constexpr uint8_t BleControllerCentral_::_slave_addr_list[][6];
+uint8_t BleControllerCentral_::_slave_addr_list[sizeof((uint8_t[][6])SLAVE_ADDR_LIST) / 6][6] = SLAVE_ADDR_LIST;
 BleControllerCentral_::SlaveInfo BleControllerCentral_::_slaves[arrcount(_slave_addr_list)];
 BlinkLed BleControllerCentral_::_scan_led(SCAN_LED_PIN, SCAN_LED_ACTIVE_STATE, IS_HIGH_DRIVE);
 BleControllerCentral_::receiveDataCallback_t BleControllerCentral_::_receive_data_cb = nullptr;
@@ -101,6 +101,11 @@ bool BleControllerCentral_::isRunnning()
 
 uint16_t BleControllerCentral_::sendData(uint8_t idx, const uint8_t *data, uint16_t len)
 {
+  if (idx >= arrcount(_slaves))
+  {
+    return 0;
+  }
+
   if (_slaves[idx].conn_handle == BLE_CONN_HANDLE_INVALID)
   {
     return 0;
