@@ -423,6 +423,16 @@ private:
   const Modifier _modifier;
 };
 
+class MC_TapKey : public Macro::MacroCommand
+{
+public:
+  MC_TapKey(KeyCode key_code);
+  unsigned int run() override;
+
+private:
+  const KeyCode _key_code;
+};
+
 class MC_Wait : public Macro::MacroCommand
 {
 public:
@@ -566,6 +576,7 @@ static inline Macro::MacroCommand *DN(KeyCode key_code) { return (new MC_DownKey
 static inline Macro::MacroCommand *DN(Modifier modifier) { return (new MC_DownModifier(modifier)); }
 static inline Macro::MacroCommand *UP(KeyCode key_code) { return (new MC_UpKey(key_code)); }
 static inline Macro::MacroCommand *UP(Modifier modifier) { return (new MC_UpModifier(modifier)); }
+static inline Macro::MacroCommand *TP(KeyCode key_code) { return (new MC_TapKey(key_code)); }
 static inline Macro::MacroCommand *WT(unsigned int delay) { return (new MC_Wait(delay)); }
 
 // If

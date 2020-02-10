@@ -716,6 +716,19 @@ unsigned int MC_UpModifier::run()
   return 0;
 }
 
+MC_TapKey::MC_TapKey(KeyCode key_code) : _key_code(key_code)
+{
+}
+
+unsigned int MC_TapKey::run()
+{
+  Hid.setKey(_key_code);
+  Hid.sendKeyReport(true);
+  Hid.unsetKey(_key_code);
+  Hid.sendKeyReport(false);
+  return 0;
+}
+
 MC_Wait::MC_Wait(unsigned int delay) : _delay(delay)
 {
 }
