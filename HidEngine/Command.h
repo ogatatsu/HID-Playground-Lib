@@ -25,9 +25,9 @@
 #pragma once
 
 #include "HidEngine_config.h"
+#include "KeyCode.h"
 #include "LinkedList.h"
 #include "TimerMixin.h"
-#include "KeyCode.h"
 #include <stddef.h>
 
 namespace hidpg
@@ -366,57 +366,7 @@ public:
   class MacroCommand
   {
   public:
-    virtual unsigned int apply() = 0;
-  };
-
-  class DownKey : public MacroCommand
-  {
-  public:
-    DownKey(KeyCode key_code);
-    unsigned int apply() override;
-
-  private:
-    const KeyCode _key_code;
-  };
-
-  class UpKey : public MacroCommand
-  {
-  public:
-    UpKey(KeyCode key_code);
-    unsigned int apply() override;
-
-  private:
-    const KeyCode _key_code;
-  };
-
-  class DownModifier : public MacroCommand
-  {
-  public:
-    DownModifier(Modifier modifier);
-    unsigned int apply() override;
-
-  private:
-    const Modifier _modifier;
-  };
-
-  class UpModifier : public MacroCommand
-  {
-  public:
-    UpModifier(Modifier modifier);
-    unsigned int apply() override;
-
-  private:
-    const Modifier _modifier;
-  };
-
-  class Wait : public MacroCommand
-  {
-  public:
-    Wait(unsigned int delay);
-    unsigned int apply() override;
-
-  private:
-    const unsigned int _delay;
+    virtual unsigned int run() = 0;
   };
 
   Macro(MacroCommand **m_commands, size_t len);
@@ -430,6 +380,57 @@ private:
   const size_t _len;
   unsigned int _count;
   bool _is_running;
+};
+
+/*------------------------------------------------------------------*/
+class MC_DownKey : public Macro::MacroCommand
+{
+public:
+  MC_DownKey(KeyCode key_code);
+  unsigned int run() override;
+
+private:
+  const KeyCode _key_code;
+};
+
+class MC_UpKey : public Macro::MacroCommand
+{
+public:
+  MC_UpKey(KeyCode key_code);
+  unsigned int run() override;
+
+private:
+  const KeyCode _key_code;
+};
+
+class MC_DownModifier : public Macro::MacroCommand
+{
+public:
+  MC_DownModifier(Modifier modifier);
+  unsigned int run() override;
+
+private:
+  const Modifier _modifier;
+};
+
+class MC_UpModifier : public Macro::MacroCommand
+{
+public:
+  MC_UpModifier(Modifier modifier);
+  unsigned int run() override;
+
+private:
+  const Modifier _modifier;
+};
+
+class MC_Wait : public Macro::MacroCommand
+{
+public:
+  MC_Wait(unsigned int delay);
+  unsigned int run() override;
+
+private:
+  const unsigned int _delay;
 };
 
 /*------------------------------------------------------------------*/
@@ -561,11 +562,11 @@ static Command *MACRO(const MacroCommandPtr (&arr)[N])
   return (new Macro(arg, N));
 }
 
-static inline Macro::MacroCommand *DN(KeyCode key_code) { return (new Macro::DownKey(key_code)); }
-static inline Macro::MacroCommand *DN(Modifier modifier) { return (new Macro::DownModifier(modifier)); }
-static inline Macro::MacroCommand *UP(KeyCode key_code) { return (new Macro::UpKey(key_code)); }
-static inline Macro::MacroCommand *UP(Modifier modifier) { return (new Macro::UpModifier(modifier)); }
-static inline Macro::MacroCommand *WT(unsigned int delay) { return (new Macro::Wait(delay)); }
+static inline Macro::MacroCommand *DN(KeyCode key_code) { return (new MC_DownKey(key_code)); }
+static inline Macro::MacroCommand *DN(Modifier modifier) { return (new MC_DownModifier(modifier)); }
+static inline Macro::MacroCommand *UP(KeyCode key_code) { return (new MC_UpKey(key_code)); }
+static inline Macro::MacroCommand *UP(Modifier modifier) { return (new MC_UpModifier(modifier)); }
+static inline Macro::MacroCommand *WT(unsigned int delay) { return (new MC_Wait(delay)); }
 
 // If
 static inline Command *IF(bool (*func)(), Command *true_command, Command *false_command) { return (new If(func, true_command, false_command)); }

@@ -635,59 +635,6 @@ void MouseClick::onRelease()
 /*------------------------------------------------------------------*/
 /* Macro
  *------------------------------------------------------------------*/
-Macro::DownKey::DownKey(KeyCode key_code) : _key_code(key_code)
-{
-}
-
-unsigned int Macro::DownKey::apply()
-{
-  Hid.setKey(_key_code);
-  Hid.sendKeyReport(true);
-  return 0;
-}
-
-Macro::UpKey::UpKey(KeyCode key_code) : _key_code(key_code)
-{
-}
-
-unsigned int Macro::UpKey::apply()
-{
-  Hid.unsetKey(_key_code);
-  Hid.sendKeyReport(false);
-  return 0;
-}
-
-Macro::DownModifier::DownModifier(Modifier modifier) : _modifier(modifier)
-{
-}
-
-unsigned int Macro::DownModifier::apply()
-{
-  Hid.setModifier(_modifier);
-  Hid.sendKeyReport(true);
-  return 0;
-}
-
-Macro::UpModifier::UpModifier(Modifier modifier) : _modifier(modifier)
-{
-}
-
-unsigned int Macro::UpModifier::apply()
-{
-  Hid.unsetModifier(_modifier);
-  Hid.sendKeyReport(false);
-  return 0;
-}
-
-Macro::Wait::Wait(unsigned int delay) : _delay(delay)
-{
-}
-
-unsigned int Macro::Wait::apply()
-{
-  return _delay;
-}
-
 Macro::Macro(MacroCommand **m_commands, size_t len) : TimerMixin(), _m_commands(m_commands), _len(len), _is_running(false)
 {
 }
@@ -711,7 +658,7 @@ void Macro::onTimer()
 {
   while (_count < _len)
   {
-    unsigned int delay = _m_commands[_count++]->apply();
+    unsigned int delay = _m_commands[_count++]->run();
     if (delay != 0)
     {
       startTimer(delay);
@@ -720,6 +667,62 @@ void Macro::onTimer()
   }
   _is_running = false;
   stopTimer();
+}
+
+/*------------------------------------------------------------------*/
+/* MacroCommand
+ *------------------------------------------------------------------*/
+MC_DownKey::MC_DownKey(KeyCode key_code) : _key_code(key_code)
+{
+}
+
+unsigned int MC_DownKey::run()
+{
+  Hid.setKey(_key_code);
+  Hid.sendKeyReport(true);
+  return 0;
+}
+
+MC_UpKey::MC_UpKey(KeyCode key_code) : _key_code(key_code)
+{
+}
+
+unsigned int MC_UpKey::run()
+{
+  Hid.unsetKey(_key_code);
+  Hid.sendKeyReport(false);
+  return 0;
+}
+
+MC_DownModifier::MC_DownModifier(Modifier modifier) : _modifier(modifier)
+{
+}
+
+unsigned int MC_DownModifier::run()
+{
+  Hid.setModifier(_modifier);
+  Hid.sendKeyReport(true);
+  return 0;
+}
+
+MC_UpModifier::MC_UpModifier(Modifier modifier) : _modifier(modifier)
+{
+}
+
+unsigned int MC_UpModifier::run()
+{
+  Hid.unsetModifier(_modifier);
+  Hid.sendKeyReport(false);
+  return 0;
+}
+
+MC_Wait::MC_Wait(unsigned int delay) : _delay(delay)
+{
+}
+
+unsigned int MC_Wait::run()
+{
+  return _delay;
 }
 
 /*------------------------------------------------------------------*/
