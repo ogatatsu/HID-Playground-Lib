@@ -23,8 +23,8 @@
 */
 
 #include "DebounceIn.h"
+#include "Arduino.h"
 #include "DebounceIn_config.h"
-#include <Arduino.h>
 
 namespace hidpg
 {

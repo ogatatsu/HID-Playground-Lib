@@ -114,5 +114,5 @@
 
 // PMW3360タスクのプライオリティ
 #ifndef PMW3360_TASK_PRIO
-#define PMW3360_TASK_PRIO TASK_PRIO_LOW
+#define PMW3360_TASK_PRIO 1
 #endif

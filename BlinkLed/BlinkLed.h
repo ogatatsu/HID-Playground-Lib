@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include "portFreeRTOS.h"
-#include <Arduino.h>
+#include "Arduino.h"
+#include "freeRTOS.h"
 
 namespace hidpg
 {

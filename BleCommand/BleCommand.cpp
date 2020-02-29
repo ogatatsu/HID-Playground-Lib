@@ -23,10 +23,10 @@
 */
 
 #include "BleCommand.h"
+#include "Arduino.h"
 #include "BatteryUtil.h"
 #include "BleController.h"
 #include "HidCore.h"
-#include <Arduino.h>
 
 namespace hidpg
 {

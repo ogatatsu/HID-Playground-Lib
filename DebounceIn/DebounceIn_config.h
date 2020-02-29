@@ -31,5 +31,5 @@
 
 // タスクのプライオリティ
 #ifndef DEBOUNCE_IN_TASK_PRIO
-#define DEBOUNCE_IN_TASK_PRIO TASK_PRIO_LOW
+#define DEBOUNCE_IN_TASK_PRIO 1
 #endif

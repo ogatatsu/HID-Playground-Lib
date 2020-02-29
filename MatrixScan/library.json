@@ -7,9 +7,6 @@
     },
     {
       "name": "HID-Playground Set"
-    },
-    {
-      "name": "HID-Playground portFreeRTOS"
     }
   ]
 }

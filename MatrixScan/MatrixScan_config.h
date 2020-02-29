@@ -52,5 +52,5 @@
 
 // MatrixScanタスクのプライオリティ
 #ifndef MATRIX_SCAN_TASK_PRIO
-#define MATRIX_SCAN_TASK_PRIO TASK_PRIO_LOW
+#define MATRIX_SCAN_TASK_PRIO 1
 #endif

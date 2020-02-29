@@ -56,8 +56,8 @@
 */
 
 #include "BatteryUtil.h"
+#include "Arduino.h"
 #include "BatteryUtil_config.h"
-#include <Arduino.h>
 
 namespace hidpg
 {

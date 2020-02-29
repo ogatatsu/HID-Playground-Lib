@@ -60,6 +60,11 @@
 #define HID_ENGINE_TASK_STACK_SIZE 192
 #endif
 
+// タスクのプライオリティ
+#ifndef HID_ENGINE_TASK_PRIO
+#define HID_ENGINE_TASK_PRIO 1
+#endif
+
 // HidEngine内部で使用しているイベントキューのサイズ
 #ifndef HID_ENGINE_EVENT_QUEUE_SIZE
 #define HID_ENGINE_EVENT_QUEUE_SIZE 16

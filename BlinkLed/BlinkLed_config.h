@@ -36,5 +36,5 @@
 
 // LEDタスクのプライオリティ
 #ifndef BLINK_LED_TASK_PRIO
-#define BLINK_LED_TASK_PRIO TASK_PRIO_LOW
+#define BLINK_LED_TASK_PRIO 1
 #endif

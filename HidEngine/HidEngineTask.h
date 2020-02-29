@@ -28,6 +28,7 @@
 #include "Command.h"
 #include "Set.h"
 #include "TimerMixin.h"
+#include "queue.h"
 
 namespace hidpg
 {

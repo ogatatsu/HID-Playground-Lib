@@ -23,10 +23,10 @@
 */
 
 #include "Command.h"
+#include "Arduino.h"
 #include "HidCore.h"
 #include "Layer.h"
 #include "MouseSpeedController.h"
-#include <Arduino.h>
 
 namespace hidpg
 {

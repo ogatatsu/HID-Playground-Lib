@@ -23,10 +23,10 @@
 */
 
 #include "HidEngine.h"
+#include "Arduino.h"
 #include "CommandTapper.h"
 #include "HidCore.h"
 #include "HidEngineTask.h"
-#include <Arduino.h>
 
 namespace hidpg
 {

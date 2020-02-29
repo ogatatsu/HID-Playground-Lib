@@ -25,6 +25,7 @@
 #pragma once
 
 #include "ThreadSafeSPI.h"
+#include "timers.h"
 
 namespace hidpg
 {

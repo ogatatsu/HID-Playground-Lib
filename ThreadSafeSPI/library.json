@@ -4,9 +4,6 @@
   "dependencies": [
     {
       "name": "SPI"
-    },
-    {
-      "name": "HID-Playground portFreeRTOS"
     }
   ]
 }

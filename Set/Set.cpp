@@ -23,7 +23,7 @@
 */
 
 #include "Set.h"
-#include <Arduino.h>
+#include "Arduino.h"
 
 namespace hidpg
 {

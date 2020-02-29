@@ -23,9 +23,9 @@
 */
 
 #include "HidEngineTask.h"
+#include "Arduino.h"
 #include "CommandTapper.h"
 #include "HidEngine.h"
-#include <Arduino.h>
 
 namespace hidpg
 {
@@ -41,7 +41,7 @@ void HidEngineTask_::init()
 
 void HidEngineTask_::startTask()
 {
-  xTaskCreate(task, "HidEngine", HID_ENGINE_TASK_STACK_SIZE, nullptr, TASK_PRIO_LOW, &_task_handle);
+  xTaskCreate(task, "HidEngine", HID_ENGINE_TASK_STACK_SIZE, nullptr, HID_ENGINE_TASK_PRIO, &_task_handle);
 }
 
 void HidEngineTask_::enqueEvent(const EventData &e_data)

@@ -24,8 +24,10 @@
 
 #pragma once
 
-#include "portFreeRTOS.h"
-#include <SPI.h>
+#include "Arduino.h"
+#include "SPI.h"
+#include "freeRTOS.h"
+#include "semphr.h"
 
 namespace hidpg
 {
