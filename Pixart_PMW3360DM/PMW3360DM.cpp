@@ -22,9 +22,9 @@
   THE SOFTWARE.
 */
 
-#include "PMW3360.h"
-#include "PMW3360_Firmware.h"
-#include "PMW3360_config.h"
+#include "PMW3360DM.h"
+#include "PMW3360DM_Firmware.h"
+#include "PMW3360DM_config.h"
 
 namespace hidpg
 {
@@ -89,10 +89,10 @@ static SPISettings SpiSettings(2000000, MSBFIRST, SPI_MODE3);
 /*------------------------------------------------------------------*/
 /* static member
  *------------------------------------------------------------------*/
-TaskHandle_t PMW3360::_task_handles[2] = {nullptr, nullptr};
-PMW3360 *PMW3360::instances[2] = {nullptr, nullptr};
+TaskHandle_t PMW3360DM::_task_handles[2] = {nullptr, nullptr};
+PMW3360DM *PMW3360DM::instances[2] = {nullptr, nullptr};
 
-void PMW3360::interrupt_callback_0()
+void PMW3360DM::interrupt_callback_0()
 {
   if (_task_handles[0] != nullptr)
   {
@@ -100,7 +100,7 @@ void PMW3360::interrupt_callback_0()
   }
 }
 
-void PMW3360::interrupt_callback_1()
+void PMW3360DM::interrupt_callback_1()
 {
   if (_task_handles[1] != nullptr)
   {
@@ -108,9 +108,9 @@ void PMW3360::interrupt_callback_1()
   }
 }
 
-void PMW3360::task(void *pvParameters)
+void PMW3360DM::task(void *pvParameters)
 {
-  PMW3360 *that = static_cast<PMW3360 *>(pvParameters);
+  PMW3360DM *that = static_cast<PMW3360DM *>(pvParameters);
 
   int32_t total_delta_x = 0;
   int32_t total_delta_y = 0;
@@ -157,26 +157,26 @@ void PMW3360::task(void *pvParameters)
   }
 }
 
-void PMW3360::timer_callback(TimerHandle_t timer_handle)
+void PMW3360DM::timer_callback(TimerHandle_t timer_handle)
 {
-  PMW3360 *that = static_cast<PMW3360 *>(pvTimerGetTimerID(timer_handle));
+  PMW3360DM *that = static_cast<PMW3360DM *>(pvTimerGetTimerID(timer_handle));
   xTaskNotify(_task_handles[that->_id], bit(TimerEventBit), eSetBits);
 }
 
 /*------------------------------------------------------------------*/
 /* instance member
  *------------------------------------------------------------------*/
-PMW3360::PMW3360(ThreadSafeSPIClass &spi, uint8_t ncs_pin, uint8_t interrupt_pin, uint8_t id)
+PMW3360DM::PMW3360DM(ThreadSafeSPIClass &spi, uint8_t ncs_pin, uint8_t interrupt_pin, uint8_t id)
     : _spi(spi), _ncs_pin(ncs_pin), _interrupt_pin(interrupt_pin), _id(id), _callback(nullptr)
 {
 }
 
-void PMW3360::setCallback(callback_t callback)
+void PMW3360DM::setCallback(callback_t callback)
 {
   _callback = callback;
 }
 
-void PMW3360::init()
+void PMW3360DM::init()
 {
   _spi.begin();
   _spi.usingInterrupt(_interrupt_pin);
@@ -188,19 +188,19 @@ void PMW3360::init()
   attachInterrupt(digitalPinToInterrupt(_interrupt_pin), interrupt_callback, FALLING);
 
   // デフォルトはRest mode
-  _timer_handle = xTimerCreate(nullptr, pdMS_TO_TICKS(PMW3360_REST_MODE_CALLBACK_INTERVAL_MS), true, this, timer_callback);
+  _timer_handle = xTimerCreate(nullptr, pdMS_TO_TICKS(PMW3360DM_REST_MODE_CALLBACK_INTERVAL_MS), true, this, timer_callback);
 }
 
-void PMW3360::startTask()
+void PMW3360DM::startTask()
 {
   char name[] = "3360_0";
   name[5] += _id;
-  xTaskCreate(task, name, PMW3360_TASK_STACK_SIZE, this, PMW3360_TASK_PRIO, &_task_handles[_id]);
+  xTaskCreate(task, name, PMW3360DM_TASK_STACK_SIZE, this, PMW3360DM_TASK_PRIO, &_task_handles[_id]);
 
   powerUp();
 }
 
-void PMW3360::writeRegister(uint8_t addr, uint8_t data)
+void PMW3360DM::writeRegister(uint8_t addr, uint8_t data)
 {
   _spi.beginTransaction(SpiSettings);
   digitalWrite(_ncs_pin, LOW);
@@ -219,7 +219,7 @@ void PMW3360::writeRegister(uint8_t addr, uint8_t data)
   delayMicroseconds(145); // (tSWW/tSWR: 180us) - (tSCLK-NCS: 35us) = 145us
 }
 
-uint8_t PMW3360::readRegister(uint8_t addr)
+uint8_t PMW3360DM::readRegister(uint8_t addr)
 {
   _spi.beginTransaction(SpiSettings);
   digitalWrite(_ncs_pin, LOW);
@@ -242,7 +242,7 @@ uint8_t PMW3360::readRegister(uint8_t addr)
   return data;
 }
 
-void PMW3360::readMotionBurst(MotionBurstData &data, uint8_t length)
+void PMW3360DM::readMotionBurst(MotionBurstData &data, uint8_t length)
 {
   length = min(static_cast<uint8_t>(12), length);
 
@@ -271,7 +271,7 @@ void PMW3360::readMotionBurst(MotionBurstData &data, uint8_t length)
   // 7.If a non‐burst register read operation was executed; then, to read new burst data, start from step 1 instead.
 }
 
-void PMW3360::SROM_Download()
+void PMW3360DM::SROM_Download()
 {
   // 1.Perform the Power‐Up sequence
 
@@ -296,9 +296,9 @@ void PMW3360::SROM_Download()
   delayMicroseconds(15);
 
   // send all bytes of the firmware
-  for (size_t i = 0; i < sizeof(PMW3360_Firmware); i++)
+  for (size_t i = 0; i < sizeof(PMW3360DM_Firmware); i++)
   {
-    _spi.transfer(PMW3360_Firmware[i]);
+    _spi.transfer(PMW3360DM_Firmware[i]);
     delayMicroseconds(15);
   }
 
@@ -313,7 +313,7 @@ void PMW3360::SROM_Download()
   writeRegister(Config2, 0x20);
 }
 
-void PMW3360::powerUp()
+void PMW3360DM::powerUp()
 {
   // 1.Apply power to VDD and VDDIO in any order, with a delay of no more than 100ms in between each supply. Ensure all supplies are stable.
 
@@ -337,28 +337,28 @@ void PMW3360::powerUp()
   initRegisters();
 }
 
-void PMW3360::initRegisters()
+void PMW3360DM::initRegisters()
 {
-  writeRegister(Control, PMW3360_Control);
-  writeRegister(Config1, PMW3360_Config1);
-  writeRegister(Angle_Tune, PMW3360_Angle_Tune);
+  writeRegister(Control, PMW3360DM_Control);
+  writeRegister(Config1, PMW3360DM_Config1);
+  writeRegister(Angle_Tune, PMW3360DM_Angle_Tune);
 
-  writeRegister(Run_Downshift, PMW3360_Run_Downshift);
-  writeRegister(Rest1_Rate_Lower, PMW3360_Rest1_Rate & 0b0000000011111111);
-  writeRegister(Rest1_Rate_Upper, (PMW3360_Rest1_Rate & 0b1111111100000000) >> 8);
+  writeRegister(Run_Downshift, PMW3360DM_Run_Downshift);
+  writeRegister(Rest1_Rate_Lower, PMW3360DM_Rest1_Rate & 0b0000000011111111);
+  writeRegister(Rest1_Rate_Upper, (PMW3360DM_Rest1_Rate & 0b1111111100000000) >> 8);
 
-  writeRegister(Rest1_Downshift, PMW3360_Rest1_Downshift);
-  writeRegister(Rest2_Rate_Lower, PMW3360_Rest2_Rate & 0b0000000011111111);
-  writeRegister(Rest2_Rate_Upper, (PMW3360_Rest2_Rate & 0b1111111100000000) >> 8);
+  writeRegister(Rest1_Downshift, PMW3360DM_Rest1_Downshift);
+  writeRegister(Rest2_Rate_Lower, PMW3360DM_Rest2_Rate & 0b0000000011111111);
+  writeRegister(Rest2_Rate_Upper, (PMW3360DM_Rest2_Rate & 0b1111111100000000) >> 8);
 
-  writeRegister(Rest2_Downshift, PMW3360_Rest2_Downshift);
-  writeRegister(Rest3_Rate_Lower, PMW3360_Rest3_Rate & 0b0000000011111111);
-  writeRegister(Rest3_Rate_Upper, (PMW3360_Rest3_Rate & 0b1111111100000000) >> 8);
+  writeRegister(Rest2_Downshift, PMW3360DM_Rest2_Downshift);
+  writeRegister(Rest3_Rate_Lower, PMW3360DM_Rest3_Rate & 0b0000000011111111);
+  writeRegister(Rest3_Rate_Upper, (PMW3360DM_Rest3_Rate & 0b1111111100000000) >> 8);
 
-  writeRegister(Lift_Config, PMW3360_Lift_Config);
+  writeRegister(Lift_Config, PMW3360DM_Lift_Config);
 }
 
-void PMW3360::changeMode(Mode mode)
+void PMW3360DM::changeMode(Mode mode)
 {
   if (_task_handles[_id] == nullptr)
   {
@@ -370,12 +370,12 @@ void PMW3360::changeMode(Mode mode)
 
   if (mode == Mode::Run)
   {
-    ms = PMW3360_RUN_MODE_CALLBACK_INTERVAL_MS;
+    ms = PMW3360DM_RUN_MODE_CALLBACK_INTERVAL_MS;
     data = 0b00000000;
   }
   else
   {
-    ms = PMW3360_REST_MODE_CALLBACK_INTERVAL_MS;
+    ms = PMW3360DM_REST_MODE_CALLBACK_INTERVAL_MS;
     data = 0b00100000;
   }
 
@@ -383,7 +383,7 @@ void PMW3360::changeMode(Mode mode)
   xTimerChangePeriod(_timer_handle, pdMS_TO_TICKS(ms), portMAX_DELAY);
 }
 
-void PMW3360::changeCpi(Cpi cpi)
+void PMW3360DM::changeCpi(Cpi cpi)
 {
   if (_task_handles[_id] == nullptr)
   {
@@ -393,17 +393,17 @@ void PMW3360::changeCpi(Cpi cpi)
   writeRegister(Config1, static_cast<uint8_t>(cpi));
 }
 
-void PMW3360::resetCpi()
+void PMW3360DM::resetCpi()
 {
   if (_task_handles[_id] == nullptr)
   {
     return;
   }
 
-  writeRegister(Config1, PMW3360_Config1);
+  writeRegister(Config1, PMW3360DM_Config1);
 }
 
-void PMW3360::enableAngleSnap()
+void PMW3360DM::enableAngleSnap()
 {
   if (_task_handles[_id] == nullptr)
   {
@@ -413,7 +413,7 @@ void PMW3360::enableAngleSnap()
   writeRegister(Angle_Snap, 0b10000000);
 }
 
-void PMW3360::disableAngleSnap()
+void PMW3360DM::disableAngleSnap()
 {
   if (_task_handles[_id] == nullptr)
   {
@@ -424,7 +424,7 @@ void PMW3360::disableAngleSnap()
 }
 
 #ifdef ARDUINO_ARCH_NRF52
-void PMW3360::stopTask_and_setWakeUpInterrupt()
+void PMW3360DM::stopTask_and_setWakeUpInterrupt()
 {
   vTaskSuspend(_task_handles[_id]);
 

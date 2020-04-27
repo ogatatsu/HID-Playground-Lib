@@ -29,8 +29,8 @@
 //  90 degree: 0b11000000
 // 180 degree: 0b01100000
 // 270 degree: 0b10100000
-#ifndef PMW3360_Control
-#define PMW3360_Control 0b00000000
+#ifndef PMW3360DM_Control
+#define PMW3360DM_Control 0b00000000
 #endif
 
 // Config1 register(0x0F)
@@ -38,8 +38,8 @@
 // 0x01: 200cpi
 // ~
 // 0x77: 12000cpi
-#ifndef PMW3360_Config1
-#define PMW3360_Config1 0x31 // 5000cpi
+#ifndef PMW3360DM_Config1
+#define PMW3360DM_Config1 0x31 // 5000cpi
 #endif
 
 // Angle_Tune register(0x11)
@@ -48,71 +48,71 @@
 //   0 degree: 0x00
 // +10 degree: 0x0F
 // +30 degree: 0x1E
-#ifndef PMW3360_Angle_Tune
-#define PMW3360_Angle_Tune 0x00
+#ifndef PMW3360DM_Angle_Tune
+#define PMW3360DM_Angle_Tune 0x00
 #endif
 
 // Run_Downshift register(0x14)
 // Run Downshift time(ms) = RD([7:0]) x 10 ms
-#ifndef PMW3360_Run_Downshift
-#define PMW3360_Run_Downshift 50 // 500ms
+#ifndef PMW3360DM_Run_Downshift
+#define PMW3360DM_Run_Downshift 50 // 500ms
 #endif
 
 // Rest1_Rate_Lower register(0x15), Rest1_Rate_Upper register(0x16)
 // R1R[15:0] value must not exceed 0x09B0, otherwise an internal watchdog will trigger a reset.
 // Rest1 frame rate duration = (R1R[15:0] + 1) x 1 ms
-#ifndef PMW3360_Rest1_Rate
-#define PMW3360_Rest1_Rate 0 // 1ms
+#ifndef PMW3360DM_Rest1_Rate
+#define PMW3360DM_Rest1_Rate 0 // 1ms
 #endif
 
 // Rest1_Downshift register(0x17)
 // Rest1 Downshift time = R1D[7:0] x 320 x Rest1_Rate.
-#ifndef PMW3360_Rest1_Downshift
-#define PMW3360_Rest1_Downshift 31 // 9.92s
+#ifndef PMW3360DM_Rest1_Downshift
+#define PMW3360DM_Rest1_Downshift 31 // 9.92s
 #endif
 
 // Rest2_Rate_Lower(0x18), Rest2_Rate_Upper(0x19)
 // R2R[15:0] value must not exceed 0x09B0, otherwise an internal watchdog will trigger a reset.
 // Rest2 frame rate duration = (R2R[15:0] + 1) x 1 ms
-#ifndef PMW3360_Rest2_Rate
-#define PMW3360_Rest2_Rate 99 // 100ms
+#ifndef PMW3360DM_Rest2_Rate
+#define PMW3360DM_Rest2_Rate 99 // 100ms
 #endif
 
 // Rest2_Downshift(0x1A)
 // Rest2 Downshift time = R2D[7:0] x 32 x Rest2_Rate.
-#ifndef PMW3360_Rest2_Downshift
-#define PMW3360_Rest2_Downshift 188 // 601.6s = 10min
+#ifndef PMW3360DM_Rest2_Downshift
+#define PMW3360DM_Rest2_Downshift 188 // 601.6s = 10min
 #endif
 
 // Rest3_Rate_Lower(0x1B), Rest3_Rate_Upper(0x1C)
 // R3R[15:0] value must not exceed 0x09B0, otherwise an internal watchdog will trigger a reset.
 // Rest3 frame rate duration = (R3R[15:0] + 1) x 1 ms
-#ifndef PMW3360_Rest3_Rate
-#define PMW3360_Rest3_Rate 499 // 500ms
+#ifndef PMW3360DM_Rest3_Rate
+#define PMW3360DM_Rest3_Rate 499 // 500ms
 #endif
 
 // Lift_Config register(0x63)
 // 2mm: 0b10
 // 3mm: 0b11
-#ifndef PMW3360_Lift_Config
-#define PMW3360_Lift_Config 0b10
+#ifndef PMW3360DM_Lift_Config
+#define PMW3360DM_Lift_Config 0b10
 #endif
 
 // 各モードでのloopTaskにデータを送る間隔(ms)
-#ifndef PMW3360_RUN_MODE_CALLBACK_INTERVAL_MS
-#define PMW3360_RUN_MODE_CALLBACK_INTERVAL_MS 1
+#ifndef PMW3360DM_RUN_MODE_CALLBACK_INTERVAL_MS
+#define PMW3360DM_RUN_MODE_CALLBACK_INTERVAL_MS 1
 #endif
 
-#ifndef PMW3360_REST_MODE_CALLBACK_INTERVAL_MS
-#define PMW3360_REST_MODE_CALLBACK_INTERVAL_MS 10
+#ifndef PMW3360DM_REST_MODE_CALLBACK_INTERVAL_MS
+#define PMW3360DM_REST_MODE_CALLBACK_INTERVAL_MS 10
 #endif
 
-// PMW3360タスクのスタックサイズ
-#ifndef PMW3360_TASK_STACK_SIZE
-#define PMW3360_TASK_STACK_SIZE 128
+// PMW3360DMタスクのスタックサイズ
+#ifndef PMW3360DM_TASK_STACK_SIZE
+#define PMW3360DM_TASK_STACK_SIZE 128
 #endif
 
-// PMW3360タスクのプライオリティ
-#ifndef PMW3360_TASK_PRIO
-#define PMW3360_TASK_PRIO 1
+// PMW3360DMタスクのプライオリティ
+#ifndef PMW3360DM_TASK_PRIO
+#define PMW3360DM_TASK_PRIO 1
 #endif

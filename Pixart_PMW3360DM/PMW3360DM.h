@@ -30,7 +30,7 @@
 namespace hidpg
 {
 
-class PMW3360
+class PMW3360DM
 {
 public:
   enum class Mode
@@ -70,20 +70,20 @@ public:
   using callback_t = void (*)(int16_t delta_x, int16_t delta_y);
 
   template <uint8_t ID>
-  static PMW3360 &create(ThreadSafeSPIClass &spi, uint8_t ncs_pin, uint8_t interrupt_pin)
+  static PMW3360DM &create(ThreadSafeSPIClass &spi, uint8_t ncs_pin, uint8_t interrupt_pin)
   {
-    static_assert(ID < 2, "Two or more PMW3360 can not be created.");
+    static_assert(ID < 2, "Two or more PMW3360DM can not be created.");
     if (instances[ID] == nullptr)
     {
-      instances[ID] = new PMW3360(spi, ncs_pin, interrupt_pin, ID);
+      instances[ID] = new PMW3360DM(spi, ncs_pin, interrupt_pin, ID);
     }
     return *instances[ID];
   }
 
   template <uint8_t ID>
-  static PMW3360 *getInstance()
+  static PMW3360DM *getInstance()
   {
-    static_assert(ID < 2, "Two or more PMW3360 can not be created.");
+    static_assert(ID < 2, "Two or more PMW3360DM can not be created.");
     return instances[ID];
   }
 
@@ -120,14 +120,14 @@ private:
     };
   };
 
-  PMW3360(ThreadSafeSPIClass &spi, uint8_t ncs_pin, uint8_t interrupt_pin, uint8_t id);
+  PMW3360DM(ThreadSafeSPIClass &spi, uint8_t ncs_pin, uint8_t interrupt_pin, uint8_t id);
 
   static void task(void *pvParameters);
   static void timer_callback(TimerHandle_t timer_handle);
   static void interrupt_callback_0();
   static void interrupt_callback_1();
   static TaskHandle_t _task_handles[2];
-  static PMW3360 *instances[2];
+  static PMW3360DM *instances[2];
 
   void writeRegister(uint8_t addr, uint8_t data);
   uint8_t readRegister(uint8_t addr);
