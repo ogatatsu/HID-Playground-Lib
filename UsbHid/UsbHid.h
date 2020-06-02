@@ -1,7 +1,7 @@
 /*
   The MIT License (MIT)
 
-  Copyright (c) 2019 ogatatsu.
+  Copyright (c) 2020 ogatatsu.
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -24,19 +24,20 @@
 
 #pragma once
 
+#include "Adafruit_TinyUSB.h"
 #include "HidReporter.h"
 
 namespace hidpg
 {
 
-class STM32Hid_
+class UsbHid_
 {
 public:
   static void init();
   static HidReporter *getHidReporter();
 
 private:
-  class USBCompositeHidReporter : public HidReporter
+  class UsbHidReporter : public HidReporter
   {
   public:
     void keyboardReport(uint8_t modifier, uint8_t key_codes[6]) override;
@@ -44,9 +45,10 @@ private:
     void mouseReport(uint8_t buttons, int8_t x, int8_t y, int8_t wheel, int8_t horiz) override;
   };
 
-  static USBCompositeHidReporter _hid_reporter;
+  static Adafruit_USBD_HID _usb_hid;
+  static UsbHidReporter _reporter;
 };
 
-extern STM32Hid_ STM32Hid;
+extern UsbHid_ UsbHid;
 
 } // namespace hidpg

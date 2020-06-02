@@ -1,7 +1,7 @@
 /*
   The MIT License (MIT)
 
-  Copyright (c) 2019 ogatatsu.
+  Copyright (c) 2020 ogatatsu.
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -22,48 +22,56 @@
   THE SOFTWARE.
 */
 
-#include "STM32Hid.h"
-#include "usbd_hidpg_if.h"
-#include <Arduino.h>
+#include "UsbHid.h"
 
 namespace hidpg
 {
 
-STM32Hid_::USBCompositeHidReporter STM32Hid_::_hid_reporter;
-
-void STM32Hid_::init()
+// Report ID
+enum
 {
-  HID_Composite_Init();
+  RID_KEYBOARD = 1,
+  RID_MOUSE,
+  RID_CONSUMER
+};
+
+// HID report descriptor using TinyUSB's template
+static uint8_t const desc_hid_report[] =
+{
+  TUD_HID_REPORT_DESC_KEYBOARD( HID_REPORT_ID(RID_KEYBOARD), ),
+  TUD_HID_REPORT_DESC_MOUSE   ( HID_REPORT_ID(RID_MOUSE), ),
+  TUD_HID_REPORT_DESC_CONSUMER( HID_REPORT_ID(RID_CONSUMER), )
+};
+
+Adafruit_USBD_HID UsbHid_::_usb_hid;
+UsbHid_::UsbHidReporter UsbHid_::_reporter;
+
+void UsbHid_::init()
+{
+  _usb_hid.setPollInterval(2);
+  _usb_hid.setReportDescriptor(desc_hid_report, sizeof(desc_hid_report));
+  _usb_hid.begin();
 }
 
-HidReporter *STM32Hid_::getHidReporter()
+HidReporter *UsbHid_::getHidReporter()
 {
-  return &_hid_reporter;
+  return &_reporter;
 }
 
-void STM32Hid_::USBCompositeHidReporter::keyboardReport(uint8_t modifier, uint8_t key_codes[6])
+void UsbHid_::UsbHidReporter::keyboardReport(uint8_t modifier, uint8_t key_codes[6])
 {
-  uint8_t buf[8] = {modifier, 0, key_codes[0], key_codes[1], key_codes[2], key_codes[3], key_codes[4], key_codes[5]};
-  while (HID_Composite_keyboard_sendReport(buf, 8) == false)
-  {
-    delay(1);
-  }
+  _usb_hid.keyboardReport(RID_KEYBOARD, modifier, key_codes);
 }
 
-void STM32Hid_::USBCompositeHidReporter::consumerReport(uint16_t usage_code)
+void UsbHid_::UsbHidReporter::consumerReport(uint16_t usage_code)
 {
-  // todo
 }
 
-void STM32Hid_::USBCompositeHidReporter::mouseReport(uint8_t buttons, int8_t x, int8_t y, int8_t wheel, int8_t horiz)
+void UsbHid_::UsbHidReporter::mouseReport(uint8_t buttons, int8_t x, int8_t y, int8_t wheel, int8_t horiz)
 {
-  uint8_t buf[4] = {buttons, static_cast<uint8_t>(x), static_cast<uint8_t>(y), static_cast<uint8_t>(wheel)};
-  while (HID_Composite_mouse_sendReport(buf, 4) == false)
-  {
-    delay(1);
-  }
+  _usb_hid.mouseReport(RID_MOUSE, buttons, x, y, wheel, horiz);
 }
 
-STM32Hid_ STM32Hid;
+UsbHid_ UsbHid;
 
 } // namespace hidpg

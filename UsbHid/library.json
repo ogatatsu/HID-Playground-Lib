@@ -1,7 +1,6 @@
 {
-  "name": "HID-Playground STM32Hid",
+  "name": "HID-Playground UsbHid",
   "frameworks": "arduino",
-  "platforms": "ststm32",
   "dependencies": [
     {
       "name": "HID-Playground HidReporter"
