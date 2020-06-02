@@ -209,7 +209,7 @@ void BleControllerCentral_::connect_callback(uint16_t conn_handle)
     if (startScan() == false)
     {
       _scan_led.off();
-    };
+    }
   }
 }
 

@@ -85,7 +85,7 @@ void Command::release()
 bool Command::isLastPressed()
 {
   return _last_pressed_command == this;
-};
+}
 
 void Command::addEventListener_DifferentRootCommandPress()
 {
