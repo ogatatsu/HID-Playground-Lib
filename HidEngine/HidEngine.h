@@ -111,9 +111,9 @@ namespace hidpg
     static void tapCommand(Command *command, uint8_t times);
     static void mouseMove(int16_t x, int16_t y);
 
-    /*------------------------------------------------------------------*/
-    /*  HidEngine inner command
-   *------------------------------------------------------------------*/
+    //------------------------------------------------------------------+
+    // HidEngine inner command
+    //------------------------------------------------------------------+
     class SequenceMode : public Command
     {
     protected:
@@ -181,9 +181,9 @@ namespace hidpg
 
   extern HidEngine_ HidEngine;
 
-/*------------------------------------------------------------------*/
-/*  define short name inner command
- *------------------------------------------------------------------*/
+  //------------------------------------------------------------------+
+  // short name inner command
+  //------------------------------------------------------------------+
 // Sequence Mode
 #define SEQ_MODE (static_cast<Command *>(new HidEngine_::SequenceMode))
   // Track

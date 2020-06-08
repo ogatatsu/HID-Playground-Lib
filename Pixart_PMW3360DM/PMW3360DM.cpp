@@ -86,9 +86,9 @@ namespace hidpg
   // spi parameter
   static SPISettings SpiSettings(2000000, MSBFIRST, SPI_MODE3);
 
-  /*------------------------------------------------------------------*/
-  /* static member
- *------------------------------------------------------------------*/
+  //------------------------------------------------------------------+
+  // static member
+  //------------------------------------------------------------------+
   TaskHandle_t PMW3360DM::_task_handles[2] = {nullptr, nullptr};
   PMW3360DM *PMW3360DM::instances[2] = {nullptr, nullptr};
 
@@ -163,9 +163,9 @@ namespace hidpg
     xTaskNotify(_task_handles[that->_id], bit(TimerEventBit), eSetBits);
   }
 
-  /*------------------------------------------------------------------*/
-  /* instance member
- *------------------------------------------------------------------*/
+  //------------------------------------------------------------------+
+  // instance member
+  //------------------------------------------------------------------+
   PMW3360DM::PMW3360DM(ThreadSafeSPIClass &spi, uint8_t ncs_pin, uint8_t interrupt_pin, uint8_t id)
       : _spi(spi), _ncs_pin(ncs_pin), _interrupt_pin(interrupt_pin), _id(id), _callback(nullptr)
   {

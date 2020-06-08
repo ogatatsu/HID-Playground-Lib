@@ -34,9 +34,9 @@ namespace hidpg
   BleControllerSlave_::cannotConnectCallback_t BleControllerSlave_::_cannot_connect_cb = nullptr;
   BleControllerSlave_::receiveDataCallback_t BleControllerSlave_::_receive_data_cb = nullptr;
 
-  /*------------------------------------------------------------------*/
-  /* public
- *------------------------------------------------------------------*/
+  //------------------------------------------------------------------+
+  // public
+  //------------------------------------------------------------------+
   void BleControllerSlave_::init()
   {
     Bluefruit.configPrphConn(BLE_GATT_ATT_MTU_DEFAULT, BLE_GAP_EVENT_LENGTH_DEFAULT, HVN_TX_QUEUE_SIZE, BLE_GATTC_WRITE_CMD_TX_QUEUE_SIZE_DEFAULT);
@@ -128,9 +128,9 @@ namespace hidpg
     _receive_data_cb = callback;
   }
 
-  /*------------------------------------------------------------------*/
-  /* private
- *------------------------------------------------------------------*/
+  //------------------------------------------------------------------+
+  // private
+  //------------------------------------------------------------------+
   void BleControllerSlave_::startAdv(void)
   {
     // Advertising packet
@@ -144,15 +144,13 @@ namespace hidpg
     // Since there is no room for 'Name' in Advertising packet
     Bluefruit.ScanResponse.addName();
 
-    /* Start Advertising
-   * - Enable auto advertising if disconnected
-   * - Interval:  fast mode = 20 ms, slow mode = 152.5 ms
-   * - Timeout for fast mode is 30 seconds
-   * - Start(timeout) with timeout = 0 will advertise forever (until connected)
-   *
-   * For recommended advertising interval
-   * https://developer.apple.com/library/content/qa/qa1931/_index.html
-   */
+    // Start Advertising
+    // - Enable auto advertising if disconnected
+    // - Interval:  fast mode = 20 ms, slow mode = 152.5 ms
+    // - Timeout for fast mode is 30 seconds
+    // - Start(timeout) with timeout = 0 will advertise forever (until connected)
+    // For recommended advertising interval
+    // https://developer.apple.com/library/content/qa/qa1931/_index.html
     Bluefruit.Advertising.setStopCallback(adv_stop_callback);
     Bluefruit.Advertising.restartOnDisconnect(true);
     Bluefruit.Advertising.setInterval(32, 244); // in unit of 0.625 ms

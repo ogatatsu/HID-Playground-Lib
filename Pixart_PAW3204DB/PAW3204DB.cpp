@@ -50,9 +50,9 @@ namespace hidpg
   constexpr uint32_t InterruptEventBit = 0;
   constexpr uint32_t TimerEventBit = 1;
 
-  /*------------------------------------------------------------------*/
-  /* static member
- *------------------------------------------------------------------*/
+  //------------------------------------------------------------------+
+  // static member
+  //------------------------------------------------------------------+
   TaskHandle_t PAW3204DB::_task_handles[2] = {nullptr, nullptr};
   PAW3204DB *PAW3204DB::instances[2] = {nullptr, nullptr};
 
@@ -143,9 +143,9 @@ namespace hidpg
     xTaskNotify(_task_handles[that->_id], bit(TimerEventBit), eSetBits);
   }
 
-  /*------------------------------------------------------------------*/
-  /* instance member
- *------------------------------------------------------------------*/
+  //------------------------------------------------------------------+
+  // instance member
+  //------------------------------------------------------------------+
   PAW3204DB::PAW3204DB(uint8_t sclk_pin, uint8_t sdio_pin, uint8_t motswk_pin, uint8_t id)
       : _reg(sclk_pin, sdio_pin), _motswk_pin(motswk_pin), _id(id), _callback(nullptr)
   {

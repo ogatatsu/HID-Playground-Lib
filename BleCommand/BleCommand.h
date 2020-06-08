@@ -27,7 +27,9 @@
 namespace hidpg
 {
 
-  /*------------------------------------------------------------------*/
+  //------------------------------------------------------------------+
+  // ConnectBluetooth
+  //------------------------------------------------------------------+
   class ConnectBluetooth : public Command
   {
   public:
@@ -40,30 +42,28 @@ namespace hidpg
     const uint8_t _slot;
   };
 
-  /*------------------------------------------------------------------*/
+  static inline Command *BT(uint8_t slot) { return (new ConnectBluetooth(slot)); }
+
+  //------------------------------------------------------------------+
+  // ResetConnection
+  //------------------------------------------------------------------+
   class ResetConnection : public Command
   {
   protected:
     uint8_t onPress(uint8_t accumulation) override;
   };
 
-  /*------------------------------------------------------------------*/
+  #define RESET (static_cast<Command *>(new ResetConnection))
+
+  //------------------------------------------------------------------+
+  // PrintBatteryLevel
+  //------------------------------------------------------------------+
   class PrintBatteryLevel : public Command
   {
   protected:
     uint8_t onPress(uint8_t accumulation) override;
   };
 
-  /*------------------------------------------------------------------*/
-  /*  define short name command
-   *------------------------------------------------------------------*/
-  // Connect Bluetooth
-  static inline Command *BT(uint8_t slot) { return (new ConnectBluetooth(slot)); }
-
-// Reset Ble Connection
-#define RESET (static_cast<Command *>(new ResetConnection))
-
-// Print Battery Level
-#define PBL (static_cast<Command *>(new PrintBatteryLevel))
+  #define PBL (static_cast<Command *>(new PrintBatteryLevel))
 
 } // namespace hidpg

@@ -64,21 +64,18 @@ namespace hidpg
     // Start BLE Battery Service
     _ble_bas.begin();
 
-    /* Start BLE HID
-   * Note: Apple requires BLE device must have min connection interval >= 20m
-   * ( The smaller the connection interval the faster we could send data).
-   * However for HID and MIDI device, Apple could accept min connection interval
-   * up to 11.25 ms. Therefore BLEHidAdafruit::begin() will try to set the min
-   * and max
-   * connection interval to 11.25  ms and 15 ms respectively for best
-   * performance.
-   */
+    // Start BLE HID
+    // Note: Apple requires BLE device must have min connection interval >= 20m
+    // (The smaller the connection interval the faster we could send data).
+    // However for HID and MIDI device, Apple could accept min connection interval
+    // up to 11.25 ms. Therefore BLEHidAdafruit::begin() will try to set the min and max
+    // connection interval to 11.25  ms and 15 ms respectively for best performance.
     _ble_hid.begin();
-    /* Set connection interval (min, max) to your perferred value.
-   * Note: It is already set by BLEHidAdafruit::begin() to 11.25ms - 15ms
-   * min = 9*1.25=11.25 ms, max = 12*1.25= 15 ms
-   */
-    /* Bluefruit.setConnInterval(9, 12); */
+
+    // Set connection interval (min, max) to your perferred value.
+    // Note: It is already set by BLEHidAdafruit::begin() to 11.25ms - 15ms
+    // min = 9*1.25=11.25 ms, max = 12*1.25= 15 ms
+    // Bluefruit.setConnInterval(9, 12);
 
     // storeの初期化とcurrent_slotのロード
     _addr_store.init();
@@ -203,15 +200,13 @@ namespace hidpg
     // There is enough room for the dev name in the advertising packet
     Bluefruit.Advertising.addName();
 
-    /* Start Advertising
-   * - Enable auto advertising if disconnected
-   * - Interval:  fast mode = 20 ms, slow mode = 152.5 ms
-   * - Timeout for fast mode is 30 seconds
-   * - Start(timeout) with timeout = 0 will advertise forever (until connected)
-   *
-   * For recommended advertising interval
-   * https://developer.apple.com/library/content/qa/qa1931/_index.html
-   */
+    // Start Advertising
+    // - Enable auto advertising if disconnected
+    // - Interval:  fast mode = 20 ms, slow mode = 152.5 ms
+    // - Timeout for fast mode is 30 seconds
+    // - Start(timeout) with timeout = 0 will advertise forever (until connected)
+    // For recommended advertising interval
+    // https://developer.apple.com/library/content/qa/qa1931/_index.html
     Bluefruit.Advertising.setStopCallback(adv_stop_callback);
     Bluefruit.Advertising.restartOnDisconnect(true);
     Bluefruit.Advertising.setInterval(32, 244); // in unit of 0.625 ms

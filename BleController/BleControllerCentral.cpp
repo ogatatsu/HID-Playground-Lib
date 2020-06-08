@@ -49,13 +49,12 @@ namespace hidpg
     Bluefruit.Central.setConnectCallback(connect_callback);
     Bluefruit.Central.setDisconnectCallback(disconnect_callback);
 
-    /* Start Central Scanning
-   * - Enable auto scan if disconnected
-   * - Interval = 100 ms, window = 80 ms
-   * - Filter only accept bleuart service
-   * - Don't use active scan
-   * - Start(timeout) with timeout = 0 will scan forever (until connected)
-   */
+    // Start Central Scanning
+    // - Enable auto scan if disconnected
+    // - Interval = 100 ms, window = 80 ms
+    // - Filter only accept bleuart service
+    // - Don't use active scan
+    // - Start(timeout) with timeout = 0 will scan forever (until connected)
     Bluefruit.Scanner.setRxCallback(scan_callback);
     Bluefruit.Scanner.setInterval(160, 80); // in unit of 0.625 ms
     Bluefruit.Scanner.filterUuid(BLEUART_UUID_SERVICE);
