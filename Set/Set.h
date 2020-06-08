@@ -30,7 +30,7 @@
 namespace hidpg
 {
 
-  // 符号なし8ビット型専用の集合コンテナクラス
+  // 0から255の値が入るBitSet
   class Set
   {
     friend bool operator==(const Set &a, const Set &b);

@@ -69,7 +69,7 @@ namespace hidpg
 
   // プリエンプティブなマルチタスクだとタスク切換えとstartTimer関数の呼び出しタイミングによっては
   // 2個以上のタイマーイベントがイベントキューに入るかもしれないが
-  // timer_numberを見て最後に作ったイベントのみを実行する仕様とする(使用側からはワンショットタイマーが１個だけ動いてるように見せたい)
+  // timer_numberを見て最後に作ったイベントのみを実行する仕様とする(使用側からはワンショットタイマーが１個だけ動いてるように見える)
   void TimerMixin::trigger(unsigned int timer_number)
   {
     if (_is_active && (_num_of_timer == timer_number))

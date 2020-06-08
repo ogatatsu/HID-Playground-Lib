@@ -38,8 +38,7 @@ namespace hidpg
 
     // Keyboard API
     // setKeyをした後でsendKeyReportを呼び出すことでキーを送る。
-    // 何回キーをsetしたかを覚えてるので複数回同じキーコードでsetKeyを呼び出したら、
-    // 同じ回数unsetKeyを呼び出すまではそのキーコードはsetされ続ける。
+    // 何回キーをsetしたかを覚えてるので複数回同じキーコードでsetKeyを呼び出したら同じ回数unsetKeyを呼び出すまではそのキーコードは入力され続ける。
     // これにより別のスイッチに同じキーコードを割り当てたとしても正しく動作する。
     static void setKey(KeyCode key_code);
     static void unsetKey(KeyCode key_code);
