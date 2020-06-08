@@ -32,7 +32,7 @@
 namespace hidpg
 {
 
-  class BleControllerSlave_
+  class BleControllerSlaveClass
   {
   public:
     using cannotConnectCallback_t = void (*)(void);
@@ -62,6 +62,6 @@ namespace hidpg
     static receiveDataCallback_t _receive_data_cb;
   };
 
-  extern BleControllerSlave_ BleControllerSlave;
+  extern BleControllerSlaveClass BleControllerSlave;
 
 } // namespace hidpg

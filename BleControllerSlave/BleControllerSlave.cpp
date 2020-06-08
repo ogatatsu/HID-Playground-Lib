@@ -28,16 +28,16 @@
 namespace hidpg
 {
 
-  BLEUartLight BleControllerSlave_::_ble_uart;
-  BLEBas BleControllerSlave_::_ble_bas;
-  BlinkLed BleControllerSlave_::_adv_led(ADV_LED_PIN, ADV_LED_ACTIVE_STATE, IS_HIGH_DRIVE);
-  BleControllerSlave_::cannotConnectCallback_t BleControllerSlave_::_cannot_connect_cb = nullptr;
-  BleControllerSlave_::receiveDataCallback_t BleControllerSlave_::_receive_data_cb = nullptr;
+  BLEUartLight BleControllerSlaveClass::_ble_uart;
+  BLEBas BleControllerSlaveClass::_ble_bas;
+  BlinkLed BleControllerSlaveClass::_adv_led(ADV_LED_PIN, ADV_LED_ACTIVE_STATE, IS_HIGH_DRIVE);
+  BleControllerSlaveClass::cannotConnectCallback_t BleControllerSlaveClass::_cannot_connect_cb = nullptr;
+  BleControllerSlaveClass::receiveDataCallback_t BleControllerSlaveClass::_receive_data_cb = nullptr;
 
   //------------------------------------------------------------------+
   // public
   //------------------------------------------------------------------+
-  void BleControllerSlave_::init()
+  void BleControllerSlaveClass::init()
   {
     Bluefruit.configPrphConn(BLE_GATT_ATT_MTU_DEFAULT, BLE_GAP_EVENT_LENGTH_DEFAULT, HVN_TX_QUEUE_SIZE, BLE_GATTC_WRITE_CMD_TX_QUEUE_SIZE_DEFAULT);
     Bluefruit.begin();
@@ -65,7 +65,7 @@ namespace hidpg
   }
 
   // 接続を開始
-  void BleControllerSlave_::startConnection()
+  void BleControllerSlaveClass::startConnection()
   {
     // すでに開始している場合は何もしない
     if (isRunning())
@@ -77,7 +77,7 @@ namespace hidpg
   }
 
   // ペリファラル接続もしくはアドバタイズを停止する
-  void BleControllerSlave_::stopConnection()
+  void BleControllerSlaveClass::stopConnection()
   {
     Bluefruit.Advertising.restartOnDisconnect(false);
     if (Bluefruit.Advertising.isRunning())
@@ -98,32 +98,32 @@ namespace hidpg
     _adv_led.syncOff();
   }
 
-  bool BleControllerSlave_::isRunning()
+  bool BleControllerSlaveClass::isRunning()
   {
     return (Bluefruit.Advertising.isRunning() || Bluefruit.Periph.connected());
   }
 
-  uint16_t BleControllerSlave_::sendData(const uint8_t *data, uint16_t len)
+  uint16_t BleControllerSlaveClass::sendData(const uint8_t *data, uint16_t len)
   {
     return _ble_uart.write(data, len);
   }
 
-  void BleControllerSlave_::clearBonds()
+  void BleControllerSlaveClass::clearBonds()
   {
     Bluefruit.clearBonds();
   }
 
-  void BleControllerSlave_::setBatteryLevel(uint8_t level)
+  void BleControllerSlaveClass::setBatteryLevel(uint8_t level)
   {
     _ble_bas.write(level);
   }
 
-  void BleControllerSlave_::setCannnotConnectCallback(cannotConnectCallback_t callback)
+  void BleControllerSlaveClass::setCannnotConnectCallback(cannotConnectCallback_t callback)
   {
     _cannot_connect_cb = callback;
   }
 
-  void BleControllerSlave_::setReceiveDataCallback(receiveDataCallback_t callback)
+  void BleControllerSlaveClass::setReceiveDataCallback(receiveDataCallback_t callback)
   {
     _receive_data_cb = callback;
   }
@@ -131,7 +131,7 @@ namespace hidpg
   //------------------------------------------------------------------+
   // private
   //------------------------------------------------------------------+
-  void BleControllerSlave_::startAdv(void)
+  void BleControllerSlaveClass::startAdv(void)
   {
     // Advertising packet
     Bluefruit.Advertising.addFlags(BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE);
@@ -160,7 +160,7 @@ namespace hidpg
   }
 
   // 一定時間接続できなかった場合
-  void BleControllerSlave_::adv_stop_callback()
+  void BleControllerSlaveClass::adv_stop_callback()
   {
     _adv_led.syncOff();
     if (_cannot_connect_cb != nullptr)
@@ -169,7 +169,7 @@ namespace hidpg
     }
   }
 
-  void BleControllerSlave_::connect_callback(uint16_t conn_handle)
+  void BleControllerSlaveClass::connect_callback(uint16_t conn_handle)
   {
     BLEConnection *conn = Bluefruit.Connection(conn_handle);
     conn->requestConnectionParameter(CONNECTION_INTERVAL, SLAVE_LATENCY, SUPERVISION_TIMEOUT);
@@ -177,7 +177,7 @@ namespace hidpg
     _adv_led.off();
   }
 
-  void BleControllerSlave_::disconnect_callback(uint16_t conn_handle, uint8_t reason)
+  void BleControllerSlaveClass::disconnect_callback(uint16_t conn_handle, uint8_t reason)
   {
     switch (reason)
     {
@@ -197,7 +197,7 @@ namespace hidpg
     }
   }
 
-  void BleControllerSlave_::bleuart_rx_callback(uint16_t conn_handle, uint8_t *data, uint16_t len)
+  void BleControllerSlaveClass::bleuart_rx_callback(uint16_t conn_handle, uint8_t *data, uint16_t len)
   {
     if (_receive_data_cb != nullptr)
     {
@@ -205,6 +205,6 @@ namespace hidpg
     }
   }
 
-  BleControllerSlave_ BleControllerSlave;
+  BleControllerSlaveClass BleControllerSlave;
 
 } // namespace hidpg

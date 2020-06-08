@@ -30,26 +30,26 @@
 namespace hidpg
 {
 
-  TaskHandle_t HidEngineTask_::_task_handle = nullptr;
-  QueueHandle_t HidEngineTask_::_event_queue = nullptr;
-  EventData HidEngineTask_::_lookahead;
+  TaskHandle_t HidEngineTaskClass::_task_handle = nullptr;
+  QueueHandle_t HidEngineTaskClass::_event_queue = nullptr;
+  EventData HidEngineTaskClass::_lookahead;
 
-  void HidEngineTask_::init()
+  void HidEngineTaskClass::init()
   {
     _event_queue = xQueueCreate(HID_ENGINE_EVENT_QUEUE_SIZE, sizeof(EventData));
   }
 
-  void HidEngineTask_::startTask()
+  void HidEngineTaskClass::startTask()
   {
     xTaskCreate(task, "HidEngine", HID_ENGINE_TASK_STACK_SIZE, nullptr, HID_ENGINE_TASK_PRIO, &_task_handle);
   }
 
-  void HidEngineTask_::enqueEvent(const EventData &e_data)
+  void HidEngineTaskClass::enqueEvent(const EventData &e_data)
   {
     xQueueSend(_event_queue, &e_data, portMAX_DELAY);
   }
 
-  void HidEngineTask_::sumNextMouseMoveEventIfExist(int16_t &x, int16_t &y)
+  void HidEngineTaskClass::sumNextMouseMoveEventIfExist(int16_t &x, int16_t &y)
   {
     if (_lookahead.event_type != EventType::Invalid)
     {
@@ -72,7 +72,7 @@ namespace hidpg
     }
   }
 
-  void HidEngineTask_::task(void *pvParameters)
+  void HidEngineTaskClass::task(void *pvParameters)
   {
     while (true)
     {
@@ -124,6 +124,6 @@ namespace hidpg
     }
   }
 
-  HidEngineTask_ HidEngineTask;
+  HidEngineTaskClass HidEngineTask;
 
 } // namespace hidpg

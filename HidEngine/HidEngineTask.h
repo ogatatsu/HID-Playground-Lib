@@ -85,7 +85,7 @@ namespace hidpg
     };
   };
 
-  class HidEngineTask_
+  class HidEngineTaskClass
   {
   public:
     static void init();
@@ -101,6 +101,6 @@ namespace hidpg
     static EventData _lookahead;
   };
 
-  extern HidEngineTask_ HidEngineTask;
+  extern HidEngineTaskClass HidEngineTask;
 
 } // namespace hidpg

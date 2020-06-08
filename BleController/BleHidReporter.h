@@ -22,28 +22,24 @@
   THE SOFTWARE.
 */
 
-#include "BLEHidAdafruitHidReporter.h"
+#pragma once
+
+#include "HidReporter.h"
+#include <bluefruit.h>
 
 namespace hidpg
 {
 
-  BLEHidAdafruitHidReporter::BLEHidAdafruitHidReporter(BLEHidAdafruit &ble_hid) : _ble_hid(ble_hid)
+  class BleHidReporter : public HidReporter
   {
-  }
+  public:
+    BleHidReporter(BLEHidAdafruit &ble_hid);
+    void keyboardReport(uint8_t modifier, uint8_t key_codes[6]) override;
+    void consumerReport(uint16_t usage_code) override;
+    void mouseReport(uint8_t buttons, int8_t x, int8_t y, int8_t wheel, int8_t horiz) override;
 
-  void BLEHidAdafruitHidReporter::keyboardReport(uint8_t modifier, uint8_t key_codes[6])
-  {
-    _ble_hid.keyboardReport(modifier, key_codes);
-  }
-
-  void BLEHidAdafruitHidReporter::consumerReport(uint16_t usage_code)
-  {
-    _ble_hid.consumerReport(usage_code);
-  }
-
-  void BLEHidAdafruitHidReporter::mouseReport(uint8_t buttons, int8_t x, int8_t y, int8_t wheel, int8_t horiz)
-  {
-    _ble_hid.mouseReport(buttons, x, y, wheel, horiz);
-  }
+  private:
+    BLEHidAdafruit &_ble_hid;
+  };
 
 } // namespace hidpg

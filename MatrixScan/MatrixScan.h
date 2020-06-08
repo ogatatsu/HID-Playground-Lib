@@ -32,7 +32,7 @@
 namespace hidpg
 {
 
-  class MatrixScan_
+  class MatrixScanClass
   {
   public:
     using callback_t = void (*)(const Set &switch_ids);
@@ -71,6 +71,6 @@ namespace hidpg
     static uint8_t _out_pins_len;
   };
 
-  extern MatrixScan_ MatrixScan;
+  extern MatrixScanClass MatrixScan;
 
 } // namespace hidpg

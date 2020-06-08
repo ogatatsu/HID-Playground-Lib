@@ -31,7 +31,7 @@ namespace hidpg
 {
 
   // HidReporterをラップしたクラス
-  class Hid_
+  class HidCore
   {
   public:
     static void setReporter(HidReporter *hid_reporter);
@@ -79,6 +79,6 @@ namespace hidpg
     static uint8_t _button_counters[5];
   };
 
-  extern Hid_ Hid;
+  extern HidCore Hid;
 
 } // namespace hidpg

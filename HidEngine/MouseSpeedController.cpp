@@ -90,30 +90,30 @@ namespace hidpg
   //------------------------------------------------------------------+
   // MouseSpeedController
   //------------------------------------------------------------------+
-  Rational MouseSpeedController_::_rational(1, 1);
-  uint8_t MouseSpeedController_::_zero_counter = 0;
+  Rational MouseSpeedControllerClass::_rational(1, 1);
+  uint8_t MouseSpeedControllerClass::_zero_counter = 0;
 
-  void MouseSpeedController_::accel(int16_t percent)
+  void MouseSpeedControllerClass::accel(int16_t percent)
   {
     _rational *= Rational(percent, 100);
   }
 
-  void MouseSpeedController_::decel(int16_t percent)
+  void MouseSpeedControllerClass::decel(int16_t percent)
   {
     _rational /= Rational(percent, 100);
   }
 
-  void MouseSpeedController_::setZero()
+  void MouseSpeedControllerClass::setZero()
   {
     _zero_counter++;
   }
 
-  void MouseSpeedController_::unsetZero()
+  void MouseSpeedControllerClass::unsetZero()
   {
     _zero_counter--;
   }
 
-  double MouseSpeedController_::getfactor()
+  double MouseSpeedControllerClass::getfactor()
   {
     if (_zero_counter == 0)
     {
@@ -125,6 +125,6 @@ namespace hidpg
     }
   }
 
-  MouseSpeedController_ MouseSpeedController;
+  MouseSpeedControllerClass MouseSpeedController;
 
 } // namespace hidpg

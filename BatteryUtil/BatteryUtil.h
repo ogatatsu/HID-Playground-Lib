@@ -29,12 +29,12 @@
 namespace hidpg
 {
 
-  class BatteryUtil_
+  class BatteryUtilClass
   {
   public:
     static uint8_t readBatteryLevel();
   };
 
-  extern BatteryUtil_ BatteryUtil;
+  extern BatteryUtilClass BatteryUtil;
 
 } // namespace hidpg

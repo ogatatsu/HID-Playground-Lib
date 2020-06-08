@@ -61,9 +61,9 @@ namespace hidpg
     Command *right_command;
   };
 
-  class HidEngine_
+  class HidEngineClass
   {
-    friend class HidEngineTask_;
+    friend class HidEngineTaskClass;
 
   public:
     template <uint8_t keymap_len>
@@ -175,20 +175,20 @@ namespace hidpg
     static LinkedList<Tracking *> _tracking_list;
     static int32_t _distance_x;
     static int32_t _distance_y;
-    static void startTracking(HidEngine_::Tracking *tracking);
-    static void stopTracking(HidEngine_::Tracking *tracking);
+    static void startTracking(HidEngineClass::Tracking *tracking);
+    static void stopTracking(HidEngineClass::Tracking *tracking);
   };
 
-  extern HidEngine_ HidEngine;
+  extern HidEngineClass HidEngine;
 
   //------------------------------------------------------------------+
   // short name inner command
   //------------------------------------------------------------------+
 // Sequence Mode
-#define SEQ_MODE (static_cast<Command *>(new HidEngine_::SequenceMode))
+#define SEQ_MODE (static_cast<Command *>(new HidEngineClass::SequenceMode))
   // Track
-  static inline Command *TRC(uint8_t track_id) { return (new HidEngine_::Tracking(track_id)); }
+  static inline Command *TRC(uint8_t track_id) { return (new HidEngineClass::Tracking(track_id)); }
   // Track or Tap
-  static inline Command *TRT(uint8_t track_id, Command *command) { return (new HidEngine_::TrackTap(track_id, command)); }
+  static inline Command *TRT(uint8_t track_id, Command *command) { return (new HidEngineClass::TrackTap(track_id, command)); }
 
 } // namespace hidpg

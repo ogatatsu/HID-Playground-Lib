@@ -27,22 +27,22 @@
 namespace hidpg
 {
 
-  MatrixScan_::callback_t MatrixScan_::_callback = nullptr;
-  TaskHandle_t MatrixScan_::_task_handle = nullptr;
-  uint16_t MatrixScan_::_polling_interval_ms = 0;
-  uint16_t MatrixScan_::_max_polling_count = 0;
-  Switch **MatrixScan_::_matrix = nullptr;
-  const uint8_t *MatrixScan_::_in_pins = nullptr;
-  const uint8_t *MatrixScan_::_out_pins = nullptr;
-  uint8_t MatrixScan_::_in_pins_len = 0;
-  uint8_t MatrixScan_::_out_pins_len = 0;
+  MatrixScanClass::callback_t MatrixScanClass::_callback = nullptr;
+  TaskHandle_t MatrixScanClass::_task_handle = nullptr;
+  uint16_t MatrixScanClass::_polling_interval_ms = 0;
+  uint16_t MatrixScanClass::_max_polling_count = 0;
+  Switch **MatrixScanClass::_matrix = nullptr;
+  const uint8_t *MatrixScanClass::_in_pins = nullptr;
+  const uint8_t *MatrixScanClass::_out_pins = nullptr;
+  uint8_t MatrixScanClass::_in_pins_len = 0;
+  uint8_t MatrixScanClass::_out_pins_len = 0;
 
-  void MatrixScan_::setCallback(callback_t callback)
+  void MatrixScanClass::setCallback(callback_t callback)
   {
     _callback = callback;
   }
 
-  void MatrixScan_::startTask()
+  void MatrixScanClass::startTask()
   {
     if (_task_handle == nullptr)
     {
@@ -51,7 +51,7 @@ namespace hidpg
   }
 
 #ifdef ARDUINO_ARCH_NRF52
-  void MatrixScan_::stopTask_and_setWakeUpInterrupt()
+  void MatrixScanClass::stopTask_and_setWakeUpInterrupt()
   {
     if (_task_handle != nullptr)
     {
@@ -68,7 +68,7 @@ namespace hidpg
 #endif
 
   // ピンの初期化など
-  void MatrixScan_::init()
+  void MatrixScanClass::init()
   {
     // 出力ピンの設定
     for (int i = 0; i < _out_pins_len; i++)
@@ -134,7 +134,7 @@ namespace hidpg
   }
 
   // 起きる
-  void MatrixScan_::interrupt_callback()
+  void MatrixScanClass::interrupt_callback()
   {
     if (_task_handle != nullptr)
     {
@@ -144,7 +144,7 @@ namespace hidpg
   }
 
   // 出力ピンを一括設定
-  void MatrixScan_::outPinsSet(int val)
+  void MatrixScanClass::outPinsSet(int val)
   {
     for (int i = 0; i < _out_pins_len; i++)
     {
@@ -152,7 +152,7 @@ namespace hidpg
     }
   }
 
-  bool MatrixScan_::needsKeyScan()
+  bool MatrixScanClass::needsKeyScan()
   {
     // - 消費電流を減らすため常にスキャンをせずに割り込みが発生したら起きて一定時間スキャン（ポーリング）をする
     // - FreeRTOSのtask通知を利用して残りのポーリング回数を設定する
@@ -166,7 +166,7 @@ namespace hidpg
     return false;
   }
 
-  void MatrixScan_::task(void *pvParameters)
+  void MatrixScanClass::task(void *pvParameters)
   {
     Set ids, prev_ids;
 
@@ -212,6 +212,6 @@ namespace hidpg
     }
   }
 
-  MatrixScan_ MatrixScan;
+  MatrixScanClass MatrixScan;
 
 } // namespace hidpg

@@ -29,14 +29,14 @@
 namespace hidpg
 {
 
-  DebounceIn_::callback_t DebounceIn_::_callback = nullptr;
-  TaskHandle_t DebounceIn_::_task_handle = nullptr;
-  LinkedList<DebounceIn_::PinInfo *> DebounceIn_::_pin_info_list;
-  uint16_t DebounceIn_::_max_debounce_delay_ms = 0;
-  uint16_t DebounceIn_::_polling_interval_ms = UINT16_MAX;
-  uint16_t DebounceIn_::_max_polling_count = 0;
+  DebounceInClass::callback_t DebounceInClass::_callback = nullptr;
+  TaskHandle_t DebounceInClass::_task_handle = nullptr;
+  LinkedList<DebounceInClass::PinInfo *> DebounceInClass::_pin_info_list;
+  uint16_t DebounceInClass::_max_debounce_delay_ms = 0;
+  uint16_t DebounceInClass::_polling_interval_ms = UINT16_MAX;
+  uint16_t DebounceInClass::_max_polling_count = 0;
 
-  void DebounceIn_::init()
+  void DebounceInClass::init()
   {
     for (int i = 0; i < _pin_info_list.size(); i++)
     {
@@ -49,7 +49,7 @@ namespace hidpg
     _max_polling_count += 2;
   }
 
-  void DebounceIn_::addPin(uint8_t pin, int mode, uint16_t debounce_delay_ms)
+  void DebounceInClass::addPin(uint8_t pin, int mode, uint16_t debounce_delay_ms)
   {
     PinInfo *info = new PinInfo;
     info->pin = pin;
@@ -63,7 +63,7 @@ namespace hidpg
     _polling_interval_ms = min(debounce_delay_ms, _polling_interval_ms);
   }
 
-  void DebounceIn_::startTask()
+  void DebounceInClass::startTask()
   {
     if (_task_handle == nullptr)
     {
@@ -75,7 +75,7 @@ namespace hidpg
     }
   }
 
-  void DebounceIn_::stopTask()
+  void DebounceInClass::stopTask()
   {
     if (_task_handle != nullptr)
     {
@@ -83,12 +83,12 @@ namespace hidpg
     }
   }
 
-  void DebounceIn_::setCallback(callback_t callback)
+  void DebounceInClass::setCallback(callback_t callback)
   {
     _callback = callback;
   }
 
-  void DebounceIn_::interrupt_callback()
+  void DebounceInClass::interrupt_callback()
   {
     if (_task_handle != nullptr)
     {
@@ -97,7 +97,7 @@ namespace hidpg
     }
   }
 
-  bool DebounceIn_::needsUpdate()
+  bool DebounceInClass::needsUpdate()
   {
     // ・消費電流を減らすため常にスキャンをせずに割り込みが発生したら起きて一定時間スキャン（ポーリング）をする
     // ・FreeRTOSのtask通知を利用して残りのポーリング回数を設定する
@@ -109,7 +109,7 @@ namespace hidpg
     return false;
   }
 
-  void DebounceIn_::task(void *pvParameters)
+  void DebounceInClass::task(void *pvParameters)
   {
     while (true)
     {
@@ -137,6 +137,6 @@ namespace hidpg
     }
   }
 
-  DebounceIn_ DebounceIn;
+  DebounceInClass DebounceIn;
 
 } // namespace hidpg

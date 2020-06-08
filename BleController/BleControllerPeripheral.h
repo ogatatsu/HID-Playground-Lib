@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include "BLEHidAdafruitHidReporter.h"
 #include "BleController_config.h"
+#include "BleHidReporter.h"
 #include "BlinkLed.h"
 #include "HidReporter.h"
 #include "MemStore.h"
@@ -34,9 +34,9 @@
 namespace hidpg
 {
 
-  class BleControllerPeripheral_
+  class BleControllerPeripheralClass
   {
-    friend class BleController_;
+    friend class BleControllerClass;
 
   public:
     using cannotConnectCallback_t = void (*)(void);
@@ -60,13 +60,13 @@ namespace hidpg
     static BLEDis _ble_dis;
     static BLEBas _ble_bas;
     static BLEHidAdafruit _ble_hid;
-    static BLEHidAdafruitHidReporter _hid_reporter;
+    static BleHidReporter _hid_reporter;
     static BlinkLed _adv_led;
     static MemStore _addr_store;
     static uint8_t _current_slot;
     static cannotConnectCallback_t _cannot_connect_cb;
   };
 
-  extern BleControllerPeripheral_ BleControllerPeripheral;
+  extern BleControllerPeripheralClass BleControllerPeripheral;
 
 } // namespace hidpg

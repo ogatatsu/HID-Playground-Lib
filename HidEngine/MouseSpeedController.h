@@ -45,7 +45,7 @@ namespace hidpg
     int _denom;
   };
 
-  class MouseSpeedController_
+  class MouseSpeedControllerClass
   {
   public:
     static void accel(int16_t percent);
@@ -59,6 +59,6 @@ namespace hidpg
     static uint8_t _zero_counter;
   };
 
-  extern MouseSpeedController_ MouseSpeedController;
+  extern MouseSpeedControllerClass MouseSpeedController;
 
 } // namespace hidpg

@@ -30,7 +30,7 @@
 namespace hidpg
 {
 
-  class UsbHid_
+  class UsbHidClass
   {
   public:
     static void init();
@@ -49,6 +49,6 @@ namespace hidpg
     static UsbHidReporter _reporter;
   };
 
-  extern UsbHid_ UsbHid;
+  extern UsbHidClass UsbHid;
 
 } // namespace hidpg

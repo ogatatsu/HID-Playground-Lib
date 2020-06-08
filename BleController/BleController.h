@@ -30,14 +30,14 @@
 namespace hidpg
 {
 
-  class BleController_
+  class BleControllerClass
   {
   public:
     static void init();
-    static BleControllerPeripheral_ Periph;
-    static BleControllerCentral_ Central;
+    static BleControllerPeripheralClass Periph;
+    static BleControllerCentralClass Central;
   };
 
-  extern BleController_ BleController;
+  extern BleControllerClass BleController;
 
 } // namespace hidpg

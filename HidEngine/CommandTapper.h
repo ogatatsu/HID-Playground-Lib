@@ -27,9 +27,9 @@
 namespace hidpg
 {
 
-  class CommandTapper_
+  class CommandTapperClass
   {
-    friend class HidEngineTask_;
+    friend class HidEngineTaskClass;
 
   public:
     static void tap(Command *command, uint8_t times = 1);
@@ -57,6 +57,6 @@ namespace hidpg
     static TimerHandle_t _timer_handle;
   };
 
-  extern CommandTapper_ CommandTapper;
+  extern CommandTapperClass CommandTapper;
 
 } // namespace hidpg

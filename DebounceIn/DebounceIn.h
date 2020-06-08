@@ -32,7 +32,7 @@
 namespace hidpg
 {
 
-  class DebounceIn_
+  class DebounceInClass
   {
   public:
     using callback_t = void (*)(uint8_t pin, bool state);
@@ -63,6 +63,6 @@ namespace hidpg
     static uint16_t _max_polling_count;
   };
 
-  extern DebounceIn_ DebounceIn;
+  extern DebounceInClass DebounceIn;
 
 } // namespace hidpg

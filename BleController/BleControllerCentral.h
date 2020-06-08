@@ -38,9 +38,9 @@ namespace hidpg
 #endif
   // clang-format on
 
-  class BleControllerCentral_
+  class BleControllerCentralClass
   {
-    friend class BleController_;
+    friend class BleControllerClass;
 
   public:
     using receiveDataCallback_t = void (*)(uint8_t idx, uint8_t *data, uint16_t len);
@@ -77,6 +77,6 @@ namespace hidpg
     static disconnectCallback_t _disconnect_cb;
   };
 
-  extern BleControllerCentral_ BleControllerCentral;
+  extern BleControllerCentralClass BleControllerCentral;
 
 } // namespace hidpg

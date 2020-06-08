@@ -126,7 +126,7 @@ namespace hidpg
     return result;
   }
 
-  uint8_t BatteryUtil_::readBatteryLevel()
+  uint8_t BatteryUtilClass::readBatteryLevel()
   {
 #ifdef BATTERY_READ_PIN
     analogReference(AR_INTERNAL);
@@ -140,6 +140,6 @@ namespace hidpg
     return constrain(level, 0, 100);
   }
 
-  BatteryUtil_ BatteryUtil;
+  BatteryUtilClass BatteryUtil;
 
 } // namespace hidpg

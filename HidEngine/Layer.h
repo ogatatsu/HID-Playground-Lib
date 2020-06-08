@@ -30,7 +30,7 @@
 namespace hidpg
 {
 
-  class Layer_
+  class LayerClass
   {
   public:
     // 恒久的な操作
@@ -53,6 +53,6 @@ namespace hidpg
     static bool _one_shot[LAYER_SIZE];
   };
 
-  extern Layer_ Layer;
+  extern LayerClass Layer;
 
 } // namespace hidpg
