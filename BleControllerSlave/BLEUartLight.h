@@ -38,35 +38,40 @@
 #include "BLECharacteristic.h"
 #include "BLEService.h"
 
-// BLEUartの非ストリーム版軽量バージョン
-class BLEUartLight : public BLEService
+namespace hidpg
 {
-public:
-  typedef void (*rx_callback_t)(uint16_t conn_handle, uint8_t *data, uint16_t len);
-  typedef void (*notify_callback_t)(uint16_t conn_hdl, bool enabled);
 
-  BLEUartLight();
+  // BLEUartの非ストリーム版軽量バージョン
+  class BLEUartLight : public BLEService
+  {
+  public:
+    typedef void (*rx_callback_t)(uint16_t conn_handle, uint8_t *data, uint16_t len);
+    typedef void (*notify_callback_t)(uint16_t conn_hdl, bool enabled);
 
-  virtual err_t begin(void);
+    BLEUartLight();
 
-  bool notifyEnabled(void);
-  bool notifyEnabled(uint16_t conn_hdl);
+    virtual err_t begin(void);
 
-  void setRxCallback(rx_callback_t fp);
-  void setNotifyCallback(notify_callback_t fp);
+    bool notifyEnabled(void);
+    bool notifyEnabled(uint16_t conn_hdl);
 
-  uint16_t write(const uint8_t *content, uint16_t len);
-  uint16_t write(uint16_t conn_hdl, const uint8_t *content, uint16_t len);
+    void setRxCallback(rx_callback_t fp);
+    void setNotifyCallback(notify_callback_t fp);
 
-protected:
-  BLECharacteristic _txd;
-  BLECharacteristic _rxd;
+    uint16_t write(const uint8_t *content, uint16_t len);
+    uint16_t write(uint16_t conn_hdl, const uint8_t *content, uint16_t len);
 
-  // Callbacks
-  rx_callback_t _rx_cb;
-  notify_callback_t _notify_cb;
+  protected:
+    BLECharacteristic _txd;
+    BLECharacteristic _rxd;
 
-  // Static Method for callbacks
-  static void bleuart_rxd_cb(uint16_t conn_hdl, BLECharacteristic *chr, uint8_t *data, uint16_t len);
-  static void bleuart_txd_cccd_cb(uint16_t conn_hdl, BLECharacteristic *chr, uint16_t value);
-};
+    // Callbacks
+    rx_callback_t _rx_cb;
+    notify_callback_t _notify_cb;
+
+    // Static Method for callbacks
+    static void bleuart_rxd_cb(uint16_t conn_hdl, BLECharacteristic *chr, uint8_t *data, uint16_t len);
+    static void bleuart_txd_cccd_cb(uint16_t conn_hdl, BLECharacteristic *chr, uint16_t value);
+  };
+
+} // namespace hidpg

@@ -39,33 +39,38 @@
 #include "BLEClientCharacteristic.h"
 #include "BLEClientService.h"
 
-// BLEClientUartの非ストリーム版軽量バージョン
-class BLEClientUartLight : public BLEClientService
+namespace hidpg
 {
-public:
-  // Callback Signatures
-  typedef void (*rx_callback_t)(uint16_t conn_handle, uint8_t *data, uint16_t len);
 
-  BLEClientUartLight();
+  // BLEClientUartの非ストリーム版軽量バージョン
+  class BLEClientUartLight : public BLEClientService
+  {
+  public:
+    // Callback Signatures
+    typedef void (*rx_callback_t)(uint16_t conn_handle, uint8_t *data, uint16_t len);
 
-  virtual bool begin(void);
-  virtual bool discover(uint16_t conn_handle);
+    BLEClientUartLight();
 
-  void setRxCallback(rx_callback_t fp);
+    virtual bool begin(void);
+    virtual bool discover(uint16_t conn_handle);
 
-  bool enableTXD(void);
-  bool disableTXD(void);
+    void setRxCallback(rx_callback_t fp);
 
-  uint16_t write(const uint8_t *content, uint16_t len);
+    bool enableTXD(void);
+    bool disableTXD(void);
 
-protected:
-  virtual void disconnect(void);
+    uint16_t write(const uint8_t *content, uint16_t len);
 
-private:
-  BLEClientCharacteristic _txd;
-  BLEClientCharacteristic _rxd;
+  protected:
+    virtual void disconnect(void);
 
-  rx_callback_t _rx_cb;
+  private:
+    BLEClientCharacteristic _txd;
+    BLEClientCharacteristic _rxd;
 
-  friend void bleuart_central_notify_cb(BLEClientCharacteristic *chr, uint8_t *data, uint16_t len);
-};
+    rx_callback_t _rx_cb;
+
+    friend void bleuart_central_notify_cb(BLEClientCharacteristic *chr, uint8_t *data, uint16_t len);
+  };
+
+} // namespace hidpg
