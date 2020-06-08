@@ -4,6 +4,7 @@
 
 namespace hidpg
 {
+// clang-format off
 
 // Firmware "PMW3360DM_srom_0x04"
 constexpr uint8_t PMW3360DM_Firmware[] = {

@@ -32,25 +32,25 @@
 namespace hidpg
 {
 
-class ThreadSafeSPIClass
-{
-public:
-  ThreadSafeSPIClass(SPIClass &spi);
-  void begin();
-  void end();
-  void usingInterrupt(int interruptNumber);
-  void beginTransaction(SPISettings &settings);
-  void endTransaction();
-  uint8_t transfer(uint8_t data);
-  uint16_t transfer16(uint16_t data);
-  void transfer(void *buf, size_t count);
+  class ThreadSafeSPIClass
+  {
+  public:
+    ThreadSafeSPIClass(SPIClass &spi);
+    void begin();
+    void end();
+    void usingInterrupt(int interruptNumber);
+    void beginTransaction(SPISettings &settings);
+    void endTransaction();
+    uint8_t transfer(uint8_t data);
+    uint16_t transfer16(uint16_t data);
+    void transfer(void *buf, size_t count);
 
-private:
-  SPIClass &_spi;
-  SemaphoreHandle_t _mutex;
-  bool _initialized;
-};
+  private:
+    SPIClass &_spi;
+    SemaphoreHandle_t _mutex;
+    bool _initialized;
+  };
 
-extern ThreadSafeSPIClass ThreadSafeSPI;
+  extern ThreadSafeSPIClass ThreadSafeSPI;
 
 } // namespace hidpg

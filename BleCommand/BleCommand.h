@@ -27,38 +27,38 @@
 namespace hidpg
 {
 
-/*------------------------------------------------------------------*/
-class ConnectBluetooth : public Command
-{
-public:
-  ConnectBluetooth(uint8_t slot);
+  /*------------------------------------------------------------------*/
+  class ConnectBluetooth : public Command
+  {
+  public:
+    ConnectBluetooth(uint8_t slot);
 
-protected:
-  uint8_t onPress(uint8_t accumulation) override;
+  protected:
+    uint8_t onPress(uint8_t accumulation) override;
 
-private:
-  const uint8_t _slot;
-};
+  private:
+    const uint8_t _slot;
+  };
 
-/*------------------------------------------------------------------*/
-class ResetConnection : public Command
-{
-protected:
-  uint8_t onPress(uint8_t accumulation) override;
-};
+  /*------------------------------------------------------------------*/
+  class ResetConnection : public Command
+  {
+  protected:
+    uint8_t onPress(uint8_t accumulation) override;
+  };
 
-/*------------------------------------------------------------------*/
-class PrintBatteryLevel : public Command
-{
-protected:
-  uint8_t onPress(uint8_t accumulation) override;
-};
+  /*------------------------------------------------------------------*/
+  class PrintBatteryLevel : public Command
+  {
+  protected:
+    uint8_t onPress(uint8_t accumulation) override;
+  };
 
-/*------------------------------------------------------------------*/
-/*  define short name command
- *------------------------------------------------------------------*/
-// Connect Bluetooth
-static inline Command *BT(uint8_t slot) { return (new ConnectBluetooth(slot)); }
+  /*------------------------------------------------------------------*/
+  /*  define short name command
+   *------------------------------------------------------------------*/
+  // Connect Bluetooth
+  static inline Command *BT(uint8_t slot) { return (new ConnectBluetooth(slot)); }
 
 // Reset Ble Connection
 #define RESET (static_cast<Command *>(new ResetConnection))

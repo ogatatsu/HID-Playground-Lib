@@ -31,24 +31,24 @@
 namespace hidpg
 {
 
-class TimerMixin
-{
-  friend class HidEngineTask_;
+  class TimerMixin
+  {
+    friend class HidEngineTask_;
 
-protected:
-  TimerMixin();
-  void startTimer(unsigned int ms);
-  void stopTimer();
-  bool isTimerActive();
-  virtual void onTimer() {}
+  protected:
+    TimerMixin();
+    void startTimer(unsigned int ms);
+    void stopTimer();
+    bool isTimerActive();
+    virtual void onTimer() {}
 
-private:
-  static void timer_callback(TimerHandle_t timer_handle);
+  private:
+    static void timer_callback(TimerHandle_t timer_handle);
 
-  void trigger(unsigned int timer_number);
+    void trigger(unsigned int timer_number);
 
-  bool _is_active;
-  unsigned int _num_of_timer;
-};
+    bool _is_active;
+    unsigned int _num_of_timer;
+  };
 
 } // namespace hidpg

@@ -30,24 +30,24 @@
 namespace hidpg
 {
 
-class BlinkLed
-{
-public:
-  BlinkLed(uint8_t pin, uint8_t active_state = HIGH, bool is_high_drive = false);
+  class BlinkLed
+  {
+  public:
+    BlinkLed(uint8_t pin, uint8_t active_state = HIGH, bool is_high_drive = false);
 
-  void blink(uint8_t times = 1);
-  void off();
-  void syncOff();
-  bool isBlink() const;
+    void blink(uint8_t times = 1);
+    void off();
+    void syncOff();
+    bool isBlink() const;
 
-private:
-  static void task(void *pvParameters);
+  private:
+    static void task(void *pvParameters);
 
-  const uint8_t _pin;
-  const uint8_t _active_state;
-  volatile bool _is_blink;
-  volatile uint8_t _times;
-  TaskHandle_t _task_handle;
-};
+    const uint8_t _pin;
+    const uint8_t _active_state;
+    volatile bool _is_blink;
+    volatile uint8_t _times;
+    TaskHandle_t _task_handle;
+  };
 
 } // namespace hidpg

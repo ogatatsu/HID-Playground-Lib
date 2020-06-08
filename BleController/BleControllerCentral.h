@@ -32,49 +32,51 @@
 namespace hidpg
 {
 
+  // clang-format off
 #ifndef SLAVE_ADDR_LIST
 #define SLAVE_ADDR_LIST {}
 #endif
+  // clang-format on
 
-class BleControllerCentral_
-{
-  friend class BleController_;
-
-public:
-  using receiveDataCallback_t = void (*)(uint8_t idx, uint8_t *data, uint16_t len);
-  using disconnectCallback_t = void (*)(uint8_t idx, uint8_t reason);
-
-  static void startConnection();
-  static void stopConnection();
-  static bool isRunnning();
-  static uint16_t sendData(uint8_t idx, const uint8_t *data, uint16_t len);
-  static void setReceiveDataCallback(receiveDataCallback_t callback);
-  static void setDisconnectCallback(disconnectCallback_t callback);
-
-private:
-  static void init();
-  static bool startScan();
-  static int countVacantConn();
-  static int findConnHandle(uint16_t conn_handle);
-  static int findSlaveAddr(uint8_t addr[6]);
-  static void scan_callback(ble_gap_evt_adv_report_t *report);
-  static void connect_callback(uint16_t conn_handle);
-  static void disconnect_callback(uint16_t conn_handle, uint8_t reason);
-  static void bleuart_rx_callback(uint16_t conn_handle, uint8_t *data, uint16_t len);
-
-  struct SlaveInfo
+  class BleControllerCentral_
   {
-    uint16_t conn_handle;
-    BLEClientUartLight ble_uart;
+    friend class BleController_;
+
+  public:
+    using receiveDataCallback_t = void (*)(uint8_t idx, uint8_t *data, uint16_t len);
+    using disconnectCallback_t = void (*)(uint8_t idx, uint8_t reason);
+
+    static void startConnection();
+    static void stopConnection();
+    static bool isRunnning();
+    static uint16_t sendData(uint8_t idx, const uint8_t *data, uint16_t len);
+    static void setReceiveDataCallback(receiveDataCallback_t callback);
+    static void setDisconnectCallback(disconnectCallback_t callback);
+
+  private:
+    static void init();
+    static bool startScan();
+    static int countVacantConn();
+    static int findConnHandle(uint16_t conn_handle);
+    static int findSlaveAddr(uint8_t addr[6]);
+    static void scan_callback(ble_gap_evt_adv_report_t *report);
+    static void connect_callback(uint16_t conn_handle);
+    static void disconnect_callback(uint16_t conn_handle, uint8_t reason);
+    static void bleuart_rx_callback(uint16_t conn_handle, uint8_t *data, uint16_t len);
+
+    struct SlaveInfo
+    {
+      uint16_t conn_handle;
+      BLEClientUartLight ble_uart;
+    };
+
+    static uint8_t _slave_addr_list[sizeof((uint8_t[][6])SLAVE_ADDR_LIST) / 6][6];
+    static SlaveInfo _slaves[arrcount(_slave_addr_list)];
+    static BlinkLed _scan_led;
+    static receiveDataCallback_t _receive_data_cb;
+    static disconnectCallback_t _disconnect_cb;
   };
 
-  static uint8_t _slave_addr_list[sizeof((uint8_t[][6])SLAVE_ADDR_LIST) / 6][6];
-  static SlaveInfo _slaves[arrcount(_slave_addr_list)];
-  static BlinkLed _scan_led;
-  static receiveDataCallback_t _receive_data_cb;
-  static disconnectCallback_t _disconnect_cb;
-};
-
-extern BleControllerCentral_ BleControllerCentral;
+  extern BleControllerCentral_ BleControllerCentral;
 
 } // namespace hidpg

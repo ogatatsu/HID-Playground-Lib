@@ -32,37 +32,37 @@
 namespace hidpg
 {
 
-class DebounceIn_
-{
-public:
-  using callback_t = void (*)(uint8_t pin, bool state);
-
-  static void init();
-  static void addPin(uint8_t pin, int mode, uint16_t debounce_delay_ms = 10);
-  static void setCallback(callback_t callback);
-  static void startTask();
-  static void stopTask();
-
-private:
-  struct PinInfo
+  class DebounceIn_
   {
-    uint8_t pin;
-    int mode;
-    Bounce bounce;
+  public:
+    using callback_t = void (*)(uint8_t pin, bool state);
+
+    static void init();
+    static void addPin(uint8_t pin, int mode, uint16_t debounce_delay_ms = 10);
+    static void setCallback(callback_t callback);
+    static void startTask();
+    static void stopTask();
+
+  private:
+    struct PinInfo
+    {
+      uint8_t pin;
+      int mode;
+      Bounce bounce;
+    };
+
+    static void task(void *pvParameters);
+    static bool needsUpdate();
+    static void interrupt_callback();
+
+    static TaskHandle_t _task_handle;
+    static callback_t _callback;
+    static LinkedList<PinInfo *> _pin_info_list;
+    static uint16_t _max_debounce_delay_ms;
+    static uint16_t _polling_interval_ms;
+    static uint16_t _max_polling_count;
   };
 
-  static void task(void *pvParameters);
-  static bool needsUpdate();
-  static void interrupt_callback();
-
-  static TaskHandle_t _task_handle;
-  static callback_t _callback;
-  static LinkedList<PinInfo *> _pin_info_list;
-  static uint16_t _max_debounce_delay_ms;
-  static uint16_t _polling_interval_ms;
-  static uint16_t _max_polling_count;
-};
-
-extern DebounceIn_ DebounceIn;
+  extern DebounceIn_ DebounceIn;
 
 } // namespace hidpg

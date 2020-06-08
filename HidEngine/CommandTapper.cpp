@@ -30,86 +30,86 @@
 namespace hidpg
 {
 
-LinkedList<CommandTapper_::Pair> CommandTapper_::_list;
-CommandTapper_::Pair CommandTapper_::_running{.command = nullptr, .times = 0};
-CommandTapper_::State CommandTapper_::_next_state = CommandTapper_::State::press;
-TimerHandle_t CommandTapper_::_timer_handle = nullptr;
+  LinkedList<CommandTapper_::Pair> CommandTapper_::_list;
+  CommandTapper_::Pair CommandTapper_::_running{.command = nullptr, .times = 0};
+  CommandTapper_::State CommandTapper_::_next_state = CommandTapper_::State::press;
+  TimerHandle_t CommandTapper_::_timer_handle = nullptr;
 
-void CommandTapper_::init()
-{
-  _timer_handle = xTimerCreate(nullptr, pdMS_TO_TICKS(1), false, nullptr, timer_callback);
-}
-
-void CommandTapper_::tap(Command *command, uint8_t times)
-{
-  if (times == 0 || command == nullptr)
+  void CommandTapper_::init()
   {
-    return;
+    _timer_handle = xTimerCreate(nullptr, pdMS_TO_TICKS(1), false, nullptr, timer_callback);
   }
 
-  if (_list.size() == 0 && _running.command == nullptr)
+  void CommandTapper_::tap(Command *command, uint8_t times)
   {
-    _running.command = command;
-    _running.times = times;
-
-    _running.times -= _running.command->press(_running.times);
-    _next_state = State::release;
-    xTimerStart(_timer_handle, portMAX_DELAY);
-    return;
-  }
-
-  Pair last = _list.get(_list.size() - 1);
-  if (last.command == command)
-  {
-    last.times += times;
-    _list.set(_list.size() - 1, last);
-    return;
-  }
-
-  last.command = command;
-  last.times = times;
-  _list.add(last);
-}
-
-void CommandTapper_::onTimer()
-{
-  if (_next_state == State::release)
-  {
-    _running.command->release();
-    _next_state = State::press;
-    if (_running.times > 0)
+    if (times == 0 || command == nullptr)
     {
-      xTimerStart(_timer_handle, portMAX_DELAY);
+      return;
     }
-    else
+
+    if (_list.size() == 0 && _running.command == nullptr)
     {
-      _running.command = nullptr;
-      if (_list.size() > 0)
+      _running.command = command;
+      _running.times = times;
+
+      _running.times -= _running.command->press(_running.times);
+      _next_state = State::release;
+      xTimerStart(_timer_handle, portMAX_DELAY);
+      return;
+    }
+
+    Pair last = _list.get(_list.size() - 1);
+    if (last.command == command)
+    {
+      last.times += times;
+      _list.set(_list.size() - 1, last);
+      return;
+    }
+
+    last.command = command;
+    last.times = times;
+    _list.add(last);
+  }
+
+  void CommandTapper_::onTimer()
+  {
+    if (_next_state == State::release)
+    {
+      _running.command->release();
+      _next_state = State::press;
+      if (_running.times > 0)
       {
         xTimerStart(_timer_handle, portMAX_DELAY);
       }
+      else
+      {
+        _running.command = nullptr;
+        if (_list.size() > 0)
+        {
+          xTimerStart(_timer_handle, portMAX_DELAY);
+        }
+      }
     }
-  }
-  else
-  {
-    if (_running.command == nullptr)
+    else
     {
-      _running = _list.shift();
+      if (_running.command == nullptr)
+      {
+        _running = _list.shift();
+      }
+      _running.times -= _running.command->press(_running.times);
+      _next_state = State::release;
+      xTimerStart(_timer_handle, portMAX_DELAY);
     }
-    _running.times -= _running.command->press(_running.times);
-    _next_state = State::release;
-    xTimerStart(_timer_handle, portMAX_DELAY);
   }
-}
 
-void CommandTapper_::timer_callback(TimerHandle_t timerHandle)
-{
-  // Software Timersのスタックを消費しないようにstaticで宣言
-  static EventData e_data;
-  e_data.event_type = EventType::CommandTapper;
-  HidEngineTask.enqueEvent(e_data);
-}
+  void CommandTapper_::timer_callback(TimerHandle_t timerHandle)
+  {
+    // Software Timersのスタックを消費しないようにstaticで宣言
+    static EventData e_data;
+    e_data.event_type = EventType::CommandTapper;
+    HidEngineTask.enqueEvent(e_data);
+  }
 
-CommandTapper_ CommandTapper;
+  CommandTapper_ CommandTapper;
 
 } // namespace hidpg

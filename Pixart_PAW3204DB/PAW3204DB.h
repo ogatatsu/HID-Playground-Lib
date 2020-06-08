@@ -25,73 +25,73 @@
 #pragma once
 
 #include "FreeRTOS.h"
-#include "timers.h"
 #include "PAW3204DB_RegOperator.h"
+#include "timers.h"
 
 namespace hidpg
 {
 
-class PAW3204DB
-{
-public:
-  enum class Cpi : uint8_t
+  class PAW3204DB
   {
-    _400 = 0b000,
-    _500 = 0b001,
-    _600 = 0b010,
-    _800 = 0b011,
-    _1000 = 0b100,
-    _1200 = 0b101,
-    _1600 = 0b110,
-  };
-
-  using callback_t = void (*)(int16_t delta_x, int16_t delta_y);
-
-  template <uint8_t ID>
-  static PAW3204DB &create(uint8_t sclk_pin, uint8_t sdio_pin, uint8_t motswk_pin)
-  {
-    static_assert(ID < 2, "Two or more PAW3204DB can not be created.");
-    if (instances[ID] == nullptr)
+  public:
+    enum class Cpi : uint8_t
     {
-      instances[ID] = new PAW3204DB(sclk_pin, sdio_pin, motswk_pin, ID);
+      _400 = 0b000,
+      _500 = 0b001,
+      _600 = 0b010,
+      _800 = 0b011,
+      _1000 = 0b100,
+      _1200 = 0b101,
+      _1600 = 0b110,
+    };
+
+    using callback_t = void (*)(int16_t delta_x, int16_t delta_y);
+
+    template <uint8_t ID>
+    static PAW3204DB &create(uint8_t sclk_pin, uint8_t sdio_pin, uint8_t motswk_pin)
+    {
+      static_assert(ID < 2, "Two or more PAW3204DB can not be created.");
+      if (instances[ID] == nullptr)
+      {
+        instances[ID] = new PAW3204DB(sclk_pin, sdio_pin, motswk_pin, ID);
+      }
+      return *instances[ID];
     }
-    return *instances[ID];
-  }
 
-  template <uint8_t ID>
-  static PAW3204DB *getInstance()
-  {
-    static_assert(ID < 2, "Two or more PAW3204DB can not be created.");
-    return instances[ID];
-  }
+    template <uint8_t ID>
+    static PAW3204DB *getInstance()
+    {
+      static_assert(ID < 2, "Two or more PAW3204DB can not be created.");
+      return instances[ID];
+    }
 
-  void setCallback(callback_t callback);
-  void init();
-  void startTask();
-  void changeCpi(Cpi cpi);
+    void setCallback(callback_t callback);
+    void init();
+    void startTask();
+    void changeCpi(Cpi cpi);
 
 #ifdef ARDUINO_ARCH_NRF52
-  void stopTask_and_setWakeUpInterrupt();
+    void stopTask_and_setWakeUpInterrupt();
 #endif
 
-private:
-  PAW3204DB(uint8_t sclk_pin, uint8_t sdio_pin, uint8_t motswk_pin, uint8_t id);
+  private:
+    PAW3204DB(uint8_t sclk_pin, uint8_t sdio_pin, uint8_t motswk_pin, uint8_t id);
 
-  static void task(void *pvParameters);
-  static void timer_callback(TimerHandle_t timer_handle);
-  static void interrupt_callback_0();
-  static void interrupt_callback_1();
-  static TaskHandle_t _task_handles[2];
-  static PAW3204DB *instances[2];
+    static void task(void *pvParameters);
+    static void timer_callback(TimerHandle_t timer_handle);
+    static void interrupt_callback_0();
+    static void interrupt_callback_1();
+    static TaskHandle_t _task_handles[2];
+    static PAW3204DB *instances[2];
 
-  void initRegisters();
+    void initRegisters();
 
-  TimerHandle_t _timer_handle;
-  SemaphoreHandle_t _mutex;
-  PAW3204DB_RegOperator _reg;
-  const uint8_t _motswk_pin;
-  const uint8_t _id;
-  callback_t _callback;
-};
+    TimerHandle_t _timer_handle;
+    SemaphoreHandle_t _mutex;
+    PAW3204DB_RegOperator _reg;
+    const uint8_t _motswk_pin;
+    const uint8_t _id;
+    callback_t _callback;
+  };
 
 } // namespace hidpg

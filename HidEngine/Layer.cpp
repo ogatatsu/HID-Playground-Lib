@@ -27,77 +27,77 @@
 namespace hidpg
 {
 
-bool Layer_::_toggle[LAYER_SIZE] = {};
-uint8_t Layer_::_on_counters[LAYER_SIZE] = {};
-bool Layer_::_one_shot[LAYER_SIZE] = {};
+  bool Layer_::_toggle[LAYER_SIZE] = {};
+  uint8_t Layer_::_on_counters[LAYER_SIZE] = {};
+  bool Layer_::_one_shot[LAYER_SIZE] = {};
 
-void Layer_::toggle(uint8_t number)
-{
-  if (number >= LAYER_SIZE)
+  void Layer_::toggle(uint8_t number)
   {
-    return;
-  }
-  _toggle[number] = !_toggle[number];
-}
-
-void Layer_::on(uint8_t number)
-{
-  if (number >= LAYER_SIZE)
-  {
-    return;
-  }
-  _on_counters[number]++;
-}
-
-void Layer_::off(uint8_t number)
-{
-  if (number >= LAYER_SIZE)
-  {
-    return;
-  }
-  _on_counters[number]--;
-}
-
-void Layer_::setOneShot(uint8_t number)
-{
-  if (number >= LAYER_SIZE)
-  {
-    return;
-  }
-  _one_shot[number] = true;
-}
-
-void Layer_::peekOneShot(bool (&layer)[LAYER_SIZE])
-{
-  for (int i = 0; i < LAYER_SIZE; i++)
-  {
-    layer[i] = _one_shot[i];
-  }
-}
-
-void Layer_::getState(bool (&layer)[LAYER_SIZE])
-{
-  for (int i = 0; i < LAYER_SIZE; i++)
-  {
-    if (_one_shot[i] == true)
+    if (number >= LAYER_SIZE)
     {
-      layer[i] = true;
-      _one_shot[i] = false;
-      continue;
+      return;
     }
-
-    if (_on_counters[i] != 0)
-    {
-      layer[i] = true;
-      continue;
-    }
-
-    layer[i] = _toggle[i];
+    _toggle[number] = !_toggle[number];
   }
-  // layer 0 is always true
-  layer[0] = true;
-}
 
-Layer_ Layer;
+  void Layer_::on(uint8_t number)
+  {
+    if (number >= LAYER_SIZE)
+    {
+      return;
+    }
+    _on_counters[number]++;
+  }
+
+  void Layer_::off(uint8_t number)
+  {
+    if (number >= LAYER_SIZE)
+    {
+      return;
+    }
+    _on_counters[number]--;
+  }
+
+  void Layer_::setOneShot(uint8_t number)
+  {
+    if (number >= LAYER_SIZE)
+    {
+      return;
+    }
+    _one_shot[number] = true;
+  }
+
+  void Layer_::peekOneShot(bool (&layer)[LAYER_SIZE])
+  {
+    for (int i = 0; i < LAYER_SIZE; i++)
+    {
+      layer[i] = _one_shot[i];
+    }
+  }
+
+  void Layer_::getState(bool (&layer)[LAYER_SIZE])
+  {
+    for (int i = 0; i < LAYER_SIZE; i++)
+    {
+      if (_one_shot[i] == true)
+      {
+        layer[i] = true;
+        _one_shot[i] = false;
+        continue;
+      }
+
+      if (_on_counters[i] != 0)
+      {
+        layer[i] = true;
+        continue;
+      }
+
+      layer[i] = _toggle[i];
+    }
+    // layer 0 is always true
+    layer[0] = true;
+  }
+
+  Layer_ Layer;
 
 } // namespace hidpg

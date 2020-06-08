@@ -30,60 +30,60 @@
 
 namespace hidpg
 {
-/*------------------------------------------------------------------*/
-/* ConnectBluetooth
+  /*------------------------------------------------------------------*/
+  /* ConnectBluetooth
  *------------------------------------------------------------------*/
-ConnectBluetooth::ConnectBluetooth(uint8_t slot) : _slot(slot)
-{
-}
+  ConnectBluetooth::ConnectBluetooth(uint8_t slot) : _slot(slot)
+  {
+  }
 
-uint8_t ConnectBluetooth::onPress(uint8_t accumulation)
-{
-  BleController.Periph.startConnection(_slot);
-  return 1;
-}
+  uint8_t ConnectBluetooth::onPress(uint8_t accumulation)
+  {
+    BleController.Periph.startConnection(_slot);
+    return 1;
+  }
 
-/*------------------------------------------------------------------*/
-/* ResetConnection
+  /*------------------------------------------------------------------*/
+  /* ResetConnection
  *------------------------------------------------------------------*/
-uint8_t ResetConnection::onPress(uint8_t accumulation)
-{
-  BleController.Periph.clearBonds();
-  NVIC_SystemReset();
-  return 1;
-}
+  uint8_t ResetConnection::onPress(uint8_t accumulation)
+  {
+    BleController.Periph.clearBonds();
+    NVIC_SystemReset();
+    return 1;
+  }
 
-/*------------------------------------------------------------------*/
-/* PrintBatteryLevel
+  /*------------------------------------------------------------------*/
+  /* PrintBatteryLevel
  *------------------------------------------------------------------*/
-static KeyCode numToKeycode(uint8_t num)
-{
-  if (num == 0)
-    return KeyCode::_0;
-  return static_cast<KeyCode>(num + 29);
-}
+  static KeyCode numToKeycode(uint8_t num)
+  {
+    if (num == 0)
+      return KeyCode::_0;
+    return static_cast<KeyCode>(num + 29);
+  }
 
-static void tap(KeyCode key_code)
-{
-  Hid.setKey(key_code);
-  Hid.sendKeyReport(true);
-  Hid.unsetKey(key_code);
-  Hid.sendKeyReport(false);
-}
+  static void tap(KeyCode key_code)
+  {
+    Hid.setKey(key_code);
+    Hid.sendKeyReport(true);
+    Hid.unsetKey(key_code);
+    Hid.sendKeyReport(false);
+  }
 
-uint8_t PrintBatteryLevel::onPress(uint8_t accumulation)
-{
-  uint8_t level = BatteryUtil.readBatteryLevel();
+  uint8_t PrintBatteryLevel::onPress(uint8_t accumulation)
+  {
+    uint8_t level = BatteryUtil.readBatteryLevel();
 
-  KeyCode level1 = numToKeycode(level % 10);
-  KeyCode level2 = numToKeycode(level % 100 / 10);
-  KeyCode level3 = numToKeycode(level / 100);
+    KeyCode level1 = numToKeycode(level % 10);
+    KeyCode level2 = numToKeycode(level % 100 / 10);
+    KeyCode level3 = numToKeycode(level / 100);
 
-  tap(level3);
-  tap(level2);
-  tap(level1);
+    tap(level3);
+    tap(level2);
+    tap(level1);
 
-  return 1;
-}
+    return 1;
+  }
 
 } // namespace hidpg

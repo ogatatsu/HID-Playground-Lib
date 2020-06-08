@@ -29,12 +29,12 @@
 namespace hidpg
 {
 
-class HidReporter
-{
-public:
-  virtual void keyboardReport(uint8_t modifier, uint8_t key_codes[6]) = 0;
-  virtual void consumerReport(uint16_t usage_code) = 0;
-  virtual void mouseReport(uint8_t buttons, int8_t x, int8_t y, int8_t wheel, int8_t horiz) = 0;
-};
+  class HidReporter
+  {
+  public:
+    virtual void keyboardReport(uint8_t modifier, uint8_t key_codes[6]) = 0;
+    virtual void consumerReport(uint16_t usage_code) = 0;
+    virtual void mouseReport(uint8_t buttons, int8_t x, int8_t y, int8_t wheel, int8_t horiz) = 0;
+  };
 
 } // namespace hidpg

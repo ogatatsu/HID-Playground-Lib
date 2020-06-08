@@ -28,55 +28,55 @@
 namespace hidpg
 {
 
-void TimerMixin::timer_callback(TimerHandle_t timer_handle)
-{
-  // Software Timersのスタックを消費しないようにstaticで宣言
-  static EventData e_data;
-  e_data.event_type = EventType::Timer;
+  void TimerMixin::timer_callback(TimerHandle_t timer_handle)
+  {
+    // Software Timersのスタックを消費しないようにstaticで宣言
+    static EventData e_data;
+    e_data.event_type = EventType::Timer;
 
-  TimerEventData *te_data = static_cast<TimerEventData *>(pvTimerGetTimerID(timer_handle));
-  e_data.timer = te_data;
-  HidEngineTask.enqueEvent(e_data);
+    TimerEventData *te_data = static_cast<TimerEventData *>(pvTimerGetTimerID(timer_handle));
+    e_data.timer = te_data;
+    HidEngineTask.enqueEvent(e_data);
 
-  xTimerDelete(timer_handle, portMAX_DELAY);
-}
+    xTimerDelete(timer_handle, portMAX_DELAY);
+  }
 
-TimerMixin::TimerMixin() : _is_active(false), _num_of_timer(0)
-{
-}
+  TimerMixin::TimerMixin() : _is_active(false), _num_of_timer(0)
+  {
+  }
 
-void TimerMixin::startTimer(unsigned int ms)
-{
-  TimerEventData *te_data = new TimerEventData();
-  te_data->cls = this;
-  te_data->timer_number = ++_num_of_timer;
+  void TimerMixin::startTimer(unsigned int ms)
+  {
+    TimerEventData *te_data = new TimerEventData();
+    te_data->cls = this;
+    te_data->timer_number = ++_num_of_timer;
 
-  TimerHandle_t th = xTimerCreate(nullptr, pdMS_TO_TICKS(ms), false, te_data, timer_callback);
-  xTimerStart(th, portMAX_DELAY);
+    TimerHandle_t th = xTimerCreate(nullptr, pdMS_TO_TICKS(ms), false, te_data, timer_callback);
+    xTimerStart(th, portMAX_DELAY);
 
-  _is_active = true;
-}
+    _is_active = true;
+  }
 
-void TimerMixin::stopTimer()
-{
-  _is_active = false;
-}
-
-bool TimerMixin::isTimerActive()
-{
-  return _is_active;
-}
-
-// プリエンプティブなマルチタスクだとタスク切換えとstartTimer関数の呼び出しタイミングによっては
-// 2個以上のタイマーイベントがイベントキューに入るかもしれないが
-// timer_numberを見て最後に作ったイベントのみを実行する仕様とする(使用側からはワンショットタイマーが１個だけ動いてるように見せたい)
-void TimerMixin::trigger(unsigned int timer_number)
-{
-  if (_is_active && (_num_of_timer == timer_number))
+  void TimerMixin::stopTimer()
   {
     _is_active = false;
-    onTimer();
   }
-}
+
+  bool TimerMixin::isTimerActive()
+  {
+    return _is_active;
+  }
+
+  // プリエンプティブなマルチタスクだとタスク切換えとstartTimer関数の呼び出しタイミングによっては
+  // 2個以上のタイマーイベントがイベントキューに入るかもしれないが
+  // timer_numberを見て最後に作ったイベントのみを実行する仕様とする(使用側からはワンショットタイマーが１個だけ動いてるように見せたい)
+  void TimerMixin::trigger(unsigned int timer_number)
+  {
+    if (_is_active && (_num_of_timer == timer_number))
+    {
+      _is_active = false;
+      onTimer();
+    }
+  }
 
 } // namespace hidpg

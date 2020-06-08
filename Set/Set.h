@@ -30,44 +30,44 @@
 namespace hidpg
 {
 
-// 符号なし8ビット型専用の集合コンテナクラス
-class Set
-{
-  friend bool operator==(const Set &a, const Set &b);
+  // 符号なし8ビット型専用の集合コンテナクラス
+  class Set
+  {
+    friend bool operator==(const Set &a, const Set &b);
 
-public:
-  Set();
+  public:
+    Set();
 
-  void add(uint8_t val);
-  void addAll(const uint8_t vals[], size_t len);
-  Set &operator|=(const Set &rhs);
+    void add(uint8_t val);
+    void addAll(const uint8_t vals[], size_t len);
+    Set &operator|=(const Set &rhs);
 
-  void remove(uint8_t val);
-  void removeAll(const uint8_t vals[], size_t len);
-  Set &operator-=(const Set &rhs);
+    void remove(uint8_t val);
+    void removeAll(const uint8_t vals[], size_t len);
+    Set &operator-=(const Set &rhs);
 
-  void clear();
+    void clear();
 
-  bool contains(uint8_t val) const;
-  bool containsAll(const uint8_t vals[], size_t len) const;
-  bool containsAny(const uint8_t vals[], size_t len) const;
+    bool contains(uint8_t val) const;
+    bool containsAll(const uint8_t vals[], size_t len) const;
+    bool containsAny(const uint8_t vals[], size_t len) const;
 
-  void toArray(uint8_t buf[]) const;
-  uint16_t count() const;
+    void toArray(uint8_t buf[]) const;
+    uint16_t count() const;
 
-private:
-  // 8 * 32 = 256
-  uint8_t _data[32];
-  mutable uint16_t _count;
-  mutable bool _needs_recount;
-};
+  private:
+    // 8 * 32 = 256
+    uint8_t _data[32];
+    mutable uint16_t _count;
+    mutable bool _needs_recount;
+  };
 
-// 比較
-bool operator==(const Set &a, const Set &b);
-bool operator!=(const Set &a, const Set &b);
-// 和集合
-Set operator|(const Set &a, const Set &b);
-// 差集合
-Set operator-(const Set &a, const Set &b);
+  // 比較
+  bool operator==(const Set &a, const Set &b);
+  bool operator!=(const Set &a, const Set &b);
+  // 和集合
+  Set operator|(const Set &a, const Set &b);
+  // 差集合
+  Set operator-(const Set &a, const Set &b);
 
 } // namespace hidpg

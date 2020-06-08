@@ -27,34 +27,34 @@
 namespace hidpg
 {
 
-Switch::Switch(uint8_t id, uint16_t debounce_delay_ms) : Bounce(), _id(id)
-{
-  this->interval(debounce_delay_ms);
-}
-
-void Switch::init(uint8_t pin)
-{
-  this->attach(pin);
-}
-
-void Switch::updateState(Set &switch_ids)
-{
-  if (this->update())
+  Switch::Switch(uint8_t id, uint16_t debounce_delay_ms) : Bounce(), _id(id)
   {
-    if (this->read() == ACTIVE_STATE)
+    this->interval(debounce_delay_ms);
+  }
+
+  void Switch::init(uint8_t pin)
+  {
+    this->attach(pin);
+  }
+
+  void Switch::updateState(Set &switch_ids)
+  {
+    if (this->update())
     {
-      switch_ids.add(_id);
-    }
-    else
-    {
-      switch_ids.remove(_id);
+      if (this->read() == ACTIVE_STATE)
+      {
+        switch_ids.add(_id);
+      }
+      else
+      {
+        switch_ids.remove(_id);
+      }
     }
   }
-}
 
-uint16_t Switch::getDebounceDelay() const
-{
-  return this->interval_millis;
-}
+  uint16_t Switch::getDebounceDelay() const
+  {
+    return this->interval_millis;
+  }
 
 } // namespace hidpg

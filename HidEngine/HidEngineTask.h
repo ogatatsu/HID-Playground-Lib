@@ -33,74 +33,74 @@
 namespace hidpg
 {
 
-enum class EventType
-{
-  Invalid,
-  ApplyToKeymap,
-  TapCommand,
-  MouseMove,
-  Timer,
-  CommandTapper,
-};
-
-struct ApplyToKeymapEventData
-{
-  Set key_ids;
-};
-
-struct TapCommandEventData
-{
-  Command *command;
-  uint8_t times;
-};
-
-struct MouseMoveEventData
-{
-  int16_t x;
-  int16_t y;
-};
-
-struct TimerEventData
-{
-  TimerMixin *cls;
-  unsigned int timer_number;
-};
-
-struct CommandTapperEventData
-{
-  //empty
-};
-
-struct EventData
-{
-  EventData() : event_type(EventType::Invalid){};
-
-  EventType event_type;
-  union {
-    ApplyToKeymapEventData apply_to_keymap;
-    TapCommandEventData tap_command;
-    MouseMoveEventData mouse_move;
-    TimerEventData *timer;
-    CommandTapperEventData command_tapper;
+  enum class EventType
+  {
+    Invalid,
+    ApplyToKeymap,
+    TapCommand,
+    MouseMove,
+    Timer,
+    CommandTapper,
   };
-};
 
-class HidEngineTask_
-{
-public:
-  static void init();
-  static void startTask();
-  static void enqueEvent(const EventData &e_data);
-  static void sumNextMouseMoveEventIfExist(int16_t &x, int16_t &y);
+  struct ApplyToKeymapEventData
+  {
+    Set key_ids;
+  };
 
-private:
-  static void task(void *pvParameters);
+  struct TapCommandEventData
+  {
+    Command *command;
+    uint8_t times;
+  };
 
-  static TaskHandle_t _task_handle;
-  static QueueHandle_t _event_queue;
-  static EventData _lookahead;
-};
+  struct MouseMoveEventData
+  {
+    int16_t x;
+    int16_t y;
+  };
 
-extern HidEngineTask_ HidEngineTask;
+  struct TimerEventData
+  {
+    TimerMixin *cls;
+    unsigned int timer_number;
+  };
+
+  struct CommandTapperEventData
+  {
+    //empty
+  };
+
+  struct EventData
+  {
+    EventData() : event_type(EventType::Invalid){};
+
+    EventType event_type;
+    union {
+      ApplyToKeymapEventData apply_to_keymap;
+      TapCommandEventData tap_command;
+      MouseMoveEventData mouse_move;
+      TimerEventData *timer;
+      CommandTapperEventData command_tapper;
+    };
+  };
+
+  class HidEngineTask_
+  {
+  public:
+    static void init();
+    static void startTask();
+    static void enqueEvent(const EventData &e_data);
+    static void sumNextMouseMoveEventIfExist(int16_t &x, int16_t &y);
+
+  private:
+    static void task(void *pvParameters);
+
+    static TaskHandle_t _task_handle;
+    static QueueHandle_t _event_queue;
+    static EventData _lookahead;
+  };
+
+  extern HidEngineTask_ HidEngineTask;
 
 } // namespace hidpg

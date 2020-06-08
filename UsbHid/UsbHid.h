@@ -30,25 +30,25 @@
 namespace hidpg
 {
 
-class UsbHid_
-{
-public:
-  static void init();
-  static HidReporter *getHidReporter();
-
-private:
-  class UsbHidReporter : public HidReporter
+  class UsbHid_
   {
   public:
-    void keyboardReport(uint8_t modifier, uint8_t key_codes[6]) override;
-    void consumerReport(uint16_t usage_code) override;
-    void mouseReport(uint8_t buttons, int8_t x, int8_t y, int8_t wheel, int8_t horiz) override;
+    static void init();
+    static HidReporter *getHidReporter();
+
+  private:
+    class UsbHidReporter : public HidReporter
+    {
+    public:
+      void keyboardReport(uint8_t modifier, uint8_t key_codes[6]) override;
+      void consumerReport(uint16_t usage_code) override;
+      void mouseReport(uint8_t buttons, int8_t x, int8_t y, int8_t wheel, int8_t horiz) override;
+    };
+
+    static Adafruit_USBD_HID _usb_hid;
+    static UsbHidReporter _reporter;
   };
 
-  static Adafruit_USBD_HID _usb_hid;
-  static UsbHidReporter _reporter;
-};
-
-extern UsbHid_ UsbHid;
+  extern UsbHid_ UsbHid;
 
 } // namespace hidpg

@@ -32,19 +32,19 @@ using namespace Adafruit_LittleFS_Namespace;
 namespace hidpg
 {
 
-class MemStore
-{
-public:
-  MemStore(const char *directory);
-  void init();
-  bool load(const char *name, void *buf, size_t size);
-  void save(const char *name, const void *buf, size_t size);
-  bool remove(const char *name);
-  void clear();
+  class MemStore
+  {
+  public:
+    MemStore(const char *directory);
+    void init();
+    bool load(const char *name, void *buf, size_t size);
+    void save(const char *name, const void *buf, size_t size);
+    bool remove(const char *name);
+    void clear();
 
-private:
-  String _directory;
-  File _file;
-};
+  private:
+    String _directory;
+    File _file;
+  };
 
 } // namespace hidpg

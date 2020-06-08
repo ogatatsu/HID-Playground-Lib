@@ -29,285 +29,285 @@
 namespace hidpg
 {
 
-HidReporter *Hid_::_hid_reporter = nullptr;
-uint8_t Hid_::_pressed_keys[7] = {};
-uint8_t Hid_::_prev_sent_keys[6] = {};
-uint8_t Hid_::_key_counters[256] = {};
-uint8_t Hid_::_modifier_counters[8] = {};
-int32_t Hid_::_one_shot_modifier_counters[8] = {};
-int32_t Hid_::_triggered_one_shot_modifier_counters[8] = {};
-uint8_t Hid_::_prev_sent_modifier = 0;
-uint8_t Hid_::_prev_sent_button = 0;
-uint8_t Hid_::_button_counters[5] = {};
+  HidReporter *Hid_::_hid_reporter = nullptr;
+  uint8_t Hid_::_pressed_keys[7] = {};
+  uint8_t Hid_::_prev_sent_keys[6] = {};
+  uint8_t Hid_::_key_counters[256] = {};
+  uint8_t Hid_::_modifier_counters[8] = {};
+  int32_t Hid_::_one_shot_modifier_counters[8] = {};
+  int32_t Hid_::_triggered_one_shot_modifier_counters[8] = {};
+  uint8_t Hid_::_prev_sent_modifier = 0;
+  uint8_t Hid_::_prev_sent_button = 0;
+  uint8_t Hid_::_button_counters[5] = {};
 
-void Hid_::setReporter(HidReporter *hid_reporter)
-{
-  _hid_reporter = hid_reporter;
-}
-
-void Hid_::setKey(KeyCode key_code)
-{
-  uint8_t kc = static_cast<uint8_t>(key_code);
-
-  _key_counters[kc]++;
-
-  // すでに入ってるなら追加しない
-  for (int i = 0; i < 6; i++)
+  void Hid_::setReporter(HidReporter *hid_reporter)
   {
-    if (_pressed_keys[i] == kc)
-    {
-      return;
-    }
+    _hid_reporter = hid_reporter;
   }
-  // 開いているスペースを探して追加
-  for (int i = 0; i < 6; i++)
+
+  void Hid_::setKey(KeyCode key_code)
   {
-    if (_pressed_keys[i] == 0)
-    {
-      _pressed_keys[i] = kc;
-      return;
-    }
-  }
-  // 満杯ならずらして末尾に追加
-  memmove(_pressed_keys, _pressed_keys + 1, 5);
-  _pressed_keys[5] = kc;
-}
+    uint8_t kc = static_cast<uint8_t>(key_code);
 
-void Hid_::unsetKey(KeyCode key_code)
-{
-  uint8_t kc = static_cast<uint8_t>(key_code);
+    _key_counters[kc]++;
 
-  _key_counters[kc]--;
-
-  if (_key_counters[kc] == 0)
-  {
-    int i = 0;
-    for (; i < 6; i++)
+    // すでに入ってるなら追加しない
+    for (int i = 0; i < 6; i++)
     {
       if (_pressed_keys[i] == kc)
       {
-        _pressed_keys[i] = 0;
-        break;
+        return;
       }
     }
-    // 削除したスペースを埋めるためにずらしていく
-    // _pressed_keys[6]は常に0が入っているので末尾には0が補充される
-    for (; i < 6; i++)
+    // 開いているスペースを探して追加
+    for (int i = 0; i < 6; i++)
     {
-      _pressed_keys[i] = _pressed_keys[i + 1];
+      if (_pressed_keys[i] == 0)
+      {
+        _pressed_keys[i] = kc;
+        return;
+      }
     }
+    // 満杯ならずらして末尾に追加
+    memmove(_pressed_keys, _pressed_keys + 1, 5);
+    _pressed_keys[5] = kc;
   }
-}
 
-template <typename T, size_t SIZE>
-static void countUp(T (&counters)[SIZE], uint8_t bit8)
-{
-  for (size_t i = 0; i < SIZE; i++)
+  void Hid_::unsetKey(KeyCode key_code)
   {
-    if (bitRead(bit8, i))
+    uint8_t kc = static_cast<uint8_t>(key_code);
+
+    _key_counters[kc]--;
+
+    if (_key_counters[kc] == 0)
     {
-      counters[i]++;
-    }
-  }
-}
-
-template <typename T, size_t SIZE>
-static void countDown(T (&counters)[SIZE], uint8_t bit8)
-{
-  for (size_t i = 0; i < SIZE; i++)
-  {
-    if (bitRead(bit8, i))
-    {
-      counters[i]--;
-    }
-  }
-}
-
-void Hid_::setModifier(Modifier modifier)
-{
-  uint8_t mod = static_cast<uint8_t>(modifier);
-  countUp(_modifier_counters, mod);
-}
-
-void Hid_::unsetModifier(Modifier modifier)
-{
-  uint8_t mod = static_cast<uint8_t>(modifier);
-  countDown(_modifier_counters, mod);
-}
-
-void Hid_::holdOneShotModifier(Modifier modifier)
-{
-  uint8_t mod = static_cast<uint8_t>(modifier);
-  countUp(_one_shot_modifier_counters, mod);
-}
-
-void Hid_::releaseOneShotModifier(Modifier modifier)
-{
-  uint8_t mod = static_cast<uint8_t>(modifier);
-  countDown(_triggered_one_shot_modifier_counters, mod);
-  sendKeyReport(false);
-}
-
-void Hid_::sendKeyReport(bool trigger_one_shot)
-{
-  // 前回送ったreportと比較して変更があるか
-  bool is_changed = false;
-  // 新しくkeyもしくはmodifierが追加されたか、減った場合はfalseのまま
-  bool is_key_adding = false;
-  bool is_modifier_adding = false;
-
-  // 前回の6keyとの比較して変更があるか計算する
-  if (memcmp(_prev_sent_keys, _pressed_keys, sizeof(_prev_sent_keys)) != 0)
-  {
-    is_changed = true;
-
-    Set prev, current;
-    prev.addAll(_prev_sent_keys, 6);
-    current.addAll(_pressed_keys, 6);
-    is_key_adding = ((current - prev).count() != 0);
-  }
-
-  // 現在押されているmodifierを追加
-  uint8_t modifier = 0;
-  for (int i = 0; i < 8; i++)
-  {
-    if (_modifier_counters[i] > 0)
-    {
-      modifier |= bit(i);
+      int i = 0;
+      for (; i < 6; i++)
+      {
+        if (_pressed_keys[i] == kc)
+        {
+          _pressed_keys[i] = 0;
+          break;
+        }
+      }
+      // 削除したスペースを埋めるためにずらしていく
+      // _pressed_keys[6]は常に0が入っているので末尾には0が補充される
+      for (; i < 6; i++)
+      {
+        _pressed_keys[i] = _pressed_keys[i + 1];
+      }
     }
   }
 
-  // 非one_shotなmodifierが新しく追加されたかどうか計算
-  is_modifier_adding = ((modifier & ~_prev_sent_modifier) != 0);
-
-  // one_shotは発動した後も押され続けている場合は機能し続ける、有るならばmodifierに追加
-  for (int i = 0; i < 8; i++)
+  template <typename T, size_t SIZE>
+  static void countUp(T (&counters)[SIZE], uint8_t bit8)
   {
-    if (_triggered_one_shot_modifier_counters[i] > 0)
+    for (size_t i = 0; i < SIZE; i++)
     {
-      modifier |= bit(i);
+      if (bitRead(bit8, i))
+      {
+        counters[i]++;
+      }
     }
   }
 
-  // one_shotをmodifierに追加
-  if (trigger_one_shot)
+  template <typename T, size_t SIZE>
+  static void countDown(T (&counters)[SIZE], uint8_t bit8)
   {
+    for (size_t i = 0; i < SIZE; i++)
+    {
+      if (bitRead(bit8, i))
+      {
+        counters[i]--;
+      }
+    }
+  }
+
+  void Hid_::setModifier(Modifier modifier)
+  {
+    uint8_t mod = static_cast<uint8_t>(modifier);
+    countUp(_modifier_counters, mod);
+  }
+
+  void Hid_::unsetModifier(Modifier modifier)
+  {
+    uint8_t mod = static_cast<uint8_t>(modifier);
+    countDown(_modifier_counters, mod);
+  }
+
+  void Hid_::holdOneShotModifier(Modifier modifier)
+  {
+    uint8_t mod = static_cast<uint8_t>(modifier);
+    countUp(_one_shot_modifier_counters, mod);
+  }
+
+  void Hid_::releaseOneShotModifier(Modifier modifier)
+  {
+    uint8_t mod = static_cast<uint8_t>(modifier);
+    countDown(_triggered_one_shot_modifier_counters, mod);
+    sendKeyReport(false);
+  }
+
+  void Hid_::sendKeyReport(bool trigger_one_shot)
+  {
+    // 前回送ったreportと比較して変更があるか
+    bool is_changed = false;
+    // 新しくkeyもしくはmodifierが追加されたか、減った場合はfalseのまま
+    bool is_key_adding = false;
+    bool is_modifier_adding = false;
+
+    // 前回の6keyとの比較して変更があるか計算する
+    if (memcmp(_prev_sent_keys, _pressed_keys, sizeof(_prev_sent_keys)) != 0)
+    {
+      is_changed = true;
+
+      Set prev, current;
+      prev.addAll(_prev_sent_keys, 6);
+      current.addAll(_pressed_keys, 6);
+      is_key_adding = ((current - prev).count() != 0);
+    }
+
+    // 現在押されているmodifierを追加
+    uint8_t modifier = 0;
     for (int i = 0; i < 8; i++)
     {
-      if (_one_shot_modifier_counters[i] > 0)
+      if (_modifier_counters[i] > 0)
       {
         modifier |= bit(i);
-        _triggered_one_shot_modifier_counters[i] += _one_shot_modifier_counters[i];
-        _one_shot_modifier_counters[i] = 0;
+      }
+    }
+
+    // 非one_shotなmodifierが新しく追加されたかどうか計算
+    is_modifier_adding = ((modifier & ~_prev_sent_modifier) != 0);
+
+    // one_shotは発動した後も押され続けている場合は機能し続ける、有るならばmodifierに追加
+    for (int i = 0; i < 8; i++)
+    {
+      if (_triggered_one_shot_modifier_counters[i] > 0)
+      {
+        modifier |= bit(i);
+      }
+    }
+
+    // one_shotをmodifierに追加
+    if (trigger_one_shot)
+    {
+      for (int i = 0; i < 8; i++)
+      {
+        if (_one_shot_modifier_counters[i] > 0)
+        {
+          modifier |= bit(i);
+          _triggered_one_shot_modifier_counters[i] += _one_shot_modifier_counters[i];
+          _one_shot_modifier_counters[i] = 0;
+        }
+      }
+    }
+
+    // 前回のmodifierとの比較
+    if (modifier != _prev_sent_modifier)
+    {
+      is_changed = true;
+      // one_shotも考慮してmodifierが新しく追加されたかどうかを再計算
+      is_modifier_adding = ((modifier & ~_prev_sent_modifier) != 0);
+    }
+
+    if (is_key_adding && is_modifier_adding)
+    {
+      // keyとmodifierが同時に追加された場合はmodifierキーを送ってからkeyを送る
+      // 全く同じタイミングで送ると一部の環境で意図しない動きになる（windowsキーを使ったショートカットなど）
+      if (_hid_reporter != nullptr)
+      {
+        _hid_reporter->keyboardReport(modifier, _prev_sent_keys);
+        _hid_reporter->keyboardReport(modifier, _pressed_keys);
+      }
+    }
+    else if (is_changed)
+    {
+      if (_hid_reporter != nullptr)
+      {
+        _hid_reporter->keyboardReport(modifier, _pressed_keys);
+      }
+    }
+
+    // 次回用に保存
+    if (is_changed)
+    {
+      memcpy(_prev_sent_keys, _pressed_keys, sizeof(_prev_sent_keys));
+      _prev_sent_modifier = modifier;
+    }
+  }
+
+  void Hid_::consumerKeyPress(UsageCode usage_code)
+  {
+    if (_hid_reporter != nullptr)
+    {
+      _hid_reporter->consumerReport(static_cast<uint16_t>(usage_code));
+    }
+  }
+
+  void Hid_::consumerKeyRelease()
+  {
+    if (_hid_reporter != nullptr)
+    {
+      _hid_reporter->consumerReport(0);
+    }
+  }
+
+  void Hid_::mouseMove(int8_t x, int8_t y)
+  {
+    if (_hid_reporter != nullptr)
+    {
+      _hid_reporter->mouseReport(_prev_sent_button, x, y, 0, 0);
+    }
+  }
+
+  void Hid_::mouseScroll(int8_t scroll, int8_t horiz)
+  {
+    sendKeyReport(true);
+    if (_hid_reporter != nullptr)
+    {
+      _hid_reporter->mouseReport(_prev_sent_button, 0, 0, scroll, horiz);
+    }
+    sendKeyReport(false);
+  }
+
+  void Hid_::mouseButtonPress(MouseButton button)
+  {
+    uint8_t btn = static_cast<uint8_t>(button);
+    countUp(_button_counters, btn);
+    sendKeyReport(true);
+    sendMouseButtonReport();
+  }
+
+  void Hid_::mouseButtonRelease(MouseButton button)
+  {
+    uint8_t btn = static_cast<uint8_t>(button);
+    countDown(_button_counters, btn);
+    sendKeyReport(false);
+    sendMouseButtonReport();
+  }
+
+  void Hid_::sendMouseButtonReport()
+  {
+    uint8_t button = 0;
+
+    for (int i = 0; i < 5; i++)
+    {
+      if (_button_counters[i] > 0)
+      {
+        button |= bit(i);
+      }
+    }
+    if (button != _prev_sent_button)
+    {
+      _prev_sent_button = button;
+      if (_hid_reporter != nullptr)
+      {
+        _hid_reporter->mouseReport(button, 0, 0, 0, 0);
       }
     }
   }
 
-  // 前回のmodifierとの比較
-  if (modifier != _prev_sent_modifier)
-  {
-    is_changed = true;
-    // one_shotも考慮してmodifierが新しく追加されたかどうかを再計算
-    is_modifier_adding = ((modifier & ~_prev_sent_modifier) != 0);
-  }
-
-  if (is_key_adding && is_modifier_adding)
-  {
-    // keyとmodifierが同時に追加された場合はmodifierキーを送ってからkeyを送る
-    // 全く同じタイミングで送ると一部の環境で意図しない動きになる（windowsキーを使ったショートカットなど）
-    if (_hid_reporter != nullptr)
-    {
-      _hid_reporter->keyboardReport(modifier, _prev_sent_keys);
-      _hid_reporter->keyboardReport(modifier, _pressed_keys);
-    }
-  }
-  else if (is_changed)
-  {
-    if (_hid_reporter != nullptr)
-    {
-      _hid_reporter->keyboardReport(modifier, _pressed_keys);
-    }
-  }
-
-  // 次回用に保存
-  if (is_changed)
-  {
-    memcpy(_prev_sent_keys, _pressed_keys, sizeof(_prev_sent_keys));
-    _prev_sent_modifier = modifier;
-  }
-}
-
-void Hid_::consumerKeyPress(UsageCode usage_code)
-{
-  if (_hid_reporter != nullptr)
-  {
-    _hid_reporter->consumerReport(static_cast<uint16_t>(usage_code));
-  }
-}
-
-void Hid_::consumerKeyRelease()
-{
-  if (_hid_reporter != nullptr)
-  {
-    _hid_reporter->consumerReport(0);
-  }
-}
-
-void Hid_::mouseMove(int8_t x, int8_t y)
-{
-  if (_hid_reporter != nullptr)
-  {
-    _hid_reporter->mouseReport(_prev_sent_button, x, y, 0, 0);
-  }
-}
-
-void Hid_::mouseScroll(int8_t scroll, int8_t horiz)
-{
-  sendKeyReport(true);
-  if (_hid_reporter != nullptr)
-  {
-    _hid_reporter->mouseReport(_prev_sent_button, 0, 0, scroll, horiz);
-  }
-  sendKeyReport(false);
-}
-
-void Hid_::mouseButtonPress(MouseButton button)
-{
-  uint8_t btn = static_cast<uint8_t>(button);
-  countUp(_button_counters, btn);
-  sendKeyReport(true);
-  sendMouseButtonReport();
-}
-
-void Hid_::mouseButtonRelease(MouseButton button)
-{
-  uint8_t btn = static_cast<uint8_t>(button);
-  countDown(_button_counters, btn);
-  sendKeyReport(false);
-  sendMouseButtonReport();
-}
-
-void Hid_::sendMouseButtonReport()
-{
-  uint8_t button = 0;
-
-  for (int i = 0; i < 5; i++)
-  {
-    if (_button_counters[i] > 0)
-    {
-      button |= bit(i);
-    }
-  }
-  if (button != _prev_sent_button)
-  {
-    _prev_sent_button = button;
-    if (_hid_reporter != nullptr)
-    {
-      _hid_reporter->mouseReport(button, 0, 0, 0, 0);
-    }
-  }
-}
-
-Hid_ Hid;
+  Hid_ Hid;
 
 } // namespace hidpg

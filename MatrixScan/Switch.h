@@ -31,21 +31,21 @@
 namespace hidpg
 {
 
-// 物理的なスイッチ1個に対応するクラス
-class Switch : Bounce
-{
-public:
-  // 論理的なIDをセットする
-  Switch(uint8_t id, uint16_t debounce_delay_ms = DEBOUNCE_DELAY_MS);
-  // 初期化関数
-  void init(uint8_t pin);
-  // スキャン時に呼ばれる、押されてるかを自分でチェックして自分のIDをセットする
-  void updateState(Set &switch_ids);
+  // 物理的なスイッチ1個に対応するクラス
+  class Switch : Bounce
+  {
+  public:
+    // 論理的なIDをセットする
+    Switch(uint8_t id, uint16_t debounce_delay_ms = DEBOUNCE_DELAY_MS);
+    // 初期化関数
+    void init(uint8_t pin);
+    // スキャン時に呼ばれる、押されてるかを自分でチェックして自分のIDをセットする
+    void updateState(Set &switch_ids);
 
-  uint16_t getDebounceDelay() const;
+    uint16_t getDebounceDelay() const;
 
-private:
-  const uint8_t _id;
-};
+  private:
+    const uint8_t _id;
+  };
 
 } // namespace hidpg

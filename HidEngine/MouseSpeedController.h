@@ -29,36 +29,36 @@
 namespace hidpg
 {
 
-class Rational
-{
-public:
-  Rational(int number, int denom);
-  int number() const;
-  int denom() const;
-  Rational &operator*=(const Rational &rhs);
-  Rational &operator/=(const Rational &rhs);
+  class Rational
+  {
+  public:
+    Rational(int number, int denom);
+    int number() const;
+    int denom() const;
+    Rational &operator*=(const Rational &rhs);
+    Rational &operator/=(const Rational &rhs);
 
-private:
-  void normalize();
+  private:
+    void normalize();
 
-  int _number;
-  int _denom;
-};
+    int _number;
+    int _denom;
+  };
 
-class MouseSpeedController_
-{
-public:
-  static void accel(int16_t percent);
-  static void decel(int16_t percent);
-  static void setZero();
-  static void unsetZero();
-  static double getfactor();
+  class MouseSpeedController_
+  {
+  public:
+    static void accel(int16_t percent);
+    static void decel(int16_t percent);
+    static void setZero();
+    static void unsetZero();
+    static double getfactor();
 
-private:
-  static Rational _rational;
-  static uint8_t _zero_counter;
-};
+  private:
+    static Rational _rational;
+    static uint8_t _zero_counter;
+  };
 
-extern MouseSpeedController_ MouseSpeedController;
+  extern MouseSpeedController_ MouseSpeedController;
 
 } // namespace hidpg

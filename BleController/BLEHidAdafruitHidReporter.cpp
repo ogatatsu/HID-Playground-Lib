@@ -27,23 +27,23 @@
 namespace hidpg
 {
 
-BLEHidAdafruitHidReporter::BLEHidAdafruitHidReporter(BLEHidAdafruit &ble_hid) : _ble_hid(ble_hid)
-{
-}
+  BLEHidAdafruitHidReporter::BLEHidAdafruitHidReporter(BLEHidAdafruit &ble_hid) : _ble_hid(ble_hid)
+  {
+  }
 
-void BLEHidAdafruitHidReporter::keyboardReport(uint8_t modifier, uint8_t key_codes[6])
-{
-  _ble_hid.keyboardReport(modifier, key_codes);
-}
+  void BLEHidAdafruitHidReporter::keyboardReport(uint8_t modifier, uint8_t key_codes[6])
+  {
+    _ble_hid.keyboardReport(modifier, key_codes);
+  }
 
-void BLEHidAdafruitHidReporter::consumerReport(uint16_t usage_code)
-{
-  _ble_hid.consumerReport(usage_code);
-}
+  void BLEHidAdafruitHidReporter::consumerReport(uint16_t usage_code)
+  {
+    _ble_hid.consumerReport(usage_code);
+  }
 
-void BLEHidAdafruitHidReporter::mouseReport(uint8_t buttons, int8_t x, int8_t y, int8_t wheel, int8_t horiz)
-{
-  _ble_hid.mouseReport(buttons, x, y, wheel, horiz);
-}
+  void BLEHidAdafruitHidReporter::mouseReport(uint8_t buttons, int8_t x, int8_t y, int8_t wheel, int8_t horiz)
+  {
+    _ble_hid.mouseReport(buttons, x, y, wheel, horiz);
+  }
 
 } // namespace hidpg

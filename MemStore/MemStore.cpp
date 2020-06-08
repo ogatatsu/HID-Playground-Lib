@@ -27,70 +27,70 @@
 namespace hidpg
 {
 
-MemStore::MemStore(const char *directory) : _directory(directory), _file(InternalFS)
-{
-}
-
-void MemStore::init()
-{
-  InternalFS.begin();
-  if (InternalFS.exists(_directory.c_str()) == false)
+  MemStore::MemStore(const char *directory) : _directory(directory), _file(InternalFS)
   {
-    InternalFS.mkdir(_directory.c_str());
   }
-}
 
-bool MemStore::load(const char *name, void *buf, size_t size)
-{
-  bool result = false;
-
-  String path = _directory + '/' + name;
-
-  _file.open(path.c_str(), FILE_O_READ);
-
-  if (_file)
+  void MemStore::init()
   {
-    if (size == _file.size())
+    InternalFS.begin();
+    if (InternalFS.exists(_directory.c_str()) == false)
     {
-      _file.read(buf, size);
-      result = true;
+      InternalFS.mkdir(_directory.c_str());
     }
+  }
+
+  bool MemStore::load(const char *name, void *buf, size_t size)
+  {
+    bool result = false;
+
+    String path = _directory + '/' + name;
+
+    _file.open(path.c_str(), FILE_O_READ);
+
+    if (_file)
+    {
+      if (size == _file.size())
+      {
+        _file.read(buf, size);
+        result = true;
+      }
+      _file.close();
+    }
+
+    return result;
+  }
+
+  void MemStore::save(const char *name, const void *buf, size_t size)
+  {
+    String path = _directory + '/' + name;
+
+    if (InternalFS.exists(path.c_str()))
+    {
+      InternalFS.remove(path.c_str());
+    }
+
+    _file.open(path.c_str(), FILE_O_WRITE);
+    _file.write(static_cast<const uint8_t *>(buf), size);
     _file.close();
   }
 
-  return result;
-}
-
-void MemStore::save(const char *name, const void *buf, size_t size)
-{
-  String path = _directory + '/' + name;
-
-  if (InternalFS.exists(path.c_str()))
+  bool MemStore::remove(const char *name)
   {
-    InternalFS.remove(path.c_str());
+    String path = _directory + '/' + name;
+
+    if (InternalFS.exists(path.c_str()))
+    {
+      return InternalFS.remove(path.c_str());
+    }
+    return false;
   }
 
-  _file.open(path.c_str(), FILE_O_WRITE);
-  _file.write(static_cast<const uint8_t *>(buf), size);
-  _file.close();
-}
-
-bool MemStore::remove(const char *name)
-{
-  String path = _directory + '/' + name;
-
-  if (InternalFS.exists(path.c_str()))
+  void MemStore::clear()
   {
-    return InternalFS.remove(path.c_str());
+    InternalFS.rmdir_r(_directory.c_str());
+
+    InternalFS.mkdir(_directory.c_str());
   }
-  return false;
-}
-
-void MemStore::clear()
-{
-  InternalFS.rmdir_r(_directory.c_str());
-
-  InternalFS.mkdir(_directory.c_str());
-}
 
 } // namespace hidpg

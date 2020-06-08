@@ -27,36 +27,36 @@
 namespace hidpg
 {
 
-class CommandTapper_
-{
-  friend class HidEngineTask_;
-
-public:
-  static void tap(Command *command, uint8_t times = 1);
-  static void init();
-
-private:
-  static void timer_callback(TimerHandle_t timer_handle);
-  static void onTimer();
-
-  struct Pair
+  class CommandTapper_
   {
-    Command *command;
-    uint8_t times;
+    friend class HidEngineTask_;
+
+  public:
+    static void tap(Command *command, uint8_t times = 1);
+    static void init();
+
+  private:
+    static void timer_callback(TimerHandle_t timer_handle);
+    static void onTimer();
+
+    struct Pair
+    {
+      Command *command;
+      uint8_t times;
+    };
+
+    enum class State
+    {
+      press,
+      release,
+    };
+
+    static LinkedList<Pair> _list;
+    static Pair _running;
+    static State _next_state;
+    static TimerHandle_t _timer_handle;
   };
 
-  enum class State
-  {
-    press,
-    release,
-  };
-
-  static LinkedList<Pair> _list;
-  static Pair _running;
-  static State _next_state;
-  static TimerHandle_t _timer_handle;
-};
-
-extern CommandTapper_ CommandTapper;
+  extern CommandTapper_ CommandTapper;
 
 } // namespace hidpg

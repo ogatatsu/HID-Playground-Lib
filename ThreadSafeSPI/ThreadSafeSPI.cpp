@@ -27,62 +27,62 @@
 namespace hidpg
 {
 
-ThreadSafeSPIClass::ThreadSafeSPIClass(SPIClass &spi) : _spi(spi), _initialized(false)
-{
-}
-
-void ThreadSafeSPIClass::begin()
-{
-  if (_initialized == false)
+  ThreadSafeSPIClass::ThreadSafeSPIClass(SPIClass &spi) : _spi(spi), _initialized(false)
   {
-    _spi.begin();
-    _mutex = xSemaphoreCreateMutex();
-    _initialized = true;
   }
-}
 
-void ThreadSafeSPIClass::end()
-{
-  if (_initialized)
+  void ThreadSafeSPIClass::begin()
   {
-    _spi.end();
-    vSemaphoreDelete(_mutex);
-    _initialized = false;
+    if (_initialized == false)
+    {
+      _spi.begin();
+      _mutex = xSemaphoreCreateMutex();
+      _initialized = true;
+    }
   }
-}
 
-void ThreadSafeSPIClass::usingInterrupt(int interruptNumber)
-{
-  _spi.usingInterrupt(interruptNumber);
-}
+  void ThreadSafeSPIClass::end()
+  {
+    if (_initialized)
+    {
+      _spi.end();
+      vSemaphoreDelete(_mutex);
+      _initialized = false;
+    }
+  }
 
-void ThreadSafeSPIClass::beginTransaction(SPISettings &settings)
-{
-  xSemaphoreTake(_mutex, portMAX_DELAY);
-  _spi.beginTransaction(settings);
-}
+  void ThreadSafeSPIClass::usingInterrupt(int interruptNumber)
+  {
+    _spi.usingInterrupt(interruptNumber);
+  }
 
-void ThreadSafeSPIClass::endTransaction()
-{
-  _spi.endTransaction();
-  xSemaphoreGive(_mutex);
-}
+  void ThreadSafeSPIClass::beginTransaction(SPISettings &settings)
+  {
+    xSemaphoreTake(_mutex, portMAX_DELAY);
+    _spi.beginTransaction(settings);
+  }
 
-uint8_t ThreadSafeSPIClass::transfer(uint8_t data)
-{
-  return _spi.transfer(data);
-}
+  void ThreadSafeSPIClass::endTransaction()
+  {
+    _spi.endTransaction();
+    xSemaphoreGive(_mutex);
+  }
 
-uint16_t ThreadSafeSPIClass::transfer16(uint16_t data)
-{
-  return _spi.transfer16(data);
-}
+  uint8_t ThreadSafeSPIClass::transfer(uint8_t data)
+  {
+    return _spi.transfer(data);
+  }
 
-void ThreadSafeSPIClass::transfer(void *buf, size_t count)
-{
-  _spi.transfer(buf, count);
-}
+  uint16_t ThreadSafeSPIClass::transfer16(uint16_t data)
+  {
+    return _spi.transfer16(data);
+  }
 
-ThreadSafeSPIClass ThreadSafeSPI(SPI);
+  void ThreadSafeSPIClass::transfer(void *buf, size_t count)
+  {
+    _spi.transfer(buf, count);
+  }
+
+  ThreadSafeSPIClass ThreadSafeSPI(SPI);
 
 } // namespace hidpg

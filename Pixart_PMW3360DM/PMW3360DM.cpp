@@ -28,408 +28,408 @@
 
 namespace hidpg
 {
-// registers
-constexpr uint8_t Product_ID = 0x00;
-constexpr uint8_t Revision_ID = 0x01;
-constexpr uint8_t Motion = 0x02;
-constexpr uint8_t Delta_X_L = 0x03;
-constexpr uint8_t Delta_X_H = 0x04;
-constexpr uint8_t Delta_Y_L = 0x05;
-constexpr uint8_t Delta_Y_H = 0x06;
-constexpr uint8_t SQUAL = 0x07;
-constexpr uint8_t Raw_Data_Sum = 0x08;
-constexpr uint8_t Maximum_Raw_data = 0x09;
-constexpr uint8_t Minimum_Raw_data = 0x0A;
-constexpr uint8_t Shutter_Lower = 0x0B;
-constexpr uint8_t Shutter_Upper = 0x0C;
-constexpr uint8_t Control = 0x0D;
-constexpr uint8_t Config1 = 0x0F;
-constexpr uint8_t Config2 = 0x10;
-constexpr uint8_t Angle_Tune = 0x11;
-constexpr uint8_t Frame_Capture = 0x12;
-constexpr uint8_t SROM_Enable = 0x13;
-constexpr uint8_t Run_Downshift = 0x14;
-constexpr uint8_t Rest1_Rate_Lower = 0x15;
-constexpr uint8_t Rest1_Rate_Upper = 0x16;
-constexpr uint8_t Rest1_Downshift = 0x17;
-constexpr uint8_t Rest2_Rate_Lower = 0x18;
-constexpr uint8_t Rest2_Rate_Upper = 0x19;
-constexpr uint8_t Rest2_Downshift = 0x1A;
-constexpr uint8_t Rest3_Rate_Lower = 0x1B;
-constexpr uint8_t Rest3_Rate_Upper = 0x1C;
-constexpr uint8_t Observation = 0x24;
-constexpr uint8_t Data_Out_Lower = 0x25;
-constexpr uint8_t Data_Out_Upper = 0x26;
-constexpr uint8_t Raw_Data_Dump = 0x29;
-constexpr uint8_t SROM_ID = 0x2A;
-constexpr uint8_t Min_SQ_Run = 0x2B;
-constexpr uint8_t Raw_Data_Threshold = 0x2C;
-constexpr uint8_t Config5 = 0x2F;
-constexpr uint8_t Power_Up_Reset = 0x3A;
-constexpr uint8_t Shutdown = 0x3B;
-constexpr uint8_t Inverse_Product_ID = 0x3F;
-constexpr uint8_t LiftCutoff_Tune3 = 0x41;
-constexpr uint8_t Angle_Snap = 0x42;
-constexpr uint8_t LiftCutoff_Tune1 = 0x4A;
-constexpr uint8_t Motion_Burst = 0x50;
-constexpr uint8_t LiftCutoff_Tune_Timeout = 0x58;
-constexpr uint8_t LiftCutoff_Tune_Min_Length = 0x5A;
-constexpr uint8_t SROM_Load_Burst = 0x62;
-constexpr uint8_t Lift_Config = 0x63;
-constexpr uint8_t Raw_Data_Burst = 0x64;
-constexpr uint8_t LiftCutoff_Tune2 = 0x65;
+  // registers
+  constexpr uint8_t Product_ID = 0x00;
+  constexpr uint8_t Revision_ID = 0x01;
+  constexpr uint8_t Motion = 0x02;
+  constexpr uint8_t Delta_X_L = 0x03;
+  constexpr uint8_t Delta_X_H = 0x04;
+  constexpr uint8_t Delta_Y_L = 0x05;
+  constexpr uint8_t Delta_Y_H = 0x06;
+  constexpr uint8_t SQUAL = 0x07;
+  constexpr uint8_t Raw_Data_Sum = 0x08;
+  constexpr uint8_t Maximum_Raw_data = 0x09;
+  constexpr uint8_t Minimum_Raw_data = 0x0A;
+  constexpr uint8_t Shutter_Lower = 0x0B;
+  constexpr uint8_t Shutter_Upper = 0x0C;
+  constexpr uint8_t Control = 0x0D;
+  constexpr uint8_t Config1 = 0x0F;
+  constexpr uint8_t Config2 = 0x10;
+  constexpr uint8_t Angle_Tune = 0x11;
+  constexpr uint8_t Frame_Capture = 0x12;
+  constexpr uint8_t SROM_Enable = 0x13;
+  constexpr uint8_t Run_Downshift = 0x14;
+  constexpr uint8_t Rest1_Rate_Lower = 0x15;
+  constexpr uint8_t Rest1_Rate_Upper = 0x16;
+  constexpr uint8_t Rest1_Downshift = 0x17;
+  constexpr uint8_t Rest2_Rate_Lower = 0x18;
+  constexpr uint8_t Rest2_Rate_Upper = 0x19;
+  constexpr uint8_t Rest2_Downshift = 0x1A;
+  constexpr uint8_t Rest3_Rate_Lower = 0x1B;
+  constexpr uint8_t Rest3_Rate_Upper = 0x1C;
+  constexpr uint8_t Observation = 0x24;
+  constexpr uint8_t Data_Out_Lower = 0x25;
+  constexpr uint8_t Data_Out_Upper = 0x26;
+  constexpr uint8_t Raw_Data_Dump = 0x29;
+  constexpr uint8_t SROM_ID = 0x2A;
+  constexpr uint8_t Min_SQ_Run = 0x2B;
+  constexpr uint8_t Raw_Data_Threshold = 0x2C;
+  constexpr uint8_t Config5 = 0x2F;
+  constexpr uint8_t Power_Up_Reset = 0x3A;
+  constexpr uint8_t Shutdown = 0x3B;
+  constexpr uint8_t Inverse_Product_ID = 0x3F;
+  constexpr uint8_t LiftCutoff_Tune3 = 0x41;
+  constexpr uint8_t Angle_Snap = 0x42;
+  constexpr uint8_t LiftCutoff_Tune1 = 0x4A;
+  constexpr uint8_t Motion_Burst = 0x50;
+  constexpr uint8_t LiftCutoff_Tune_Timeout = 0x58;
+  constexpr uint8_t LiftCutoff_Tune_Min_Length = 0x5A;
+  constexpr uint8_t SROM_Load_Burst = 0x62;
+  constexpr uint8_t Lift_Config = 0x63;
+  constexpr uint8_t Raw_Data_Burst = 0x64;
+  constexpr uint8_t LiftCutoff_Tune2 = 0x65;
 
-// event flag bit
-constexpr uint32_t InterruptEventBit = 0;
-constexpr uint32_t TimerEventBit = 1;
+  // event flag bit
+  constexpr uint32_t InterruptEventBit = 0;
+  constexpr uint32_t TimerEventBit = 1;
 
-// spi parameter
-static SPISettings SpiSettings(2000000, MSBFIRST, SPI_MODE3);
+  // spi parameter
+  static SPISettings SpiSettings(2000000, MSBFIRST, SPI_MODE3);
 
-/*------------------------------------------------------------------*/
-/* static member
+  /*------------------------------------------------------------------*/
+  /* static member
  *------------------------------------------------------------------*/
-TaskHandle_t PMW3360DM::_task_handles[2] = {nullptr, nullptr};
-PMW3360DM *PMW3360DM::instances[2] = {nullptr, nullptr};
+  TaskHandle_t PMW3360DM::_task_handles[2] = {nullptr, nullptr};
+  PMW3360DM *PMW3360DM::instances[2] = {nullptr, nullptr};
 
-void PMW3360DM::interrupt_callback_0()
-{
-  if (_task_handles[0] != nullptr)
+  void PMW3360DM::interrupt_callback_0()
   {
-    xTaskNotifyFromISR(_task_handles[0], bit(InterruptEventBit), eSetBits, nullptr);
-  }
-}
-
-void PMW3360DM::interrupt_callback_1()
-{
-  if (_task_handles[1] != nullptr)
-  {
-    xTaskNotifyFromISR(_task_handles[1], bit(InterruptEventBit), eSetBits, nullptr);
-  }
-}
-
-void PMW3360DM::task(void *pvParameters)
-{
-  PMW3360DM *that = static_cast<PMW3360DM *>(pvParameters);
-
-  int32_t total_delta_x = 0;
-  int32_t total_delta_y = 0;
-  bool is_timer_active = false;
-
-  while (true)
-  {
-    uint32_t event = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-
-    if (bitRead(event, InterruptEventBit))
+    if (_task_handles[0] != nullptr)
     {
-      MotionBurstData mb_data;
-      that->readMotionBurst(mb_data, 6);
-
-      total_delta_x += mb_data.delta_x;
-      total_delta_y += mb_data.delta_y;
-
-      if (is_timer_active == false)
-      {
-        xTimerStart(that->_timer_handle, portMAX_DELAY);
-        is_timer_active = true;
-      }
-    }
-
-    if (bitRead(event, TimerEventBit))
-    {
-      int16_t delta_x = constrain(total_delta_x, INT16_MIN, INT16_MAX);
-      total_delta_x -= delta_x;
-
-      int16_t delta_y = constrain(total_delta_y, INT16_MIN, INT16_MAX);
-      total_delta_y -= delta_y;
-
-      if (that->_callback != nullptr)
-      {
-        that->_callback(delta_x, delta_y);
-      }
-
-      if (total_delta_x == 0 && total_delta_y == 0)
-      {
-        xTimerStop(that->_timer_handle, portMAX_DELAY);
-        is_timer_active = false;
-      }
+      xTaskNotifyFromISR(_task_handles[0], bit(InterruptEventBit), eSetBits, nullptr);
     }
   }
-}
 
-void PMW3360DM::timer_callback(TimerHandle_t timer_handle)
-{
-  PMW3360DM *that = static_cast<PMW3360DM *>(pvTimerGetTimerID(timer_handle));
-  xTaskNotify(_task_handles[that->_id], bit(TimerEventBit), eSetBits);
-}
-
-/*------------------------------------------------------------------*/
-/* instance member
- *------------------------------------------------------------------*/
-PMW3360DM::PMW3360DM(ThreadSafeSPIClass &spi, uint8_t ncs_pin, uint8_t interrupt_pin, uint8_t id)
-    : _spi(spi), _ncs_pin(ncs_pin), _interrupt_pin(interrupt_pin), _id(id), _callback(nullptr)
-{
-}
-
-void PMW3360DM::setCallback(callback_t callback)
-{
-  _callback = callback;
-}
-
-void PMW3360DM::init()
-{
-  _spi.begin();
-  _spi.usingInterrupt(_interrupt_pin);
-
-  pinMode(_ncs_pin, OUTPUT);
-  pinMode(_interrupt_pin, INPUT_PULLUP);
-
-  void (*interrupt_callback)() = (_id == 0) ? interrupt_callback_0 : interrupt_callback_1;
-  attachInterrupt(digitalPinToInterrupt(_interrupt_pin), interrupt_callback, FALLING);
-
-  // デフォルトはRest mode
-  _timer_handle = xTimerCreate(nullptr, pdMS_TO_TICKS(PMW3360DM_REST_MODE_CALLBACK_INTERVAL_MS), true, this, timer_callback);
-}
-
-void PMW3360DM::startTask()
-{
-  char name[] = "3360_0";
-  name[5] += _id;
-  xTaskCreate(task, name, PMW3360DM_TASK_STACK_SIZE, this, PMW3360DM_TASK_PRIO, &_task_handles[_id]);
-
-  powerUp();
-}
-
-void PMW3360DM::writeRegister(uint8_t addr, uint8_t data)
-{
-  _spi.beginTransaction(SpiSettings);
-  digitalWrite(_ncs_pin, LOW);
-
-  delayMicroseconds(1); // tNCS-SCLK: 120ns
-
-  // The first byte contains the address (seven bits) and has a “1” as its MSB to indicate data direction.
-  // The second byte contains the data.
-  _spi.transfer16(((addr | 0b10000000) << 8) | data);
-
-  delayMicroseconds(35); // tSCLK-NCS(Write): 35us
-
-  digitalWrite(_ncs_pin, HIGH);
-  _spi.endTransaction();
-
-  delayMicroseconds(145); // (tSWW/tSWR: 180us) - (tSCLK-NCS: 35us) = 145us
-}
-
-uint8_t PMW3360DM::readRegister(uint8_t addr)
-{
-  _spi.beginTransaction(SpiSettings);
-  digitalWrite(_ncs_pin, LOW);
-
-  delayMicroseconds(1); // tNCS-SCLK (120ns)
-
-  // The first byte contains the address, is sent by the micro‐controller over MOSI, and has a “0” as its MSB to indicate data direction.
-  _spi.transfer(addr & 0b01111111);
-  delayMicroseconds(160); // tSRAD (160us)
-  // read data
-  uint8_t data = _spi.transfer(0);
-
-  delayMicroseconds(1); // tSCLK-NCS(Read): 120ns
-
-  digitalWrite(_ncs_pin, HIGH);
-  _spi.endTransaction();
-
-  delayMicroseconds(19); // (tSRW/tSRR: 20us) - (tSCLK-NCS: 35us) = 19us
-
-  return data;
-}
-
-void PMW3360DM::readMotionBurst(MotionBurstData &data, uint8_t length)
-{
-  length = min(static_cast<uint8_t>(12), length);
-
-  // 1.Write any value to Motion_Burst register.
-  writeRegister(Motion_Burst, 0);
-
-  // 2.Lower NCS
-  _spi.beginTransaction(SpiSettings);
-  digitalWrite(_ncs_pin, LOW);
-
-  // 3.Send Motion_Burst address (0x50).
-  _spi.transfer(0x50);
-
-  // 4.Wait for tSRAD_MOTBR: 35us
-  delayMicroseconds(35);
-
-  // 5.Start reading SPI Data continuously up to 12 bytes. Motion burst may be terminated by pulling NCS high for at least tBEXIT.
-  _spi.transfer(data.raw, length);
-
-  digitalWrite(_ncs_pin, HIGH);
-  _spi.endTransaction();
-
-  delayMicroseconds(1); // tBEXIT: 500ns
-
-  // 6.To read new motion burst data, repeat from step 2.
-  // 7.If a non‐burst register read operation was executed; then, to read new burst data, start from step 1 instead.
-}
-
-void PMW3360DM::SROM_Download()
-{
-  // 1.Perform the Power‐Up sequence
-
-  // 2.Write 0 to Rest_En bit of Config2 register to disable Rest mode.
-  writeRegister(Config2, 0);
-
-  // 3.Write 0x1d to SROM_Enable register for initializing
-  writeRegister(SROM_Enable, 0x1d);
-
-  // 4.Wait for 10 ms
-  delay(10);
-
-  // 5.Write 0x18 to SROM_Enable register again to start SROM Download
-  writeRegister(SROM_Enable, 0x18);
-
-  // 6.Write SROM file into SROM_Load_Burst register, 1st data must start with SROM_Load_Burst address.
-  // All the SROM data must be downloaded before SROM starts running.
-  _spi.beginTransaction(SpiSettings);
-  digitalWrite(_ncs_pin, LOW);
-
-  _spi.transfer(SROM_Load_Burst | 0b10000000);
-  delayMicroseconds(15);
-
-  // send all bytes of the firmware
-  for (size_t i = 0; i < sizeof(PMW3360DM_Firmware); i++)
+  void PMW3360DM::interrupt_callback_1()
   {
-    _spi.transfer(PMW3360DM_Firmware[i]);
+    if (_task_handles[1] != nullptr)
+    {
+      xTaskNotifyFromISR(_task_handles[1], bit(InterruptEventBit), eSetBits, nullptr);
+    }
+  }
+
+  void PMW3360DM::task(void *pvParameters)
+  {
+    PMW3360DM *that = static_cast<PMW3360DM *>(pvParameters);
+
+    int32_t total_delta_x = 0;
+    int32_t total_delta_y = 0;
+    bool is_timer_active = false;
+
+    while (true)
+    {
+      uint32_t event = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+      if (bitRead(event, InterruptEventBit))
+      {
+        MotionBurstData mb_data;
+        that->readMotionBurst(mb_data, 6);
+
+        total_delta_x += mb_data.delta_x;
+        total_delta_y += mb_data.delta_y;
+
+        if (is_timer_active == false)
+        {
+          xTimerStart(that->_timer_handle, portMAX_DELAY);
+          is_timer_active = true;
+        }
+      }
+
+      if (bitRead(event, TimerEventBit))
+      {
+        int16_t delta_x = constrain(total_delta_x, INT16_MIN, INT16_MAX);
+        total_delta_x -= delta_x;
+
+        int16_t delta_y = constrain(total_delta_y, INT16_MIN, INT16_MAX);
+        total_delta_y -= delta_y;
+
+        if (that->_callback != nullptr)
+        {
+          that->_callback(delta_x, delta_y);
+        }
+
+        if (total_delta_x == 0 && total_delta_y == 0)
+        {
+          xTimerStop(that->_timer_handle, portMAX_DELAY);
+          is_timer_active = false;
+        }
+      }
+    }
+  }
+
+  void PMW3360DM::timer_callback(TimerHandle_t timer_handle)
+  {
+    PMW3360DM *that = static_cast<PMW3360DM *>(pvTimerGetTimerID(timer_handle));
+    xTaskNotify(_task_handles[that->_id], bit(TimerEventBit), eSetBits);
+  }
+
+  /*------------------------------------------------------------------*/
+  /* instance member
+ *------------------------------------------------------------------*/
+  PMW3360DM::PMW3360DM(ThreadSafeSPIClass &spi, uint8_t ncs_pin, uint8_t interrupt_pin, uint8_t id)
+      : _spi(spi), _ncs_pin(ncs_pin), _interrupt_pin(interrupt_pin), _id(id), _callback(nullptr)
+  {
+  }
+
+  void PMW3360DM::setCallback(callback_t callback)
+  {
+    _callback = callback;
+  }
+
+  void PMW3360DM::init()
+  {
+    _spi.begin();
+    _spi.usingInterrupt(_interrupt_pin);
+
+    pinMode(_ncs_pin, OUTPUT);
+    pinMode(_interrupt_pin, INPUT_PULLUP);
+
+    void (*interrupt_callback)() = (_id == 0) ? interrupt_callback_0 : interrupt_callback_1;
+    attachInterrupt(digitalPinToInterrupt(_interrupt_pin), interrupt_callback, FALLING);
+
+    // デフォルトはRest mode
+    _timer_handle = xTimerCreate(nullptr, pdMS_TO_TICKS(PMW3360DM_REST_MODE_CALLBACK_INTERVAL_MS), true, this, timer_callback);
+  }
+
+  void PMW3360DM::startTask()
+  {
+    char name[] = "3360_0";
+    name[5] += _id;
+    xTaskCreate(task, name, PMW3360DM_TASK_STACK_SIZE, this, PMW3360DM_TASK_PRIO, &_task_handles[_id]);
+
+    powerUp();
+  }
+
+  void PMW3360DM::writeRegister(uint8_t addr, uint8_t data)
+  {
+    _spi.beginTransaction(SpiSettings);
+    digitalWrite(_ncs_pin, LOW);
+
+    delayMicroseconds(1); // tNCS-SCLK: 120ns
+
+    // The first byte contains the address (seven bits) and has a “1” as its MSB to indicate data direction.
+    // The second byte contains the data.
+    _spi.transfer16(((addr | 0b10000000) << 8) | data);
+
+    delayMicroseconds(35); // tSCLK-NCS(Write): 35us
+
+    digitalWrite(_ncs_pin, HIGH);
+    _spi.endTransaction();
+
+    delayMicroseconds(145); // (tSWW/tSWR: 180us) - (tSCLK-NCS: 35us) = 145us
+  }
+
+  uint8_t PMW3360DM::readRegister(uint8_t addr)
+  {
+    _spi.beginTransaction(SpiSettings);
+    digitalWrite(_ncs_pin, LOW);
+
+    delayMicroseconds(1); // tNCS-SCLK (120ns)
+
+    // The first byte contains the address, is sent by the micro‐controller over MOSI, and has a “0” as its MSB to indicate data direction.
+    _spi.transfer(addr & 0b01111111);
+    delayMicroseconds(160); // tSRAD (160us)
+    // read data
+    uint8_t data = _spi.transfer(0);
+
+    delayMicroseconds(1); // tSCLK-NCS(Read): 120ns
+
+    digitalWrite(_ncs_pin, HIGH);
+    _spi.endTransaction();
+
+    delayMicroseconds(19); // (tSRW/tSRR: 20us) - (tSCLK-NCS: 35us) = 19us
+
+    return data;
+  }
+
+  void PMW3360DM::readMotionBurst(MotionBurstData &data, uint8_t length)
+  {
+    length = min(static_cast<uint8_t>(12), length);
+
+    // 1.Write any value to Motion_Burst register.
+    writeRegister(Motion_Burst, 0);
+
+    // 2.Lower NCS
+    _spi.beginTransaction(SpiSettings);
+    digitalWrite(_ncs_pin, LOW);
+
+    // 3.Send Motion_Burst address (0x50).
+    _spi.transfer(0x50);
+
+    // 4.Wait for tSRAD_MOTBR: 35us
+    delayMicroseconds(35);
+
+    // 5.Start reading SPI Data continuously up to 12 bytes. Motion burst may be terminated by pulling NCS high for at least tBEXIT.
+    _spi.transfer(data.raw, length);
+
+    digitalWrite(_ncs_pin, HIGH);
+    _spi.endTransaction();
+
+    delayMicroseconds(1); // tBEXIT: 500ns
+
+    // 6.To read new motion burst data, repeat from step 2.
+    // 7.If a non‐burst register read operation was executed; then, to read new burst data, start from step 1 instead.
+  }
+
+  void PMW3360DM::SROM_Download()
+  {
+    // 1.Perform the Power‐Up sequence
+
+    // 2.Write 0 to Rest_En bit of Config2 register to disable Rest mode.
+    writeRegister(Config2, 0);
+
+    // 3.Write 0x1d to SROM_Enable register for initializing
+    writeRegister(SROM_Enable, 0x1d);
+
+    // 4.Wait for 10 ms
+    delay(10);
+
+    // 5.Write 0x18 to SROM_Enable register again to start SROM Download
+    writeRegister(SROM_Enable, 0x18);
+
+    // 6.Write SROM file into SROM_Load_Burst register, 1st data must start with SROM_Load_Burst address.
+    // All the SROM data must be downloaded before SROM starts running.
+    _spi.beginTransaction(SpiSettings);
+    digitalWrite(_ncs_pin, LOW);
+
+    _spi.transfer(SROM_Load_Burst | 0b10000000);
     delayMicroseconds(15);
+
+    // send all bytes of the firmware
+    for (size_t i = 0; i < sizeof(PMW3360DM_Firmware); i++)
+    {
+      _spi.transfer(PMW3360DM_Firmware[i]);
+      delayMicroseconds(15);
+    }
+
+    _spi.endTransaction();
+    digitalWrite(_ncs_pin, HIGH); // exit burst mode
+    delayMicroseconds(185);       // 200us-15us
+
+    // 7.Read the SROM_ID register to verify the ID before any other register reads or writes.
+    readRegister(SROM_ID);
+
+    // 8.Write 0x00 to Config2 register for wired mouse or 0x20 for wireless mouse design.
+    writeRegister(Config2, 0x20);
   }
 
-  _spi.endTransaction();
-  digitalWrite(_ncs_pin, HIGH); // exit burst mode
-  delayMicroseconds(185);       // 200us-15us
-
-  // 7.Read the SROM_ID register to verify the ID before any other register reads or writes.
-  readRegister(SROM_ID);
-
-  // 8.Write 0x00 to Config2 register for wired mouse or 0x20 for wireless mouse design.
-  writeRegister(Config2, 0x20);
-}
-
-void PMW3360DM::powerUp()
-{
-  // 1.Apply power to VDD and VDDIO in any order, with a delay of no more than 100ms in between each supply. Ensure all supplies are stable.
-
-  // 2.Drive NCS high, and then low to reset the SPI port.
-  digitalWrite(_ncs_pin, HIGH);
-  digitalWrite(_ncs_pin, LOW);
-  // 3.Write 0x5A to Power_Up_Reset register (or, alternatively toggle the NRESET pin).
-  writeRegister(Power_Up_Reset, 0x5a);
-  // 4.Wait for at least 50ms.
-  delay(50);
-  // 5.Read from registers 0x02, 0x03, 0x04, 0x05 and 0x06 one time regardless of the motion pin state.
-  readRegister(Motion);
-  readRegister(Delta_X_L);
-  readRegister(Delta_X_H);
-  readRegister(Delta_Y_L);
-  readRegister(Delta_Y_H);
-  // 6.Perform SROM download.
-  SROM_Download();
-
-  // 7.Load configuration for other registers.
-  initRegisters();
-}
-
-void PMW3360DM::initRegisters()
-{
-  writeRegister(Control, PMW3360DM_Control);
-  writeRegister(Config1, PMW3360DM_Config1);
-  writeRegister(Angle_Tune, PMW3360DM_Angle_Tune);
-
-  writeRegister(Run_Downshift, PMW3360DM_Run_Downshift);
-  writeRegister(Rest1_Rate_Lower, PMW3360DM_Rest1_Rate & 0b0000000011111111);
-  writeRegister(Rest1_Rate_Upper, (PMW3360DM_Rest1_Rate & 0b1111111100000000) >> 8);
-
-  writeRegister(Rest1_Downshift, PMW3360DM_Rest1_Downshift);
-  writeRegister(Rest2_Rate_Lower, PMW3360DM_Rest2_Rate & 0b0000000011111111);
-  writeRegister(Rest2_Rate_Upper, (PMW3360DM_Rest2_Rate & 0b1111111100000000) >> 8);
-
-  writeRegister(Rest2_Downshift, PMW3360DM_Rest2_Downshift);
-  writeRegister(Rest3_Rate_Lower, PMW3360DM_Rest3_Rate & 0b0000000011111111);
-  writeRegister(Rest3_Rate_Upper, (PMW3360DM_Rest3_Rate & 0b1111111100000000) >> 8);
-
-  writeRegister(Lift_Config, PMW3360DM_Lift_Config);
-}
-
-void PMW3360DM::changeMode(Mode mode)
-{
-  if (_task_handles[_id] == nullptr)
+  void PMW3360DM::powerUp()
   {
-    return;
+    // 1.Apply power to VDD and VDDIO in any order, with a delay of no more than 100ms in between each supply. Ensure all supplies are stable.
+
+    // 2.Drive NCS high, and then low to reset the SPI port.
+    digitalWrite(_ncs_pin, HIGH);
+    digitalWrite(_ncs_pin, LOW);
+    // 3.Write 0x5A to Power_Up_Reset register (or, alternatively toggle the NRESET pin).
+    writeRegister(Power_Up_Reset, 0x5a);
+    // 4.Wait for at least 50ms.
+    delay(50);
+    // 5.Read from registers 0x02, 0x03, 0x04, 0x05 and 0x06 one time regardless of the motion pin state.
+    readRegister(Motion);
+    readRegister(Delta_X_L);
+    readRegister(Delta_X_H);
+    readRegister(Delta_Y_L);
+    readRegister(Delta_Y_H);
+    // 6.Perform SROM download.
+    SROM_Download();
+
+    // 7.Load configuration for other registers.
+    initRegisters();
   }
 
-  uint32_t ms;
-  uint8_t data;
-
-  if (mode == Mode::Run)
+  void PMW3360DM::initRegisters()
   {
-    ms = PMW3360DM_RUN_MODE_CALLBACK_INTERVAL_MS;
-    data = 0b00000000;
+    writeRegister(Control, PMW3360DM_Control);
+    writeRegister(Config1, PMW3360DM_Config1);
+    writeRegister(Angle_Tune, PMW3360DM_Angle_Tune);
+
+    writeRegister(Run_Downshift, PMW3360DM_Run_Downshift);
+    writeRegister(Rest1_Rate_Lower, PMW3360DM_Rest1_Rate & 0b0000000011111111);
+    writeRegister(Rest1_Rate_Upper, (PMW3360DM_Rest1_Rate & 0b1111111100000000) >> 8);
+
+    writeRegister(Rest1_Downshift, PMW3360DM_Rest1_Downshift);
+    writeRegister(Rest2_Rate_Lower, PMW3360DM_Rest2_Rate & 0b0000000011111111);
+    writeRegister(Rest2_Rate_Upper, (PMW3360DM_Rest2_Rate & 0b1111111100000000) >> 8);
+
+    writeRegister(Rest2_Downshift, PMW3360DM_Rest2_Downshift);
+    writeRegister(Rest3_Rate_Lower, PMW3360DM_Rest3_Rate & 0b0000000011111111);
+    writeRegister(Rest3_Rate_Upper, (PMW3360DM_Rest3_Rate & 0b1111111100000000) >> 8);
+
+    writeRegister(Lift_Config, PMW3360DM_Lift_Config);
   }
-  else
+
+  void PMW3360DM::changeMode(Mode mode)
   {
-    ms = PMW3360DM_REST_MODE_CALLBACK_INTERVAL_MS;
-    data = 0b00100000;
+    if (_task_handles[_id] == nullptr)
+    {
+      return;
+    }
+
+    uint32_t ms;
+    uint8_t data;
+
+    if (mode == Mode::Run)
+    {
+      ms = PMW3360DM_RUN_MODE_CALLBACK_INTERVAL_MS;
+      data = 0b00000000;
+    }
+    else
+    {
+      ms = PMW3360DM_REST_MODE_CALLBACK_INTERVAL_MS;
+      data = 0b00100000;
+    }
+
+    writeRegister(Config2, data);
+    xTimerChangePeriod(_timer_handle, pdMS_TO_TICKS(ms), portMAX_DELAY);
   }
 
-  writeRegister(Config2, data);
-  xTimerChangePeriod(_timer_handle, pdMS_TO_TICKS(ms), portMAX_DELAY);
-}
-
-void PMW3360DM::changeCpi(Cpi cpi)
-{
-  if (_task_handles[_id] == nullptr)
+  void PMW3360DM::changeCpi(Cpi cpi)
   {
-    return;
+    if (_task_handles[_id] == nullptr)
+    {
+      return;
+    }
+
+    writeRegister(Config1, static_cast<uint8_t>(cpi));
   }
 
-  writeRegister(Config1, static_cast<uint8_t>(cpi));
-}
-
-void PMW3360DM::resetCpi()
-{
-  if (_task_handles[_id] == nullptr)
+  void PMW3360DM::resetCpi()
   {
-    return;
+    if (_task_handles[_id] == nullptr)
+    {
+      return;
+    }
+
+    writeRegister(Config1, PMW3360DM_Config1);
   }
 
-  writeRegister(Config1, PMW3360DM_Config1);
-}
-
-void PMW3360DM::enableAngleSnap()
-{
-  if (_task_handles[_id] == nullptr)
+  void PMW3360DM::enableAngleSnap()
   {
-    return;
+    if (_task_handles[_id] == nullptr)
+    {
+      return;
+    }
+
+    writeRegister(Angle_Snap, 0b10000000);
   }
 
-  writeRegister(Angle_Snap, 0b10000000);
-}
-
-void PMW3360DM::disableAngleSnap()
-{
-  if (_task_handles[_id] == nullptr)
+  void PMW3360DM::disableAngleSnap()
   {
-    return;
-  }
+    if (_task_handles[_id] == nullptr)
+    {
+      return;
+    }
 
-  writeRegister(Angle_Snap, 0b00000000);
-}
+    writeRegister(Angle_Snap, 0b00000000);
+  }
 
 #ifdef ARDUINO_ARCH_NRF52
-void PMW3360DM::stopTask_and_setWakeUpInterrupt()
-{
-  vTaskSuspend(_task_handles[_id]);
+  void PMW3360DM::stopTask_and_setWakeUpInterrupt()
+  {
+    vTaskSuspend(_task_handles[_id]);
 
-  NRF_GPIO->PIN_CNF[_interrupt_pin] |= ((uint32_t)(GPIO_PIN_CNF_SENSE_Low) << GPIO_PIN_CNF_SENSE_Pos);
-}
+    NRF_GPIO->PIN_CNF[_interrupt_pin] |= ((uint32_t)(GPIO_PIN_CNF_SENSE_Low) << GPIO_PIN_CNF_SENSE_Pos);
+  }
 #endif
 
 } // namespace hidpg

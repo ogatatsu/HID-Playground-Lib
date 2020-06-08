@@ -24,20 +24,20 @@
 
 #pragma once
 
-#include "BleControllerPeripheral.h"
 #include "BleControllerCentral.h"
+#include "BleControllerPeripheral.h"
 
 namespace hidpg
 {
 
-class BleController_
-{
-public:
-  static void init();
-  static BleControllerPeripheral_ Periph;
-  static BleControllerCentral_ Central;
-};
+  class BleController_
+  {
+  public:
+    static void init();
+    static BleControllerPeripheral_ Periph;
+    static BleControllerCentral_ Central;
+  };
 
-extern BleController_ BleController;
+  extern BleController_ BleController;
 
 } // namespace hidpg
