@@ -27,13 +27,13 @@
 namespace hidpg
 {
 
-  uint8_t BleControllerCentralClass::_slave_addr_list[sizeof((uint8_t[][6])SLAVE_ADDR_LIST) / 6][6] = SLAVE_ADDR_LIST;
-  BleControllerCentralClass::SlaveInfo BleControllerCentralClass::_slaves[arrcount(_slave_addr_list)];
-  BlinkLed BleControllerCentralClass::_scan_led(SCAN_LED_PIN, SCAN_LED_ACTIVE_STATE, IS_HIGH_DRIVE);
-  BleControllerCentralClass::receiveDataCallback_t BleControllerCentralClass::_receive_data_cb = nullptr;
-  BleControllerCentralClass::disconnectCallback_t BleControllerCentralClass::_disconnect_cb = nullptr;
+  uint8_t BleControllerCentral::_slave_addr_list[sizeof((uint8_t[][6])SLAVE_ADDR_LIST) / 6][6] = SLAVE_ADDR_LIST;
+  BleControllerCentral::SlaveInfo BleControllerCentral::_slaves[arrcount(_slave_addr_list)];
+  BlinkLed BleControllerCentral::_scan_led(SCAN_LED_PIN, SCAN_LED_ACTIVE_STATE, IS_HIGH_DRIVE);
+  BleControllerCentral::receiveDataCallback_t BleControllerCentral::_receive_data_cb = nullptr;
+  BleControllerCentral::disconnectCallback_t BleControllerCentral::_disconnect_cb = nullptr;
 
-  void BleControllerCentralClass::init()
+  void BleControllerCentral::init()
   {
     for (size_t i = 0; i < arrcount(_slaves); i++)
     {
@@ -64,13 +64,13 @@ namespace hidpg
     _scan_led.init();
   }
 
-  void BleControllerCentralClass::startConnection()
+  void BleControllerCentral::startConnection()
   {
     startScan();
   }
 
   // セントラル接続もしくはスキャンニングを停止する
-  void BleControllerCentralClass::stopConnection()
+  void BleControllerCentral::stopConnection()
   {
     Bluefruit.Scanner.restartOnDisconnect(false);
     if (Bluefruit.Scanner.isRunning())
@@ -96,12 +96,12 @@ namespace hidpg
     _scan_led.syncOff();
   }
 
-  bool BleControllerCentralClass::isRunnning()
+  bool BleControllerCentral::isRunnning()
   {
     return (Bluefruit.Scanner.isRunning() || Bluefruit.Central.connected());
   }
 
-  uint16_t BleControllerCentralClass::sendData(uint8_t idx, const uint8_t *data, uint16_t len)
+  uint16_t BleControllerCentral::sendData(uint8_t idx, const uint8_t *data, uint16_t len)
   {
     if (idx >= arrcount(_slaves))
     {
@@ -115,17 +115,17 @@ namespace hidpg
     return _slaves[idx].ble_uart.write(data, len);
   }
 
-  void BleControllerCentralClass::setReceiveDataCallback(receiveDataCallback_t callback)
+  void BleControllerCentral::setReceiveDataCallback(receiveDataCallback_t callback)
   {
     _receive_data_cb = callback;
   }
 
-  void BleControllerCentralClass::setDisconnectCallback(disconnectCallback_t callback)
+  void BleControllerCentral::setDisconnectCallback(disconnectCallback_t callback)
   {
     _disconnect_cb = callback;
   }
 
-  int BleControllerCentralClass::countVacantConn()
+  int BleControllerCentral::countVacantConn()
   {
     int sum = 0;
     for (size_t i = 0; i < arrcount(_slaves); i++)
@@ -138,7 +138,7 @@ namespace hidpg
     return sum;
   }
 
-  int BleControllerCentralClass::findConnHandle(uint16_t conn_handle)
+  int BleControllerCentral::findConnHandle(uint16_t conn_handle)
   {
     for (size_t i = 0; i < arrcount(_slaves); i++)
     {
@@ -150,7 +150,7 @@ namespace hidpg
     return -1;
   }
 
-  int BleControllerCentralClass::findSlaveAddr(uint8_t addr[6])
+  int BleControllerCentral::findSlaveAddr(uint8_t addr[6])
   {
     for (size_t i = 0; i < arrcount(_slave_addr_list); i++)
     {
@@ -162,7 +162,7 @@ namespace hidpg
     return -1;
   }
 
-  bool BleControllerCentralClass::startScan()
+  bool BleControllerCentral::startScan()
   {
     // まだ空きがあるなら
     int cnt = countVacantConn();
@@ -176,7 +176,7 @@ namespace hidpg
     return false;
   }
 
-  void BleControllerCentralClass::scan_callback(ble_gap_evt_adv_report_t *report)
+  void BleControllerCentral::scan_callback(ble_gap_evt_adv_report_t *report)
   {
     // filter slave addr list
     if (findSlaveAddr(report->peer_addr.addr) >= 0)
@@ -189,7 +189,7 @@ namespace hidpg
     }
   }
 
-  void BleControllerCentralClass::connect_callback(uint16_t conn_handle)
+  void BleControllerCentral::connect_callback(uint16_t conn_handle)
   {
     ble_gap_addr_t addr = Bluefruit.Connection(conn_handle)->getPeerAddr();
     int idx = findSlaveAddr(addr.addr);
@@ -215,7 +215,7 @@ namespace hidpg
     }
   }
 
-  void BleControllerCentralClass::disconnect_callback(uint16_t conn_handle, uint8_t reason)
+  void BleControllerCentral::disconnect_callback(uint16_t conn_handle, uint8_t reason)
   {
     int idx = findConnHandle(conn_handle);
 
@@ -242,7 +242,7 @@ namespace hidpg
     }
   }
 
-  void BleControllerCentralClass::bleuart_rx_callback(uint16_t conn_handle, uint8_t *data, uint16_t len)
+  void BleControllerCentral::bleuart_rx_callback(uint16_t conn_handle, uint8_t *data, uint16_t len)
   {
     int idx = findConnHandle(conn_handle);
 
@@ -251,7 +251,5 @@ namespace hidpg
       _receive_data_cb(idx, data, len);
     }
   }
-
-  BleControllerCentralClass BleControllerCentral;
 
 } // namespace hidpg

@@ -34,7 +34,7 @@
 namespace hidpg
 {
 
-  class BleControllerPeripheralClass
+  class BleControllerPeripheral
   {
     friend class BleControllerClass;
 
@@ -66,7 +66,5 @@ namespace hidpg
     static uint8_t _current_slot;
     static cannotConnectCallback_t _cannot_connect_cb;
   };
-
-  extern BleControllerPeripheralClass BleControllerPeripheral;
 
 } // namespace hidpg

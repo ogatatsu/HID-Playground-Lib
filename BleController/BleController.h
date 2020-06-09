@@ -34,8 +34,8 @@ namespace hidpg
   {
   public:
     static void init();
-    static BleControllerPeripheralClass Periph;
-    static BleControllerCentralClass Central;
+    static BleControllerPeripheral Periph;
+    static BleControllerCentral Central;
   };
 
   extern BleControllerClass BleController;

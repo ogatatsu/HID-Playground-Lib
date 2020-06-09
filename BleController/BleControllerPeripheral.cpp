@@ -30,14 +30,14 @@
 namespace hidpg
 {
 
-  BLEDis BleControllerPeripheralClass::_ble_dis;
-  BLEBas BleControllerPeripheralClass::_ble_bas;
-  BLEHidAdafruit BleControllerPeripheralClass::_ble_hid;
-  BleHidReporter BleControllerPeripheralClass::_hid_reporter(_ble_hid);
-  BlinkLed BleControllerPeripheralClass::_adv_led(ADV_LED_PIN, ADV_LED_ACTIVE_STATE, IS_HIGH_DRIVE);
-  MemStore BleControllerPeripheralClass::_addr_store(STORE_DIR_ENAME);
-  uint8_t BleControllerPeripheralClass::_current_slot;
-  BleControllerPeripheralClass::cannotConnectCallback_t BleControllerPeripheralClass::_cannot_connect_cb = nullptr;
+  BLEDis BleControllerPeripheral::_ble_dis;
+  BLEBas BleControllerPeripheral::_ble_bas;
+  BLEHidAdafruit BleControllerPeripheral::_ble_hid;
+  BleHidReporter BleControllerPeripheral::_hid_reporter(_ble_hid);
+  BlinkLed BleControllerPeripheral::_adv_led(ADV_LED_PIN, ADV_LED_ACTIVE_STATE, IS_HIGH_DRIVE);
+  MemStore BleControllerPeripheral::_addr_store(STORE_DIR_ENAME);
+  uint8_t BleControllerPeripheral::_current_slot;
+  BleControllerPeripheral::cannotConnectCallback_t BleControllerPeripheral::_cannot_connect_cb = nullptr;
 
   // Random Static Addressを生成
   static void genRandomAddr(uint8_t addr[6])
@@ -51,7 +51,7 @@ namespace hidpg
     addr[5] |= 0xC0;
   }
 
-  void BleControllerPeripheralClass::init()
+  void BleControllerPeripheral::init()
   {
     Bluefruit.Periph.setConnectCallback(connect_callback);
     Bluefruit.Periph.setDisconnectCallback(disconnect_callback);
@@ -89,7 +89,7 @@ namespace hidpg
   }
 
   // 接続を開始、または接続先の変更
-  void BleControllerPeripheralClass::startConnection(uint8_t slot)
+  void BleControllerPeripheral::startConnection(uint8_t slot)
   {
     if (slot == 0)
     {
@@ -136,7 +136,7 @@ namespace hidpg
   }
 
   // ペリファラル接続もしくはアドバタイズを停止する
-  void BleControllerPeripheralClass::stopConnection()
+  void BleControllerPeripheral::stopConnection()
   {
     Bluefruit.Advertising.restartOnDisconnect(false);
     if (Bluefruit.Advertising.isRunning())
@@ -157,38 +157,38 @@ namespace hidpg
     _adv_led.syncOff();
   }
 
-  bool BleControllerPeripheralClass::isRunning()
+  bool BleControllerPeripheral::isRunning()
   {
     return (Bluefruit.Advertising.isRunning() || Bluefruit.Periph.connected());
   }
 
-  uint8_t BleControllerPeripheralClass::getCurrentSlot()
+  uint8_t BleControllerPeripheral::getCurrentSlot()
   {
     return _current_slot;
   }
 
-  void BleControllerPeripheralClass::clearBonds()
+  void BleControllerPeripheral::clearBonds()
   {
     bond_clear_prph();
     _addr_store.clear();
   }
 
-  HidReporter *BleControllerPeripheralClass::getHidReporter()
+  HidReporter *BleControllerPeripheral::getHidReporter()
   {
     return &_hid_reporter;
   }
 
-  void BleControllerPeripheralClass::setBatteryLevel(uint8_t level)
+  void BleControllerPeripheral::setBatteryLevel(uint8_t level)
   {
     _ble_bas.write(level);
   }
 
-  void BleControllerPeripheralClass::setCannnotConnectCallback(cannotConnectCallback_t callback)
+  void BleControllerPeripheral::setCannnotConnectCallback(cannotConnectCallback_t callback)
   {
     _cannot_connect_cb = callback;
   }
 
-  void BleControllerPeripheralClass::startAdv()
+  void BleControllerPeripheral::startAdv()
   {
     Bluefruit.Advertising.clearData();
 
@@ -219,7 +219,7 @@ namespace hidpg
   }
 
   // 一定時間接続できなかった場合
-  void BleControllerPeripheralClass::adv_stop_callback()
+  void BleControllerPeripheral::adv_stop_callback()
   {
     _adv_led.syncOff();
     if (_cannot_connect_cb != nullptr)
@@ -228,7 +228,7 @@ namespace hidpg
     }
   }
 
-  void BleControllerPeripheralClass::connect_callback(uint16_t conn_handle)
+  void BleControllerPeripheral::connect_callback(uint16_t conn_handle)
   {
     BLEConnection *conn = Bluefruit.Connection(conn_handle);
     conn->requestConnectionParameter(CONNECTION_INTERVAL, SLAVE_LATENCY, SUPERVISION_TIMEOUT);
@@ -236,7 +236,7 @@ namespace hidpg
     _adv_led.off();
   }
 
-  void BleControllerPeripheralClass::disconnect_callback(uint16_t conn_handle, uint8_t reason)
+  void BleControllerPeripheral::disconnect_callback(uint16_t conn_handle, uint8_t reason)
   {
     switch (reason)
     {
@@ -255,7 +255,5 @@ namespace hidpg
     }
     }
   }
-
-  BleControllerPeripheralClass BleControllerPeripheral;
 
 } // namespace hidpg
