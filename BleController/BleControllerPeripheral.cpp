@@ -83,6 +83,9 @@ namespace hidpg
     {
       _current_slot = 1;
     }
+
+    // LEDの初期化
+    _adv_led.init();
   }
 
   // 接続を開始、または接続先の変更

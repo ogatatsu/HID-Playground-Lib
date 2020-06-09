@@ -59,6 +59,9 @@ namespace hidpg
     Bluefruit.Scanner.setInterval(160, 80); // in unit of 0.625 ms
     Bluefruit.Scanner.filterUuid(BLEUART_UUID_SERVICE);
     Bluefruit.Scanner.useActiveScan(false);
+
+    // LEDの初期化
+    _scan_led.init();
   }
 
   void BleControllerCentralClass::startConnection()

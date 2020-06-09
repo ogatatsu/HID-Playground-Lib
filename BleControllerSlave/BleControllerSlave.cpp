@@ -62,6 +62,9 @@ namespace hidpg
 
     // Start BLE Battery Service
     _ble_bas.begin();
+
+    // LEDの初期化
+    _adv_led.init();
   }
 
   // 接続を開始

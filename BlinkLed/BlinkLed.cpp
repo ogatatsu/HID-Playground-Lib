@@ -49,21 +49,24 @@ namespace hidpg
 #endif
 
   BlinkLed::BlinkLed(uint8_t pin, uint8_t active_state, bool is_high_drive)
-      : _pin(pin), _active_state(active_state), _is_blink(false), _times(0)
+      : _pin(pin), _active_state(active_state), _is_high_drive(is_high_drive), _is_blink(false), _times(0)
   {
+  }
 
+  bool BlinkLed::init()
+  {
 #ifdef ARDUINO_ARCH_NRF52
-    pinMode_OutputEx(pin, is_high_drive);
+    pinMode_OutputEx(_pin, _is_high_drive);
 #else
-    pinMode(pin, OUTPUT);
+    pinMode(_pin, OUTPUT);
 #endif
 
     char task_name[] = "Led000";
-    task_name[3] += pin / 100;
-    task_name[4] += pin % 100 / 10;
-    task_name[5] += pin % 10;
+    task_name[3] += _pin / 100;
+    task_name[4] += _pin % 100 / 10;
+    task_name[5] += _pin % 10;
 
-    xTaskCreate(task, task_name, BLINK_LED_TASK_STACK_SIZE, this, BLINK_LED_TASK_PRIO, &_task_handle);
+    return pdPASS == xTaskCreate(task, task_name, BLINK_LED_TASK_STACK_SIZE, this, BLINK_LED_TASK_PRIO, &_task_handle);
   }
 
   void BlinkLed::task(void *pvParameters)
