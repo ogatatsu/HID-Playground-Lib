@@ -105,7 +105,7 @@ namespace hidpg
     }
 
     static void setHidReporter(HidReporter *hid_reporter);
-    static void init();
+    static void begin();
     static void startTask();
     static void applyToKeymap(const Set &key_ids);
     static void tapCommand(Command *command, uint8_t times);

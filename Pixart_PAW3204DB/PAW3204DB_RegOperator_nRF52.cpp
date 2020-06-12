@@ -12,7 +12,7 @@ namespace hidpg
   {
   }
 
-  bool PAW3204DB_RegOperator::init()
+  bool PAW3204DB_RegOperator::begin()
   {
     pinMode(_sclk_pin, OUTPUT);
     pinMode(_sdio_pin, INPUT);

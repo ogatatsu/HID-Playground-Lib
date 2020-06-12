@@ -37,7 +37,7 @@ namespace hidpg
   //------------------------------------------------------------------+
   // public
   //------------------------------------------------------------------+
-  void BleControllerSlaveClass::init()
+  void BleControllerSlaveClass::begin()
   {
     Bluefruit.configPrphConn(BLE_GATT_ATT_MTU_DEFAULT, BLE_GAP_EVENT_LENGTH_DEFAULT, HVN_TX_QUEUE_SIZE, BLE_GATTC_WRITE_CMD_TX_QUEUE_SIZE_DEFAULT);
     Bluefruit.begin();
@@ -64,7 +64,7 @@ namespace hidpg
     _ble_bas.begin();
 
     // LEDの初期化
-    _adv_led.init();
+    _adv_led.begin();
   }
 
   // 接続を開始

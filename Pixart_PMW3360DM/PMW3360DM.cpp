@@ -176,7 +176,7 @@ namespace hidpg
     _callback = callback;
   }
 
-  void PMW3360DM::init()
+  void PMW3360DM::begin()
   {
     _spi.begin();
     _spi.usingInterrupt(_interrupt_pin);

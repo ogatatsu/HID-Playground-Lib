@@ -38,7 +38,7 @@ namespace hidpg
     using cannotConnectCallback_t = void (*)(void);
     using receiveDataCallback_t = void (*)(uint8_t *data, uint16_t len);
 
-    static void init();
+    static void begin();
     static void startConnection();
     static void stopConnection();
     static bool isRunning();

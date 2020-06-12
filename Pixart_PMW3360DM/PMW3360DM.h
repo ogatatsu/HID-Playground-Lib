@@ -90,7 +90,7 @@ namespace hidpg
     }
 
     void setCallback(callback_t callback);
-    void init();
+    void begin();
     void startTask();
     void changeMode(Mode mode);
     void changeCpi(Cpi cpi);

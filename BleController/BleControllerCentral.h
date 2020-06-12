@@ -54,7 +54,7 @@ namespace hidpg
     static void setDisconnectCallback(disconnectCallback_t callback);
 
   private:
-    static void init();
+    static void begin();
     static bool startScan();
     static int countVacantConn();
     static int findConnHandle(uint16_t conn_handle);

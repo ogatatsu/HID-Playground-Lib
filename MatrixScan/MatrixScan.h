@@ -46,7 +46,7 @@ namespace hidpg
       _out_pins = out_pins;
       _matrix = reinterpret_cast<Switch **>(matrix);
     }
-    static void init();
+    static void begin();
     static void setCallback(callback_t callback);
     static void startTask();
 

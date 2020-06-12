@@ -34,7 +34,7 @@ namespace hidpg
   QueueHandle_t HidEngineTaskClass::_event_queue = nullptr;
   EventData HidEngineTaskClass::_lookahead;
 
-  void HidEngineTaskClass::init()
+  void HidEngineTaskClass::begin()
   {
     _event_queue = xQueueCreate(HID_ENGINE_EVENT_QUEUE_SIZE, sizeof(EventData));
   }

@@ -53,7 +53,7 @@ namespace hidpg
   {
   }
 
-  bool BlinkLed::init()
+  bool BlinkLed::begin()
   {
 #ifdef ARDUINO_ARCH_NRF52
     pinMode_OutputEx(_pin, _is_high_drive);

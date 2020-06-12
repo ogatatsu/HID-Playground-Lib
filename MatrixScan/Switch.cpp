@@ -32,11 +32,6 @@ namespace hidpg
     this->interval(debounce_delay_ms);
   }
 
-  void Switch::init(uint8_t pin)
-  {
-    this->attach(pin);
-  }
-
   void Switch::updateState(Set &switch_ids)
   {
     if (this->update())

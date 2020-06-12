@@ -37,7 +37,7 @@ namespace hidpg
   public:
     using callback_t = void (*)(uint8_t pin, bool state);
 
-    static void init();
+    static void begin();
     static void addPin(uint8_t pin, int mode, uint16_t debounce_delay_ms = 10);
     static void setCallback(callback_t callback);
     static void startTask();

@@ -68,7 +68,7 @@ namespace hidpg
 #endif
 
   // ピンの初期化など
-  void MatrixScanClass::init()
+  void MatrixScanClass::begin()
   {
     // 出力ピンの設定
     for (int i = 0; i < _out_pins_len; i++)
@@ -120,7 +120,7 @@ namespace hidpg
         {
           continue;
         }
-        _matrix[idx]->init(_in_pins[ii]);
+        _matrix[idx]->attach(_in_pins[ii]);
         uint16_t d = _matrix[idx]->getDebounceDelay();
         max_debounce_delay_ms = max(d, max_debounce_delay_ms);
         min_debounce_delay_ms = min(d, min_debounce_delay_ms);

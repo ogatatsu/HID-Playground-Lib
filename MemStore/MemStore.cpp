@@ -31,7 +31,7 @@ namespace hidpg
   {
   }
 
-  void MemStore::init()
+  void MemStore::begin()
   {
     InternalFS.begin();
     if (InternalFS.exists(_directory.c_str()) == false)

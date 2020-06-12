@@ -66,7 +66,7 @@ namespace hidpg
     }
 
     void setCallback(callback_t callback);
-    void init();
+    void begin();
     void startTask();
     void changeCpi(Cpi cpi);
 

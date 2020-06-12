@@ -9,7 +9,7 @@ namespace hidpg
   {
   public:
     PAW3204DB_RegOperator(uint8_t sclk_pin, uint8_t sdio_pin);
-    bool init();
+    bool begin();
     void write(uint8_t addr, uint8_t data);
     uint8_t read(uint8_t addr);
     void reSyncSerial();

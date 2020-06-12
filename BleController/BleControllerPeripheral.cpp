@@ -51,7 +51,7 @@ namespace hidpg
     addr[5] |= 0xC0;
   }
 
-  void BleControllerPeripheral::init()
+  void BleControllerPeripheral::begin()
   {
     Bluefruit.Periph.setConnectCallback(connect_callback);
     Bluefruit.Periph.setDisconnectCallback(disconnect_callback);
@@ -78,14 +78,14 @@ namespace hidpg
     // Bluefruit.setConnInterval(9, 12);
 
     // storeの初期化とcurrent_slotのロード
-    _addr_store.init();
+    _addr_store.begin();
     if (_addr_store.load(SLOT_FILE_NAME, &_current_slot, sizeof(_current_slot)) == false)
     {
       _current_slot = 1;
     }
 
     // LEDの初期化
-    _adv_led.init();
+    _adv_led.begin();
   }
 
   // 接続を開始、または接続先の変更

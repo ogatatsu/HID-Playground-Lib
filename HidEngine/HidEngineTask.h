@@ -88,7 +88,7 @@ namespace hidpg
   class HidEngineTaskClass
   {
   public:
-    static void init();
+    static void begin();
     static void startTask();
     static void enqueEvent(const EventData &e_data);
     static void sumNextMouseMoveEventIfExist(int16_t &x, int16_t &y);

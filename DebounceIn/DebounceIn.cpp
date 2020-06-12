@@ -36,7 +36,7 @@ namespace hidpg
   uint16_t DebounceInClass::_polling_interval_ms = UINT16_MAX;
   uint16_t DebounceInClass::_max_polling_count = 0;
 
-  void DebounceInClass::init()
+  void DebounceInClass::begin()
   {
     for (int i = 0; i < _pin_info_list.size(); i++)
     {

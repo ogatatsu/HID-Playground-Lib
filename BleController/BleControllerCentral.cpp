@@ -33,7 +33,7 @@ namespace hidpg
   BleControllerCentral::receiveDataCallback_t BleControllerCentral::_receive_data_cb = nullptr;
   BleControllerCentral::disconnectCallback_t BleControllerCentral::_disconnect_cb = nullptr;
 
-  void BleControllerCentral::init()
+  void BleControllerCentral::begin()
   {
     for (size_t i = 0; i < arrcount(_slaves); i++)
     {
@@ -61,7 +61,7 @@ namespace hidpg
     Bluefruit.Scanner.useActiveScan(false);
 
     // LEDの初期化
-    _scan_led.init();
+    _scan_led.begin();
   }
 
   void BleControllerCentral::startConnection()

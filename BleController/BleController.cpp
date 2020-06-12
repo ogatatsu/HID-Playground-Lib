@@ -27,7 +27,7 @@
 namespace hidpg
 {
 
-  void BleControllerClass::init()
+  void BleControllerClass::begin()
   {
     Bluefruit.configPrphConn(BLE_GATT_ATT_MTU_DEFAULT,
                              BLE_GAP_EVENT_LENGTH_DEFAULT,
@@ -39,8 +39,8 @@ namespace hidpg
     Bluefruit.setName(DEVICE_NAME);
     Bluefruit.autoConnLed(false);
 
-    Periph.init();
-    Central.init();
+    Periph.begin();
+    Central.begin();
   }
 
   BleControllerClass BleController;

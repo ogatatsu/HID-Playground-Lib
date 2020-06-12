@@ -156,9 +156,9 @@ namespace hidpg
     _callback = callback;
   }
 
-  void PAW3204DB::init()
+  void PAW3204DB::begin()
   {
-    _reg.init();
+    _reg.begin();
 
     pinMode(_motswk_pin, INPUT_PULLUP);
     void (*interrupt_callback)() = (_id == 0) ? interrupt_callback_0 : interrupt_callback_1;

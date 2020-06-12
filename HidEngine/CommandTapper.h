@@ -33,7 +33,7 @@ namespace hidpg
 
   public:
     static void tap(Command *command, uint8_t times = 1);
-    static void init();
+    static void begin();
 
   private:
     static void timer_callback(TimerHandle_t timer_handle);

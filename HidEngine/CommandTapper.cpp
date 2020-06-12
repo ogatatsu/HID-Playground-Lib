@@ -35,7 +35,7 @@ namespace hidpg
   CommandTapperClass::State CommandTapperClass::_next_state = CommandTapperClass::State::press;
   TimerHandle_t CommandTapperClass::_timer_handle = nullptr;
 
-  void CommandTapperClass::init()
+  void CommandTapperClass::begin()
   {
     _timer_handle = xTimerCreate(nullptr, pdMS_TO_TICKS(1), false, nullptr, timer_callback);
   }

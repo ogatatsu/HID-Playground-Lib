@@ -36,7 +36,7 @@ namespace hidpg
   {
   public:
     MemStore(const char *directory);
-    void init();
+    void begin();
     bool load(const char *name, void *buf, size_t size);
     void save(const char *name, const void *buf, size_t size);
     bool remove(const char *name);

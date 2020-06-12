@@ -53,10 +53,10 @@ namespace hidpg
     Hid.setReporter(hid_reporter);
   }
 
-  void HidEngineClass::init()
+  void HidEngineClass::begin()
   {
-    HidEngineTask.init();
-    CommandTapper.init();
+    HidEngineTask.begin();
+    CommandTapper.begin();
   }
 
   void HidEngineClass::startTask()

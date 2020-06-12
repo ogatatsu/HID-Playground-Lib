@@ -51,7 +51,7 @@ namespace hidpg
     static void setCannnotConnectCallback(cannotConnectCallback_t callback);
 
   private:
-    static void init();
+    static void begin();
     static void startAdv();
     static void adv_stop_callback();
     static void connect_callback(uint16_t conn_handle);
