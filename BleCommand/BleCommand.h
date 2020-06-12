@@ -53,7 +53,7 @@ namespace hidpg
     uint8_t onPress(uint8_t accumulation) override;
   };
 
-  #define RESET (static_cast<Command *>(new ResetConnection))
+  static inline Command *RESET() { return (new ResetConnection); }
 
   //------------------------------------------------------------------+
   // PrintBatteryLevel
@@ -64,6 +64,6 @@ namespace hidpg
     uint8_t onPress(uint8_t accumulation) override;
   };
 
-  #define PBL (static_cast<Command *>(new PrintBatteryLevel))
+  static inline Command *PBL() { return (new PrintBatteryLevel); }
 
 } // namespace hidpg

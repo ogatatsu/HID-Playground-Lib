@@ -601,10 +601,10 @@ namespace hidpg
   // Other Command
   //------------------------------------------------------------------+
 
-// No Operation
-#define NOP (new Command)
+  // No Operation
+  static inline Command *NOP() { return (new Command); }
 
-// Transparent (_ * 7)
-#define _______ (static_cast<Command *>(nullptr))
+  // Transparent (_ * 7)
+  #define _______ (static_cast<Command *>(nullptr))
 
 } // namespace hidpg

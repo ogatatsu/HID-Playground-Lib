@@ -184,8 +184,9 @@ namespace hidpg
   //------------------------------------------------------------------+
   // short name inner command
   //------------------------------------------------------------------+
-// Sequence Mode
-#define SEQ_MODE (static_cast<Command *>(new HidEngineClass::SequenceMode))
+
+  // Sequence Mode
+  static inline Command *SEQ_MODE() { return (new HidEngineClass::SequenceMode); }
   // Track
   static inline Command *TRC(uint8_t track_id) { return (new HidEngineClass::Tracking(track_id)); }
   // Track or Tap
