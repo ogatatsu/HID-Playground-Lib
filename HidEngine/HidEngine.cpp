@@ -59,11 +59,6 @@ namespace hidpg
     CommandTapper.begin();
   }
 
-  void HidEngineClass::startTask()
-  {
-    HidEngineTask.startTask();
-  }
-
   void HidEngineClass::applyToKeymap(const Set &key_ids)
   {
     EventData e_data;

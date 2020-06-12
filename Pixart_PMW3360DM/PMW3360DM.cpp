@@ -189,10 +189,7 @@ namespace hidpg
 
     // デフォルトはRest mode
     _timer_handle = xTimerCreate(nullptr, pdMS_TO_TICKS(PMW3360DM_REST_MODE_CALLBACK_INTERVAL_MS), true, this, timer_callback);
-  }
 
-  void PMW3360DM::startTask()
-  {
     char name[] = "3360_0";
     name[5] += _id;
     xTaskCreate(task, name, PMW3360DM_TASK_STACK_SIZE, this, PMW3360DM_TASK_PRIO, &_task_handles[_id]);

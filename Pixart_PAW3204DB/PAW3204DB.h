@@ -67,7 +67,6 @@ namespace hidpg
 
     void setCallback(callback_t callback);
     void begin();
-    void startTask();
     void changeCpi(Cpi cpi);
 
 #ifdef ARDUINO_ARCH_NRF52

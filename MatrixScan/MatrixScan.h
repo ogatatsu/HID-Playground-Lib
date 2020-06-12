@@ -48,7 +48,6 @@ namespace hidpg
     }
     static void begin();
     static void setCallback(callback_t callback);
-    static void startTask();
 
 #ifdef ARDUINO_ARCH_NRF52
     static void stopTask_and_setWakeUpInterrupt();

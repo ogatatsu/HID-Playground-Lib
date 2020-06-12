@@ -47,6 +47,8 @@ namespace hidpg
     // ポーリング回数は最低でもdebounce_delayの最大値を超える値に設定
     _max_polling_count = (_max_debounce_delay_ms + (_polling_interval_ms - 1)) / _polling_interval_ms; // ceil(_max_debounce_delay_ms / _polling_interval_ms) 相当
     _max_polling_count += 2;
+
+    xTaskCreate(task, "Debounce", DEBOUNCE_IN_TASK_STACK_SIZE, nullptr, DEBOUNCE_IN_TASK_PRIO, &_task_handle);
   }
 
   void DebounceInClass::addPin(uint8_t pin, int mode, uint16_t debounce_delay_ms)
@@ -61,18 +63,6 @@ namespace hidpg
     _max_debounce_delay_ms = max(debounce_delay_ms, _max_debounce_delay_ms);
     // debounce_delayの最小値の間隔でポーリングする
     _polling_interval_ms = min(debounce_delay_ms, _polling_interval_ms);
-  }
-
-  void DebounceInClass::startTask()
-  {
-    if (_task_handle == nullptr)
-    {
-      xTaskCreate(task, "Debounce", DEBOUNCE_IN_TASK_STACK_SIZE, nullptr, DEBOUNCE_IN_TASK_PRIO, &_task_handle);
-    }
-    else
-    {
-      vTaskResume(_task_handle);
-    }
   }
 
   void DebounceInClass::stopTask()

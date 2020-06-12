@@ -42,14 +42,6 @@ namespace hidpg
     _callback = callback;
   }
 
-  void MatrixScanClass::startTask()
-  {
-    if (_task_handle == nullptr)
-    {
-      xTaskCreate(task, "MatrixScan", MATRIX_SCAN_TASK_STACK_SIZE, nullptr, MATRIX_SCAN_TASK_PRIO, &_task_handle);
-    }
-  }
-
 #ifdef ARDUINO_ARCH_NRF52
   void MatrixScanClass::stopTask_and_setWakeUpInterrupt()
   {
@@ -131,6 +123,8 @@ namespace hidpg
     // ポーリング回数は最低でもdebounce_delayの最大値を超える値に設定
     _max_polling_count = (max_debounce_delay_ms + (_polling_interval_ms - 1)) / _polling_interval_ms; // ceil(max_debounce_delay_ms / _polling_interval_ms) 相当
     _max_polling_count += 2;
+
+    xTaskCreate(task, "MatrixScan", MATRIX_SCAN_TASK_STACK_SIZE, nullptr, MATRIX_SCAN_TASK_PRIO, &_task_handle);
   }
 
   // 起きる

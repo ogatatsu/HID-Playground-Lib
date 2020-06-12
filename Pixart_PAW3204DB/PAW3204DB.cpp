@@ -169,10 +169,7 @@ namespace hidpg
 
     _mutex = xSemaphoreCreateMutex();
     _timer_handle = xTimerCreate(nullptr, pdMS_TO_TICKS(PAW3204DB_CALLBACK_INTERVAL_MS), true, this, timer_callback);
-  }
 
-  void PAW3204DB::startTask()
-  {
     char name[] = "3204_0";
     name[5] += _id;
     xTaskCreate(task, name, PAW3204DB_TASK_STACK_SIZE, this, PAW3204DB_TASK_PRIO, &_task_handles[_id]);

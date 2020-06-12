@@ -37,10 +37,6 @@ namespace hidpg
   void HidEngineTaskClass::begin()
   {
     _event_queue = xQueueCreate(HID_ENGINE_EVENT_QUEUE_SIZE, sizeof(EventData));
-  }
-
-  void HidEngineTaskClass::startTask()
-  {
     xTaskCreate(task, "HidEngine", HID_ENGINE_TASK_STACK_SIZE, nullptr, HID_ENGINE_TASK_PRIO, &_task_handle);
   }
 
