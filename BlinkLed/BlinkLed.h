@@ -36,7 +36,7 @@ namespace hidpg
     BlinkLed(uint8_t pin, uint8_t active_state = HIGH, bool is_high_drive = false);
 
     bool begin();
-    void blink(uint8_t times = 1);
+    void blink(uint8_t n_times = 1);
     void off();
     void syncOff();
     bool isBlink() const;
@@ -48,7 +48,7 @@ namespace hidpg
     const uint8_t _active_state;
     const bool _is_high_drive;
     volatile bool _is_blink;
-    volatile uint8_t _times;
+    volatile uint8_t _n_times;
     TaskHandle_t _task_handle;
   };
 

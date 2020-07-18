@@ -54,7 +54,7 @@ namespace hidpg
   struct Track
   {
     uint8_t track_id;
-    uint16_t distance;
+    uint16_t threshold_distance;
     Command *up_command;
     Command *down_command;
     Command *left_command;
@@ -107,7 +107,7 @@ namespace hidpg
     static void setHidReporter(HidReporter *hid_reporter);
     static void begin();
     static void applyToKeymap(const Set &key_ids);
-    static void tapCommand(Command *command, uint8_t times);
+    static void tapCommand(Command *command, uint8_t n_times);
     static void mouseMove(int16_t x, int16_t y);
 
     //------------------------------------------------------------------+

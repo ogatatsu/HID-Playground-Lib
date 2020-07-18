@@ -608,10 +608,10 @@ namespace hidpg
   uint8_t MouseScroll::onPress(uint8_t accumulation)
   {
     uint8_t possible = 127 / max(abs(_scroll), abs(_horiz));
-    uint8_t times = min(accumulation, possible);
+    uint8_t n_times = min(accumulation, possible);
 
-    Hid.mouseScroll(_scroll * times, _horiz * times);
-    return times;
+    Hid.mouseScroll(_scroll * n_times, _horiz * n_times);
+    return n_times;
   }
 
   //------------------------------------------------------------------+

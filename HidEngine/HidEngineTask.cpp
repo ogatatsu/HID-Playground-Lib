@@ -92,7 +92,7 @@ namespace hidpg
       }
       case EventType::TapCommand:
       {
-        CommandTapper.tap(e_data->tap_command.command, e_data->tap_command.times);
+        CommandTapper.tap(e_data->tap_command.command, e_data->tap_command.n_times);
         break;
       }
       case EventType::MouseMove:

@@ -51,7 +51,7 @@ namespace hidpg
   struct TapCommandEventData
   {
     Command *command;
-    uint8_t times;
+    uint8_t n_times;
   };
 
   struct MouseMoveEventData

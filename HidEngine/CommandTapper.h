@@ -32,7 +32,7 @@ namespace hidpg
     friend class HidEngineTaskClass;
 
   public:
-    static void tap(Command *command, uint8_t times = 1);
+    static void tap(Command *command, uint8_t n_times = 1);
     static void begin();
 
   private:
@@ -42,7 +42,7 @@ namespace hidpg
     struct Pair
     {
       Command *command;
-      uint8_t times;
+      uint8_t num_of_taps;
     };
 
     enum class State

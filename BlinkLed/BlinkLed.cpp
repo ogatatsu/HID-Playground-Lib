@@ -49,7 +49,7 @@ namespace hidpg
 #endif
 
   BlinkLed::BlinkLed(uint8_t pin, uint8_t active_state, bool is_high_drive)
-      : _pin(pin), _active_state(active_state), _is_high_drive(is_high_drive), _is_blink(false), _times(0)
+      : _pin(pin), _active_state(active_state), _is_high_drive(is_high_drive), _is_blink(false), _n_times(0)
   {
   }
 
@@ -77,10 +77,10 @@ namespace hidpg
     {
       that->_is_blink = false;
       xTaskNotifyWait(0, 0, nullptr, portMAX_DELAY);
-      while (that->_times != 0)
+      while (that->_n_times != 0)
       {
         that->_is_blink = true;
-        for (int i = 0; i < that->_times; i++)
+        for (int i = 0; i < that->_n_times; i++)
         {
           digitalWrite(that->_pin, that->_active_state);
           delay(BLINK_LED_INTERVAL_MS);
@@ -92,20 +92,20 @@ namespace hidpg
     }
   }
 
-  void BlinkLed::blink(uint8_t times)
+  void BlinkLed::blink(uint8_t n_times)
   {
-    _times = times;
+    _n_times = n_times;
     xTaskNotify(_task_handle, 0, eNoAction);
   }
 
   void BlinkLed::off()
   {
-    _times = 0;
+    _n_times = 0;
   }
 
   void BlinkLed::syncOff()
   {
-    _times = 0;
+    _n_times = 0;
     while (_is_blink)
     {
       delay(1);

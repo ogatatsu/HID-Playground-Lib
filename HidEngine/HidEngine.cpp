@@ -67,12 +67,12 @@ namespace hidpg
     HidEngineTask.enqueEvent(e_data);
   }
 
-  void HidEngineClass::tapCommand(Command *command, uint8_t times)
+  void HidEngineClass::tapCommand(Command *command, uint8_t n_times)
   {
     EventData e_data;
     e_data.event_type = EventType::TapCommand;
     e_data.tap_command.command = command;
-    e_data.tap_command.times = times;
+    e_data.tap_command.n_times = n_times;
     HidEngineTask.enqueEvent(e_data);
   }
 
@@ -292,43 +292,43 @@ namespace hidpg
       }
 
       // 測った距離が閾値を超えてたらコマンドを発火する
-      int16_t threshold = _trackmap[idx].distance;
+      int16_t threshold = _trackmap[idx].threshold_distance;
       if (_distance_y <= -threshold) // 上
       {
-        uint8_t times = min(static_cast<int>(abs(_distance_y / threshold)), UINT8_MAX);
+        uint8_t n_times = min(static_cast<int>(abs(_distance_y / threshold)), UINT8_MAX);
         _distance_y %= threshold;
         if (_trackmap[idx].up_command != nullptr)
         {
-          CommandTapper.tap(_trackmap[idx].up_command, times);
+          CommandTapper.tap(_trackmap[idx].up_command, n_times);
         }
       }
       else if (_distance_y >= threshold) // 下
       {
-        uint8_t times = min(static_cast<int>(_distance_y / threshold), UINT8_MAX);
+        uint8_t n_times = min(static_cast<int>(_distance_y / threshold), UINT8_MAX);
         _distance_y %= threshold;
         if (_trackmap[idx].down_command != nullptr)
         {
-          CommandTapper.tap(_trackmap[idx].down_command, times);
+          CommandTapper.tap(_trackmap[idx].down_command, n_times);
         }
       }
 
       if (_distance_x <= -threshold) // 左
       {
-        uint8_t times = min(static_cast<int>(abs(_distance_x / threshold)), UINT8_MAX);
+        uint8_t n_times = min(static_cast<int>(abs(_distance_x / threshold)), UINT8_MAX);
         _distance_x %= threshold;
         if (_trackmap[idx].left_command != nullptr)
         {
-          CommandTapper.tap(_trackmap[idx].left_command, times);
+          CommandTapper.tap(_trackmap[idx].left_command, n_times);
         }
       }
       else if (_distance_x >= threshold) // 右
       {
-        uint8_t times = min(static_cast<int>(_distance_x / threshold), UINT8_MAX);
+        uint8_t n_times = min(static_cast<int>(_distance_x / threshold), UINT8_MAX);
         _distance_x %= threshold;
 
         if (_trackmap[idx].right_command != nullptr)
         {
-          CommandTapper.tap(_trackmap[idx].right_command, times);
+          CommandTapper.tap(_trackmap[idx].right_command, n_times);
         }
       }
     }
