@@ -365,7 +365,7 @@ namespace hidpg
   class MouseMove : public Command
   {
   public:
-    MouseMove(int8_t x, int8_t y);
+    MouseMove(int16_t x, int16_t y);
 
   protected:
     uint8_t onPress(uint8_t accumulation) override;
@@ -376,27 +376,27 @@ namespace hidpg
     {
     public:
       Mover();
-      void setXY(int8_t x, int8_t y);
-      void unsetXY(int8_t x, int8_t y);
+      void setXY(int16_t x, int16_t y);
+      void unsetXY(int16_t x, int16_t y);
 
     protected:
       void onTimer() override;
 
     private:
-      void calcXY(int8_t &x, int8_t &y);
+      void calcXY(int16_t &x, int16_t &y);
 
-      int _x;
-      int _y;
+      int _total_x;
+      int _total_y;
       uint8_t _count;
     };
 
     static Mover _mover;
 
-    const int8_t _x;
-    const int8_t _y;
+    const int16_t _x;
+    const int16_t _y;
   };
 
-  static inline Command *MS_MOV(int8_t x, int8_t y) { return (new MouseMove(x, y)); }
+  static inline Command *MS_MOV(int16_t x, int16_t y) { return (new MouseMove(x, y)); }
 
   //------------------------------------------------------------------+
   // MouseSpeed

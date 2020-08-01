@@ -499,15 +499,15 @@ namespace hidpg
   //------------------------------------------------------------------+
   // MouseMove
   //------------------------------------------------------------------+
-  MouseMove::Mover::Mover() : TimerMixin(), _x(0), _y(0), _count(0)
+  MouseMove::Mover::Mover() : TimerMixin(), _total_x(0), _total_y(0), _count(0)
   {
   }
 
-  void MouseMove::Mover::setXY(int8_t x, int8_t y)
+  void MouseMove::Mover::setXY(int16_t x, int16_t y)
   {
     _count++;
-    _x += x;
-    _y += y;
+    _total_x += x;
+    _total_y += y;
     calcXY(x, y);
     Hid.mouseMove(x, y);
     if (_count == 1)
@@ -516,11 +516,11 @@ namespace hidpg
     }
   }
 
-  void MouseMove::Mover::unsetXY(int8_t x, int8_t y)
+  void MouseMove::Mover::unsetXY(int16_t x, int16_t y)
   {
     _count--;
-    _x -= x;
-    _y -= y;
+    _total_x -= x;
+    _total_y -= y;
     if (_count == 0)
     {
       stopTimer();
@@ -529,27 +529,27 @@ namespace hidpg
 
   void MouseMove::Mover::onTimer()
   {
-    int8_t x, y;
+    int16_t x, y;
     calcXY(x, y);
     Hid.mouseMove(x, y);
     startTimer(MOUSEKEY_INTERVAL_MS);
   }
 
-  void MouseMove::Mover::calcXY(int8_t &x, int8_t &y)
+  void MouseMove::Mover::calcXY(int16_t &x, int16_t &y)
   {
     double factor = MouseSpeedController.getfactor();
     int ix, iy;
-    ix = round(_x * factor);
-    ix = constrain(ix, -127, 127);
-    iy = round(_y * factor);
-    iy = constrain(iy, -127, 127);
-    x = static_cast<int8_t>(ix);
-    y = static_cast<int8_t>(iy);
+    ix = round(_total_x * factor);
+    ix = constrain(ix, INT16_MIN, INT16_MAX);
+    iy = round(_total_y * factor);
+    iy = constrain(iy, INT16_MIN, INT16_MAX);
+    x = static_cast<int16_t>(ix);
+    y = static_cast<int16_t>(iy);
   }
 
   MouseMove::Mover MouseMove::_mover;
 
-  MouseMove::MouseMove(int8_t x, int8_t y)
+  MouseMove::MouseMove(int16_t x, int16_t y)
       : _x(x), _y(y)
   {
   }

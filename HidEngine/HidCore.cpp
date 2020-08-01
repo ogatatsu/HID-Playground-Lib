@@ -253,7 +253,7 @@ namespace hidpg
     }
   }
 
-  void HidCore::mouseMove(int8_t x, int8_t y)
+  void HidCore::mouseMove(int16_t x, int16_t y)
   {
     if (_hid_reporter != nullptr)
     {

@@ -334,18 +334,11 @@ namespace hidpg
     }
     else
     {
-      while (!(x == 0 && y == 0))
+      // 効率のため、次のイベントがMouseMoveだったら合計してまとめて行う
+      HidEngineTask.sumNextMouseMoveEventIfExist(x, y);
+      if (!(x == 0 && y == 0))
       {
-        // 効率のため、次のイベントがMouseMoveだったら合計してまとめて行う
-        HidEngineTask.sumNextMouseMoveEventIfExist(x, y);
-
-        // １回で動かせる量は -127 ~ 127
-        int8_t delta_x = constrain(x, -127, 127);
-        x -= delta_x;
-        int8_t delta_y = constrain(y, -127, 127);
-        y -= delta_y;
-
-        Hid.mouseMove(delta_x, delta_y);
+        Hid.mouseMove(x, y);
       }
     }
   }

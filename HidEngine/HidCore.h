@@ -54,7 +54,7 @@ namespace hidpg
 
     // Mouse API
     // mouseButtonPress,Releaseは複数スイッチでの同時押しに対応
-    static void mouseMove(int8_t x, int8_t y);
+    static void mouseMove(int16_t x, int16_t y);
     static void mouseScroll(int8_t scroll, int8_t horiz);
     static void mouseButtonPress(MouseButton button);
     static void mouseButtonRelease(MouseButton button);

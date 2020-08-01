@@ -1,36 +1,49 @@
-/*
-  The MIT License (MIT)
+/**************************************************************************/
+/*!
+    @file     BLEHidAdafruit.cpp
+    @author   hathach (tinyusb.org)
 
-  Copyright (c) 2020 ogatatsu.
+    @section LICENSE
 
-  Permission is hereby granted, free of charge, to any person obtaining a copy
-  of this software and associated documentation files (the "Software"), to deal
-  in the Software without restriction, including without limitation the rights
-  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-  copies of the Software, and to permit persons to whom the Software is
-  furnished to do so, subject to the following conditions:
+    Software License Agreement (BSD License)
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    Copyright (c) 2018, Adafruit Industries (adafruit.com)
+    All rights reserved.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-  THE SOFTWARE.
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
+    1. Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+    2. Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+    3. Neither the name of the copyright holders nor the
+    names of its contributors may be used to endorse or promote products
+    derived from this software without specific prior written permission.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY
+    EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+    WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+    DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+    DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+    (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+    LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+    ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+/**************************************************************************/
 
-#include "UsbHid.h"
-#include "Arduino.h"
+#include "BLEHid.h"
+
+#include "class/hid/hid_device.h"
 
 namespace hidpg
 {
 
   // clang-format off
 
-  // Keyboard Report Descriptor
+  // Keyboard Report Descriptor Template
   #define TUD_HID_REPORT_DESC_KEYBOARD_FIX(...) \
     HID_USAGE_PAGE ( HID_USAGE_PAGE_DESKTOP     )                    ,\
     HID_USAGE      ( HID_USAGE_DESKTOP_KEYBOARD )                    ,\
@@ -147,70 +160,132 @@ namespace hidpg
   };
 #pragma pack()
 
-  Adafruit_USBD_HID UsbHidClass::_usb_hid;
-  UsbHidClass::UsbHidReporter UsbHidClass::_reporter;
-
-  void UsbHidClass::begin()
+  BLEHid::BLEHid() : BLEHidGeneric(3, 1, 0), _kbd_led_cb1(nullptr), _kbd_led_cb2(nullptr)
   {
-    _usb_hid.setPollInterval(2);
-    _usb_hid.enableOutEndpoint(true);
-    _usb_hid.setReportDescriptor(hid_report_descriptor, sizeof(hid_report_descriptor));
-    _usb_hid.begin();
   }
 
-  HidReporter *UsbHidClass::getHidReporter()
+  err_t BLEHid::begin()
   {
-    return &_reporter;
+    uint16_t input_len[] = {sizeof(hid_keyboard_report_t), sizeof(hid_consumer_control_report_t), sizeof(hid_mouse_report_ex_t)};
+    uint16_t output_len[] = {1};
+
+    setReportLen(input_len, output_len, NULL);
+    enableKeyboard(true);
+    enableMouse(true);
+    setReportMap(hid_report_descriptor, sizeof(hid_report_descriptor));
+
+    VERIFY_STATUS(BLEHidGeneric::begin());
+
+    return ERROR_NONE;
   }
 
-  bool UsbHidClass::UsbHidReporter::keyboardReport(uint8_t modifier, uint8_t key_codes[6])
+  void BLEHid::keyboard_output_cb(uint16_t conn_hdl, BLECharacteristic *chr, uint8_t *data, uint16_t len)
   {
-    if (waitReady())
+    BLEHid &svc = (BLEHid &)chr->parentService();
+
+    if (svc._kbd_led_cb1 != nullptr)
+      svc._kbd_led_cb1(data[0]);
+
+    if (svc._kbd_led_cb2 != nullptr)
+      svc._kbd_led_cb2(conn_hdl, data[0]);
+  }
+
+  void BLEHid::setKeyboardLedCallback(kbd_led_cb1_t cb)
+  {
+    _kbd_led_cb1 = cb;
+
+    // Report mode
+    this->setOutputReportCallback(REPORT_ID_KEYBOARD, cb ? keyboard_output_cb : NULL);
+    // Boot mode
+    _chr_boot_keyboard_output->setWriteCallback(cb ? keyboard_output_cb : NULL);
+  }
+
+  void BLEHid::setKeyboardLedCallback(kbd_led_cb2_t cb)
+  {
+    _kbd_led_cb2 = cb;
+
+    this->setOutputReportCallback(REPORT_ID_KEYBOARD, cb ? keyboard_output_cb : NULL);
+
+    _chr_boot_keyboard_output->setWriteCallback(cb ? keyboard_output_cb : NULL);
+  }
+
+  bool BLEHid::keyboardReport(uint16_t conn_hdl, uint8_t modifier, uint8_t key_codes[6])
+  {
+    hid_keyboard_report_t report;
+    report.modifier = modifier;
+    memcpy(report.keycode, key_codes, 6);
+
+    if (isBootMode())
     {
-      return _usb_hid.keyboardReport(REPORT_ID_KEYBOARD, modifier, key_codes);
+      return bootKeyboardReport(conn_hdl, &report, sizeof(hid_keyboard_report_t));
     }
-    return false;
-  }
-
-  bool UsbHidClass::UsbHidReporter::consumerReport(uint16_t usage_code)
-  {
-    if (waitReady())
+    else
     {
-      return _usb_hid.sendReport(REPORT_ID_CONSUMER_CONTROL, &usage_code, sizeof(usage_code));
+      return inputReport(conn_hdl, REPORT_ID_KEYBOARD, &report, sizeof(hid_keyboard_report_t));
     }
-    return false;
   }
 
-  bool UsbHidClass::UsbHidReporter::mouseReport(uint8_t buttons, int16_t x, int16_t y, int8_t wheel, int8_t horiz)
+  bool BLEHid::keyboardReport(uint8_t modifier, uint8_t key_codes[6])
   {
-    hid_mouse_report_ex_t report;
-    report.buttons = buttons;
-    report.x = x;
-    report.y = y;
-    report.wheel = wheel;
-    report.pan = horiz;
+    return keyboardReport(BLE_CONN_HANDLE_INVALID, modifier, key_codes);
+  }
 
-    if (waitReady())
+  bool BLEHid::consumerReport(uint16_t conn_hdl, uint16_t usage_code)
+  {
+    return inputReport(conn_hdl, REPORT_ID_CONSUMER_CONTROL, &usage_code, sizeof(usage_code));
+  }
+
+  bool BLEHid::consumerReport(uint16_t usage_code)
+  {
+    return consumerReport(BLE_CONN_HANDLE_INVALID, usage_code);
+  }
+
+  bool BLEHid::mouseReport(uint16_t conn_hdl, uint8_t buttons, int16_t x, int16_t y, int8_t wheel, int8_t horiz)
+  {
+    if (isBootMode())
     {
-      return _usb_hid.sendReport(REPORT_ID_MOUSE, &report, sizeof(hid_mouse_report_ex_t));
+      hid_mouse_report_t report;
+      report.buttons = buttons;
+      report.x = constrain(x, -127, 127);
+      report.y = constrain(y, -127, 127);
+      report.wheel = wheel;
+      report.pan = horiz;
+      return bootMouseReport(conn_hdl, &report, sizeof(hid_mouse_report_t));
     }
-    return false;
+    else
+    {
+      hid_mouse_report_ex_t report;
+      report.buttons = buttons;
+      report.x = x;
+      report.y = y;
+      report.wheel = wheel;
+      report.pan = horiz;
+      return inputReport(conn_hdl, REPORT_ID_MOUSE, &report, sizeof(hid_mouse_report_ex_t));
+    }
   }
 
-  bool UsbHidClass::UsbHidReporter::waitReady()
+  bool BLEHid::mouseReport(uint8_t buttons, int16_t x, int16_t y, int8_t wheel, int8_t horiz)
   {
-    int count = 0;
-    while (_usb_hid.ready() == false)
+    return mouseReport(BLE_CONN_HANDLE_INVALID, buttons, x, y, wheel, horiz);
+  }
+
+  bool BLEHid::waitReady(uint16_t conn_hdl)
+  {
+    BLEConnection *conn = Bluefruit.Connection(conn_hdl);
+
+    if (conn != nullptr)
     {
-      count++;
-      if (count > 10)
+      if (conn->getHvnPacket() == false)
         return false;
-      delay(1);
+      conn->releaseHvnPacket();
     }
-
     return true;
   }
 
-  UsbHidClass UsbHid;
+  bool BLEHid::waitReady()
+  {
+    uint8_t conn_hdl = Bluefruit.connHandle();
+    return waitReady(conn_hdl);
+  }
 
 } // namespace hidpg

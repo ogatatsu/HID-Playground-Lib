@@ -40,9 +40,10 @@ namespace hidpg
     class UsbHidReporter : public HidReporter
     {
     public:
-      void keyboardReport(uint8_t modifier, uint8_t key_codes[6]) override;
-      void consumerReport(uint16_t usage_code) override;
-      void mouseReport(uint8_t buttons, int8_t x, int8_t y, int8_t wheel, int8_t horiz) override;
+      bool keyboardReport(uint8_t modifier, uint8_t key_codes[6]) override;
+      bool consumerReport(uint16_t usage_code) override;
+      bool mouseReport(uint8_t buttons, int16_t x, int16_t y, int8_t wheel, int8_t horiz) override;
+      bool waitReady();
     };
 
     static Adafruit_USBD_HID _usb_hid;

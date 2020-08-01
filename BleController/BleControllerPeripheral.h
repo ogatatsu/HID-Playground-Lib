@@ -24,8 +24,8 @@
 
 #pragma once
 
+#include "BLEHid.h"
 #include "BleController_config.h"
-#include "BleHidReporter.h"
 #include "BlinkLed.h"
 #include "HidReporter.h"
 #include "MemStore.h"
@@ -59,8 +59,7 @@ namespace hidpg
 
     static BLEDis _ble_dis;
     static BLEBas _ble_bas;
-    static BLEHidAdafruit _ble_hid;
-    static BleHidReporter _hid_reporter;
+    static BLEHid _ble_hid;
     static BlinkLed _adv_led;
     static MemStore _addr_store;
     static uint8_t _current_slot;

@@ -32,8 +32,7 @@ namespace hidpg
 
   BLEDis BleControllerPeripheral::_ble_dis;
   BLEBas BleControllerPeripheral::_ble_bas;
-  BLEHidAdafruit BleControllerPeripheral::_ble_hid;
-  BleHidReporter BleControllerPeripheral::_hid_reporter(_ble_hid);
+  BLEHid BleControllerPeripheral::_ble_hid;
   BlinkLed BleControllerPeripheral::_adv_led(ADV_LED_PIN, ADV_LED_ACTIVE_STATE, IS_HIGH_DRIVE);
   MemStore BleControllerPeripheral::_addr_store(STORE_DIR_ENAME);
   uint8_t BleControllerPeripheral::_current_slot;
@@ -64,18 +63,16 @@ namespace hidpg
     // Start BLE Battery Service
     _ble_bas.begin();
 
-    // Start BLE HID
+    // Start BLE Hid Service
+    _ble_hid.begin();
+
+    // min = 9*1.25=11.25 ms, max = 12*1.25= 15 ms
     // Note: Apple requires BLE device must have min connection interval >= 20m
     // (The smaller the connection interval the faster we could send data).
     // However for HID and MIDI device, Apple could accept min connection interval
     // up to 11.25 ms. Therefore BLEHidAdafruit::begin() will try to set the min and max
     // connection interval to 11.25  ms and 15 ms respectively for best performance.
-    _ble_hid.begin();
-
-    // Set connection interval (min, max) to your perferred value.
-    // Note: It is already set by BLEHidAdafruit::begin() to 11.25ms - 15ms
-    // min = 9*1.25=11.25 ms, max = 12*1.25= 15 ms
-    // Bluefruit.setConnInterval(9, 12);
+    Bluefruit.Periph.setConnInterval(9, 12);
 
     // storeの初期化とcurrent_slotのロード
     _addr_store.begin();
@@ -175,7 +172,7 @@ namespace hidpg
 
   HidReporter *BleControllerPeripheral::getHidReporter()
   {
-    return &_hid_reporter;
+    return &_ble_hid;
   }
 
   void BleControllerPeripheral::setBatteryLevel(uint8_t level)
