@@ -45,6 +45,11 @@ namespace hidpg
     _hid_reporter = hid_reporter;
   }
 
+  void HidCore::waitReady()
+  {
+    _hid_reporter->waitReady();
+  }
+
   void HidCore::setKey(KeyCode key_code)
   {
     uint8_t kc = static_cast<uint8_t>(key_code);

@@ -24,9 +24,24 @@
 
 #pragma once
 
-// コールバック関数が呼び出される最小間隔
-#ifndef PAW3204DB_CALLBACK_INTERVAL_MS
-#define PAW3204DB_CALLBACK_INTERVAL_MS 10
+#ifndef PAW3204DB_Sleep1_Setting
+#define PAW3204DB_Sleep1_Setting 0x72
+#endif
+
+#ifndef PAW3204DB_Enter_Time
+#define PAW3204DB_Enter_Time 0x12
+#endif
+
+#ifndef PAW3204DB_Sleep2_Setting
+#define PAW3204DB_Sleep2_Setting 0x92
+#endif
+
+#ifndef PAW3204DB_Image_Threshold
+#define PAW3204DB_Image_Threshold 0x0A
+#endif
+
+#ifndef PAW3204DB_Image_Recognition
+#define PAW3204DB_Image_Recognition 0xE5
 #endif
 
 // PAW3204DBタスクのスタックサイズ

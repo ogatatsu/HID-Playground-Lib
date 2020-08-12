@@ -69,7 +69,7 @@ namespace hidpg
     };
     // clang-format on
 
-    using callback_t = void (*)(int16_t delta_x, int16_t delta_y);
+    using callback_t = void (*)(void);
 
     template <uint8_t ID>
     static PMW3360DM &create(ThreadSafeSPIClass &spi, uint8_t ncs_pin, uint8_t interrupt_pin)
@@ -91,9 +91,9 @@ namespace hidpg
 
     void setCallback(callback_t callback);
     void begin();
+    void readDelta(int16_t *delta_x, int16_t *delta_y);
     void changeMode(Mode mode);
     void changeCpi(Cpi cpi);
-    void resetCpi();
     void enableAngleSnap();
     void disableAngleSnap();
 
@@ -104,7 +104,8 @@ namespace hidpg
   private:
     struct MotionBurstData
     {
-      union {
+      union
+      {
         uint8_t raw[12];
         struct
         {
@@ -124,7 +125,6 @@ namespace hidpg
     PMW3360DM(ThreadSafeSPIClass &spi, uint8_t ncs_pin, uint8_t interrupt_pin, uint8_t id);
 
     static void task(void *pvParameters);
-    static void timer_callback(TimerHandle_t timer_handle);
     static void interrupt_callback_0();
     static void interrupt_callback_1();
     static TaskHandle_t _task_handles[2];
@@ -132,12 +132,11 @@ namespace hidpg
 
     void writeRegister(uint8_t addr, uint8_t data);
     uint8_t readRegister(uint8_t addr);
-    void readMotionBurst(MotionBurstData &data, uint8_t length);
+    void readMotionBurst(MotionBurstData *data, uint8_t length);
     void SROM_Download();
     void powerUp();
     void initRegisters();
 
-    TimerHandle_t _timer_handle;
     ThreadSafeSPIClass &_spi;
     const uint8_t _ncs_pin;
     const uint8_t _interrupt_pin;

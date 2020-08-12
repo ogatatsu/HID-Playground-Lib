@@ -79,10 +79,6 @@ namespace hidpg
   constexpr uint8_t Raw_Data_Burst = 0x64;
   constexpr uint8_t LiftCutoff_Tune2 = 0x65;
 
-  // event flag bit
-  constexpr uint32_t InterruptEventBit = 0;
-  constexpr uint32_t TimerEventBit = 1;
-
   // spi parameter
   static SPISettings SpiSettings(2000000, MSBFIRST, SPI_MODE3);
 
@@ -96,7 +92,7 @@ namespace hidpg
   {
     if (_task_handles[0] != nullptr)
     {
-      xTaskNotifyFromISR(_task_handles[0], bit(InterruptEventBit), eSetBits, nullptr);
+      xTaskNotifyFromISR(_task_handles[0], 0, eNoAction, nullptr);
     }
   }
 
@@ -104,7 +100,7 @@ namespace hidpg
   {
     if (_task_handles[1] != nullptr)
     {
-      xTaskNotifyFromISR(_task_handles[1], bit(InterruptEventBit), eSetBits, nullptr);
+      xTaskNotifyFromISR(_task_handles[1], 0, eNoAction, nullptr);
     }
   }
 
@@ -112,55 +108,14 @@ namespace hidpg
   {
     PMW3360DM *that = static_cast<PMW3360DM *>(pvParameters);
 
-    int32_t total_delta_x = 0;
-    int32_t total_delta_y = 0;
-    bool is_timer_active = false;
-
     while (true)
     {
-      uint32_t event = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-
-      if (bitRead(event, InterruptEventBit))
+      ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+      if (that->_callback != nullptr)
       {
-        MotionBurstData mb_data;
-        that->readMotionBurst(mb_data, 6);
-
-        total_delta_x += mb_data.delta_x;
-        total_delta_y += mb_data.delta_y;
-
-        if (is_timer_active == false)
-        {
-          xTimerStart(that->_timer_handle, portMAX_DELAY);
-          is_timer_active = true;
-        }
-      }
-
-      if (bitRead(event, TimerEventBit))
-      {
-        int16_t delta_x = constrain(total_delta_x, INT16_MIN, INT16_MAX);
-        total_delta_x -= delta_x;
-
-        int16_t delta_y = constrain(total_delta_y, INT16_MIN, INT16_MAX);
-        total_delta_y -= delta_y;
-
-        if (that->_callback != nullptr)
-        {
-          that->_callback(delta_x, delta_y);
-        }
-
-        if (total_delta_x == 0 && total_delta_y == 0)
-        {
-          xTimerStop(that->_timer_handle, portMAX_DELAY);
-          is_timer_active = false;
-        }
+        that->_callback();
       }
     }
-  }
-
-  void PMW3360DM::timer_callback(TimerHandle_t timer_handle)
-  {
-    PMW3360DM *that = static_cast<PMW3360DM *>(pvTimerGetTimerID(timer_handle));
-    xTaskNotify(_task_handles[that->_id], bit(TimerEventBit), eSetBits);
   }
 
   //------------------------------------------------------------------+
@@ -186,9 +141,6 @@ namespace hidpg
 
     void (*interrupt_callback)() = (_id == 0) ? interrupt_callback_0 : interrupt_callback_1;
     attachInterrupt(digitalPinToInterrupt(_interrupt_pin), interrupt_callback, FALLING);
-
-    // デフォルトはRest mode
-    _timer_handle = xTimerCreate(nullptr, pdMS_TO_TICKS(PMW3360DM_REST_MODE_CALLBACK_INTERVAL_MS), true, this, timer_callback);
 
     char name[] = "3360_0";
     name[5] += _id;
@@ -239,7 +191,7 @@ namespace hidpg
     return data;
   }
 
-  void PMW3360DM::readMotionBurst(MotionBurstData &data, uint8_t length)
+  void PMW3360DM::readMotionBurst(MotionBurstData *data, uint8_t length)
   {
     length = min(static_cast<uint8_t>(12), length);
 
@@ -257,7 +209,7 @@ namespace hidpg
     delayMicroseconds(35);
 
     // 5.Start reading SPI Data continuously up to 12 bytes. Motion burst may be terminated by pulling NCS high for at least tBEXIT.
-    _spi.transfer(data.raw, length);
+    _spi.transfer(data->raw, length);
 
     digitalWrite(_ncs_pin, HIGH);
     _spi.endTransaction();
@@ -337,7 +289,6 @@ namespace hidpg
   void PMW3360DM::initRegisters()
   {
     writeRegister(Control, PMW3360DM_Control);
-    writeRegister(Config1, PMW3360DM_Config1);
     writeRegister(Angle_Tune, PMW3360DM_Angle_Tune);
 
     writeRegister(Run_Downshift, PMW3360DM_Run_Downshift);
@@ -355,6 +306,14 @@ namespace hidpg
     writeRegister(Lift_Config, PMW3360DM_Lift_Config);
   }
 
+  void PMW3360DM::readDelta(int16_t *delta_x, int16_t *delta_y)
+  {
+    MotionBurstData mb_data;
+    readMotionBurst(&mb_data, 6);
+    *delta_x = mb_data.delta_x;
+    *delta_y = mb_data.delta_y;
+  }
+
   void PMW3360DM::changeMode(Mode mode)
   {
     if (_task_handles[_id] == nullptr)
@@ -362,22 +321,8 @@ namespace hidpg
       return;
     }
 
-    uint32_t ms;
-    uint8_t data;
-
-    if (mode == Mode::Run)
-    {
-      ms = PMW3360DM_RUN_MODE_CALLBACK_INTERVAL_MS;
-      data = 0b00000000;
-    }
-    else
-    {
-      ms = PMW3360DM_REST_MODE_CALLBACK_INTERVAL_MS;
-      data = 0b00100000;
-    }
-
+    uint8_t data = (mode == Mode::Run) ? 0b00000000 : 0b00100000;
     writeRegister(Config2, data);
-    xTimerChangePeriod(_timer_handle, pdMS_TO_TICKS(ms), portMAX_DELAY);
   }
 
   void PMW3360DM::changeCpi(Cpi cpi)
@@ -388,16 +333,6 @@ namespace hidpg
     }
 
     writeRegister(Config1, static_cast<uint8_t>(cpi));
-  }
-
-  void PMW3360DM::resetCpi()
-  {
-    if (_task_handles[_id] == nullptr)
-    {
-      return;
-    }
-
-    writeRegister(Config1, PMW3360DM_Config1);
   }
 
   void PMW3360DM::enableAngleSnap()

@@ -25,8 +25,12 @@
 #pragma once
 
 #include "FreeRTOS.h"
-#include "PAW3204DB_RegOperator.h"
-#include "timers.h"
+
+#ifdef ARDUINO_ARCH_NRF52
+#include "PAW3204DB_RegOperator_nRF52.h"
+#else
+#include "PAW3204DB_RegOperator_GPIO.h"
+#endif
 
 namespace hidpg
 {
@@ -34,6 +38,13 @@ namespace hidpg
   class PAW3204DB
   {
   public:
+    enum class Mode : uint8_t
+    {
+      Run = 0b10100001,
+      Sleep1 = 0b10110010,
+      Sleep2 = 0b10111100,
+    };
+
     enum class Cpi : uint8_t
     {
       _400 = 0b000,
@@ -45,7 +56,7 @@ namespace hidpg
       _1600 = 0b110,
     };
 
-    using callback_t = void (*)(int16_t delta_x, int16_t delta_y);
+    using callback_t = void (*)(void);
 
     template <uint8_t ID>
     static PAW3204DB &create(uint8_t sclk_pin, uint8_t sdio_pin, uint8_t motswk_pin)
@@ -53,7 +64,16 @@ namespace hidpg
       static_assert(ID < 2, "Two or more PAW3204DB can not be created.");
       if (instances[ID] == nullptr)
       {
-        instances[ID] = new PAW3204DB(sclk_pin, sdio_pin, motswk_pin, ID);
+        PAW3204DB_RegOperator *reg;
+#ifdef ARDUINO_ARCH_NRF52
+        if (ID == 0)
+          reg = new PAW3204DB_RegOperator_nRF52(NRF_SPI2, sclk_pin, sdio_pin);
+        else
+          reg = new PAW3204DB_RegOperator_nRF52(NRF_SPI1, sclk_pin, sdio_pin);
+#else
+        reg = new PAW3204DB_RegOperator_GPIO(sclk_pin, sdio_pin);
+#endif
+        instances[ID] = new PAW3204DB(reg, motswk_pin, ID);
       }
       return *instances[ID];
     }
@@ -67,14 +87,16 @@ namespace hidpg
 
     void setCallback(callback_t callback);
     void begin();
+    void readDelta(int16_t *delta_x, int16_t *delta_y);
     void changeCpi(Cpi cpi);
+    void changeMode(Mode mode);
 
 #ifdef ARDUINO_ARCH_NRF52
     void stopTask_and_setWakeUpInterrupt();
 #endif
 
   private:
-    PAW3204DB(uint8_t sclk_pin, uint8_t sdio_pin, uint8_t motswk_pin, uint8_t id);
+    PAW3204DB(PAW3204DB_RegOperator *reg, uint8_t motswk_pin, uint8_t id);
 
     static void task(void *pvParameters);
     static void timer_callback(TimerHandle_t timer_handle);
@@ -85,9 +107,8 @@ namespace hidpg
 
     void initRegisters();
 
-    TimerHandle_t _timer_handle;
     SemaphoreHandle_t _mutex;
-    PAW3204DB_RegOperator _reg;
+    PAW3204DB_RegOperator *_reg;
     const uint8_t _motswk_pin;
     const uint8_t _id;
     callback_t _callback;

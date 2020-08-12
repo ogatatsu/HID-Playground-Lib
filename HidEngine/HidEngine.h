@@ -104,15 +104,35 @@ namespace hidpg
       _trackmap_len = trackmap_len;
     }
 
+    using read_delta_callback_t = void (*)(int16_t *delta_x, int16_t *delta_y);
+
     static void setHidReporter(HidReporter *hid_reporter);
     static void begin();
     static void applyToKeymap(const Set &key_ids);
     static void tapCommand(Command *command, uint8_t n_times);
-    static void mouseMove(int16_t x, int16_t y);
+    static void mouseMove();
+    static void setReadDeltaCallback(read_delta_callback_t cb);
+
+  private:
+    static void applyToKeymap_impl(const Set &key_ids);
+    static void mouseMove_impl();
+    static int match_with_seqKeymap(const uint8_t id_seq[], size_t len, SeqKey **matched);
+    static size_t getValidLength(const uint8_t key_ids[], size_t max_len);
+
+    static Key *_keymap;
+    static SimulKey *_simul_keymap;
+    static SeqKey *_seq_keymap;
+    static Track *_trackmap;
+    static uint8_t _keymap_len;
+    static uint8_t _simul_keymap_len;
+    static uint8_t _seq_keymap_len;
+    static uint8_t _trackmap_len;
+    static read_delta_callback_t _read_delta_cb;
 
     //------------------------------------------------------------------+
     // HidEngine inner command
     //------------------------------------------------------------------+
+  public:
     class SequenceMode : public Command
     {
     protected:
@@ -146,20 +166,6 @@ namespace hidpg
     };
 
   private:
-    static void applyToKeymap_impl(const Set &key_ids);
-    static void mouseMove_impl(int16_t x, int16_t y);
-    static int match_with_seqKeymap(const uint8_t id_seq[], size_t len, SeqKey **matched);
-    static size_t getValidLength(const uint8_t key_ids[], size_t max_len);
-
-    static Key *_keymap;
-    static SimulKey *_simul_keymap;
-    static SeqKey *_seq_keymap;
-    static Track *_trackmap;
-    static uint8_t _keymap_len;
-    static uint8_t _simul_keymap_len;
-    static uint8_t _seq_keymap_len;
-    static uint8_t _trackmap_len;
-
     enum class SeqModeState
     {
       Disable,
@@ -168,14 +174,14 @@ namespace hidpg
       WaitRelease,
     };
 
-    static SeqModeState _seq_mode_state;
     static void switchSequenceMode();
+    static SeqModeState _seq_mode_state;
 
+    static void startTracking(HidEngineClass::Tracking *tracking);
+    static void stopTracking(HidEngineClass::Tracking *tracking);
     static LinkedList<Tracking *> _tracking_list;
     static int32_t _distance_x;
     static int32_t _distance_y;
-    static void startTracking(HidEngineClass::Tracking *tracking);
-    static void stopTracking(HidEngineClass::Tracking *tracking);
   };
 
   extern HidEngineClass HidEngine;

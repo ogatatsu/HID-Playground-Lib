@@ -33,15 +33,6 @@
 #define PMW3360DM_Control 0b00000000
 #endif
 
-// Config1 register(0x0F)
-// 0x00: 100cpi
-// 0x01: 200cpi
-// ~
-// 0x77: 12000cpi
-#ifndef PMW3360DM_Config1
-#define PMW3360DM_Config1 0x31 // 5000cpi
-#endif
-
 // Angle_Tune register(0x11)
 // -30 degree: 0xE2
 // -10 degree: 0xF6
@@ -96,15 +87,6 @@
 // 3mm: 0b11
 #ifndef PMW3360DM_Lift_Config
 #define PMW3360DM_Lift_Config 0b10
-#endif
-
-// 各モードでのloopTaskにデータを送る間隔(ms)
-#ifndef PMW3360DM_RUN_MODE_CALLBACK_INTERVAL_MS
-#define PMW3360DM_RUN_MODE_CALLBACK_INTERVAL_MS 1
-#endif
-
-#ifndef PMW3360DM_REST_MODE_CALLBACK_INTERVAL_MS
-#define PMW3360DM_REST_MODE_CALLBACK_INTERVAL_MS 10
 #endif
 
 // PMW3360DMタスクのスタックサイズ

@@ -42,6 +42,7 @@ namespace hidpg
   uint8_t HidEngineClass::_simul_keymap_len = 0;
   uint8_t HidEngineClass::_seq_keymap_len = 0;
   uint8_t HidEngineClass::_trackmap_len = 0;
+  HidEngineClass::read_delta_callback_t HidEngineClass::_read_delta_cb = nullptr;
 
   HidEngineClass::SeqModeState HidEngineClass::_seq_mode_state = HidEngineClass::SeqModeState::Disable;
   LinkedList<HidEngineClass::Tracking *> HidEngineClass::_tracking_list;
@@ -76,13 +77,16 @@ namespace hidpg
     HidEngineTask.enqueEvent(e_data);
   }
 
-  void HidEngineClass::mouseMove(int16_t x, int16_t y)
+  void HidEngineClass::mouseMove()
   {
     EventData e_data;
     e_data.event_type = EventType::MouseMove;
-    e_data.mouse_move.x = x;
-    e_data.mouse_move.y = y;
     HidEngineTask.enqueEvent(e_data);
+  }
+
+  void HidEngineClass::setReadDeltaCallback(read_delta_callback_t cb)
+  {
+    _read_delta_cb = cb;
   }
 
   size_t HidEngineClass::getValidLength(const uint8_t key_ids[], size_t max_len)
@@ -251,7 +255,7 @@ namespace hidpg
     return 0;
   }
 
-  void HidEngineClass::mouseMove_impl(int16_t x, int16_t y)
+  void HidEngineClass::mouseMove_impl()
   {
     static uint8_t prev_track_id;
 
@@ -267,12 +271,13 @@ namespace hidpg
         prev_track_id = track_id;
       }
 
-      // 効率のため、次のイベントがMouseMoveだったら合計してまとめて行う
-      HidEngineTask.sumNextMouseMoveEventIfExist(x, y);
-
-      // 距離を足す
-      _distance_x += x;
-      _distance_y += y;
+      if (_read_delta_cb != nullptr)
+      {
+        int16_t x, y;
+        _read_delta_cb(&x, &y); // 距離を足す
+        _distance_x += x;
+        _distance_y += y;
+      }
 
       // trackmapから一致するtrack_idのインデックスを検索
       int idx = -1;
@@ -334,11 +339,17 @@ namespace hidpg
     }
     else
     {
-      // 効率のため、次のイベントがMouseMoveだったら合計してまとめて行う
-      HidEngineTask.sumNextMouseMoveEventIfExist(x, y);
-      if (!(x == 0 && y == 0))
+      if (_read_delta_cb != nullptr)
       {
-        Hid.mouseMove(x, y);
+        int16_t x, y;
+
+        Hid.waitReady();
+        _read_delta_cb(&x, &y);
+
+        if (!(x == 0 && y == 0))
+        {
+          Hid.mouseMove(x, y);
+        }
       }
     }
   }

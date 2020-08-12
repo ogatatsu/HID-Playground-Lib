@@ -35,6 +35,7 @@ namespace hidpg
   {
   public:
     static void setReporter(HidReporter *hid_reporter);
+    static void waitReady();
 
     // Keyboard API
     // setKeyをした後でsendKeyReportを呼び出すことでキーを送る。
