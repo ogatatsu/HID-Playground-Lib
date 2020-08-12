@@ -27,15 +27,15 @@
 namespace hidpg
 {
 
-  uint8_t BleControllerCentral::_slave_addr_list[sizeof((uint8_t[][6])SLAVE_ADDR_LIST) / 6][6] = SLAVE_ADDR_LIST;
-  BleControllerCentral::SlaveInfo BleControllerCentral::_slaves[arrcount(_slave_addr_list)];
+  uint8_t BleControllerCentral::_slave_addr_list[NUM_OF_SLAVES][6] = SLAVE_ADDR_LIST;
+  BleControllerCentral::SlaveInfo BleControllerCentral::_slaves[NUM_OF_SLAVES];
   BlinkLed BleControllerCentral::_scan_led(SCAN_LED_PIN, SCAN_LED_ACTIVE_STATE, IS_HIGH_DRIVE);
   BleControllerCentral::receiveDataCallback_t BleControllerCentral::_receive_data_cb = nullptr;
   BleControllerCentral::disconnectCallback_t BleControllerCentral::_disconnect_cb = nullptr;
 
   void BleControllerCentral::begin()
   {
-    for (size_t i = 0; i < arrcount(_slaves); i++)
+    for (size_t i = 0; i < NUM_OF_SLAVES; i++)
     {
       // Invalid all connection handle
       _slaves[i].conn_handle = BLE_CONN_HANDLE_INVALID;
@@ -80,7 +80,7 @@ namespace hidpg
 
     if (Bluefruit.Central.connected())
     {
-      for (size_t i = 0; i < arrcount(_slaves); i++)
+      for (size_t i = 0; i < NUM_OF_SLAVES; i++)
       {
         if (_slaves[i].conn_handle != BLE_CONN_HANDLE_INVALID)
         {
@@ -103,7 +103,7 @@ namespace hidpg
 
   uint16_t BleControllerCentral::sendData(uint8_t idx, const uint8_t *data, uint16_t len)
   {
-    if (idx >= arrcount(_slaves))
+    if (idx >= NUM_OF_SLAVES)
     {
       return 0;
     }
@@ -128,7 +128,7 @@ namespace hidpg
   int BleControllerCentral::countVacantConn()
   {
     int sum = 0;
-    for (size_t i = 0; i < arrcount(_slaves); i++)
+    for (size_t i = 0; i < NUM_OF_SLAVES; i++)
     {
       if (_slaves[i].conn_handle == BLE_CONN_HANDLE_INVALID)
       {
@@ -140,7 +140,7 @@ namespace hidpg
 
   int BleControllerCentral::findConnHandle(uint16_t conn_handle)
   {
-    for (size_t i = 0; i < arrcount(_slaves); i++)
+    for (size_t i = 0; i < NUM_OF_SLAVES; i++)
     {
       if (conn_handle == _slaves[i].conn_handle)
       {
@@ -152,7 +152,7 @@ namespace hidpg
 
   int BleControllerCentral::findSlaveAddr(uint8_t addr[6])
   {
-    for (size_t i = 0; i < arrcount(_slave_addr_list); i++)
+    for (size_t i = 0; i < NUM_OF_SLAVES; i++)
     {
       if (memcmp(addr, _slave_addr_list[i], 6) == 0)
       {

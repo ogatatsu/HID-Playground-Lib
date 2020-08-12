@@ -38,6 +38,8 @@ namespace hidpg
 #endif
   // clang-format on
 
+#define NUM_OF_SLAVES (sizeof((uint8_t[][6])SLAVE_ADDR_LIST) / 6)
+
   class BleControllerCentral
   {
     friend class BleControllerClass;
@@ -70,8 +72,8 @@ namespace hidpg
       BLEClientUartLight ble_uart;
     };
 
-    static uint8_t _slave_addr_list[sizeof((uint8_t[][6])SLAVE_ADDR_LIST) / 6][6];
-    static SlaveInfo _slaves[arrcount(_slave_addr_list)];
+    static uint8_t _slave_addr_list[NUM_OF_SLAVES][6];
+    static SlaveInfo _slaves[NUM_OF_SLAVES];
     static BlinkLed _scan_led;
     static receiveDataCallback_t _receive_data_cb;
     static disconnectCallback_t _disconnect_cb;
