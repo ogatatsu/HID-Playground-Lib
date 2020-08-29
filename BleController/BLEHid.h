@@ -53,6 +53,7 @@ namespace hidpg
 
     bool keyboardReport(uint16_t conn_hdl, uint8_t modifier, uint8_t key_codes[6]);
     bool consumerReport(uint16_t conn_hdl, uint16_t usage_code);
+    bool radialControllerReport(uint16_t conn_hdl, bool button, int16_t dial);
     bool mouseReport(uint16_t conn_hdl, uint8_t buttons, int16_t x, int16_t y, int8_t wheel, int8_t horiz);
     void setKeyboardLedCallback(kbd_led_cb2_t cb);
     bool waitReady(uint16_t conn_hdl);
@@ -60,6 +61,7 @@ namespace hidpg
     bool keyboardReport(uint8_t modifier, uint8_t key_codes[6]) override;
     bool consumerReport(uint16_t usage_code) override;
     bool mouseReport(uint8_t buttons, int16_t x, int16_t y, int8_t wheel, int8_t horiz) override;
+    bool radialControllerReport(bool button, int16_t dial) override;
     void setKeyboardLedCallback(kbd_led_cb1_t cb);
     bool waitReady();
 
