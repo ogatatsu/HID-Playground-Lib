@@ -26,7 +26,7 @@
 
 #include "Bounce2.h"
 #include "LinkedList.h"
-#include "freeRTOS.h"
+#include "FreeRTOS.h"
 #include <stdint.h>
 
 namespace hidpg

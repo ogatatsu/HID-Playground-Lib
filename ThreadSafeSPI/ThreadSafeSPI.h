@@ -26,7 +26,7 @@
 
 #include "Arduino.h"
 #include "SPI.h"
-#include "freeRTOS.h"
+#include "FreeRTOS.h"
 #include "semphr.h"
 
 namespace hidpg

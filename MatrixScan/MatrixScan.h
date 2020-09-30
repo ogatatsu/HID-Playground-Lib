@@ -26,7 +26,7 @@
 
 #include "Set.h"
 #include "Switch.h"
-#include "freeRTOS.h"
+#include "FreeRTOS.h"
 #include "task.h"
 
 namespace hidpg
