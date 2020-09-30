@@ -40,15 +40,15 @@ namespace hidpg
   {
   public:
     Command();
-    uint8_t press(uint8_t accumulation = 1);
-    void release();
+    void press(uint8_t accumulation = 1);
+    uint8_t release();
     void setParent(Command *parent) { _parent = parent; }
     Command *getParent() { return _parent; }
 
   protected:
     bool isLastPressed();
-    virtual uint8_t onPress(uint8_t accumulation) { return 1; }
-    virtual void onRelease() {}
+    virtual void onPress(uint8_t accumulation) {}
+    virtual uint8_t onRelease() { return 1; }
     virtual void onDifferentRootCommandPress() {}
     void addEventListener_DifferentRootCommandPress();
 
@@ -76,8 +76,8 @@ namespace hidpg
     NormalKey(KeyCode key_code);
 
   protected:
-    uint8_t onPress(uint8_t accumulation) override;
-    void onRelease() override;
+    void onPress(uint8_t accumulation) override;
+    uint8_t onRelease() override;
 
   private:
     const KeyCode _key_code;
@@ -94,8 +94,8 @@ namespace hidpg
     ModifierKey(Modifier modifier);
 
   protected:
-    uint8_t onPress(uint8_t accumulation) override;
-    void onRelease() override;
+    void onPress(uint8_t accumulation) override;
+    uint8_t onRelease() override;
 
   private:
     const Modifier _modifier;
@@ -112,8 +112,8 @@ namespace hidpg
     CombinationKey(Modifier modifier, KeyCode key_code);
 
   protected:
-    uint8_t onPress(uint8_t accumulation) override;
-    void onRelease() override;
+    void onPress(uint8_t accumulation) override;
+    uint8_t onRelease() override;
 
   private:
     const Modifier _modifier;
@@ -131,8 +131,8 @@ namespace hidpg
     ModifierTap(Modifier modifier, Command *command);
 
   protected:
-    uint8_t onPress(uint8_t accumulation) override;
-    void onRelease() override;
+    void onPress(uint8_t accumulation) override;
+    uint8_t onRelease() override;
 
   private:
     const Modifier _modifier;
@@ -150,8 +150,8 @@ namespace hidpg
     OneShotModifier(Modifier modifier);
 
   protected:
-    uint8_t onPress(uint8_t accumulation) override;
-    void onRelease() override;
+    void onPress(uint8_t accumulation) override;
+    uint8_t onRelease() override;
 
   private:
     const Modifier _modifier;
@@ -168,8 +168,8 @@ namespace hidpg
     Layering(Command *commands[LAYER_SIZE]);
 
   protected:
-    uint8_t onPress(uint8_t accumulation) override;
-    void onRelease() override;
+    void onPress(uint8_t accumulation) override;
+    uint8_t onRelease() override;
 
   private:
     Command **const _commands;
@@ -200,8 +200,8 @@ namespace hidpg
     LayerTap(uint8_t layer_number, Command *command);
 
   protected:
-    uint8_t onPress(uint8_t accumulation) override;
-    void onRelease() override;
+    void onPress(uint8_t accumulation) override;
+    uint8_t onRelease() override;
 
   private:
     const uint8_t _layer_number;
@@ -219,7 +219,7 @@ namespace hidpg
     ToggleLayer(uint8_t layer_number);
 
   protected:
-    uint8_t onPress(uint8_t accumulation) override;
+    void onPress(uint8_t accumulation) override;
 
   private:
     const uint8_t _layer_number;
@@ -236,8 +236,8 @@ namespace hidpg
     SwitchLayer(uint8_t layer_number);
 
   protected:
-    uint8_t onPress(uint8_t accumulation) override;
-    void onRelease() override;
+    void onPress(uint8_t accumulation) override;
+    uint8_t onRelease() override;
 
   private:
     const uint8_t _layer_number;
@@ -254,8 +254,8 @@ namespace hidpg
     OneShotLayer(uint8_t layer_number);
 
   protected:
-    uint8_t onPress(uint8_t accumulation) override;
-    void onRelease() override;
+    void onPress(uint8_t accumulation) override;
+    uint8_t onRelease() override;
 
   private:
     const uint8_t _layer_number;
@@ -279,8 +279,8 @@ namespace hidpg
     TapDance(Pair pairs[], size_t len);
 
   protected:
-    uint8_t onPress(uint8_t accumulation) override;
-    void onRelease() override;
+    void onPress(uint8_t accumulation) override;
+    uint8_t onRelease() override;
     void onTimer() override;
     void onDifferentRootCommandPress() override;
 
@@ -321,8 +321,8 @@ namespace hidpg
     TapOrHold(Command *tap_command, unsigned int ms, Command *hold_command);
 
   protected:
-    uint8_t onPress(uint8_t accumulation) override;
-    void onRelease() override;
+    void onPress(uint8_t accumulation) override;
+    uint8_t onRelease() override;
     void onTimer() override;
 
   private:
@@ -350,8 +350,8 @@ namespace hidpg
     ConsumerControll(UsageCode usage_code);
 
   protected:
-    uint8_t onPress(uint8_t accumulation) override;
-    void onRelease() override;
+    void onPress(uint8_t accumulation) override;
+    uint8_t onRelease() override;
 
   private:
     const UsageCode _usage_code;
@@ -368,8 +368,8 @@ namespace hidpg
     MouseMove(int16_t x, int16_t y);
 
   protected:
-    uint8_t onPress(uint8_t accumulation) override;
-    void onRelease() override;
+    void onPress(uint8_t accumulation) override;
+    uint8_t onRelease() override;
 
   private:
     class Mover : public TimerMixin
@@ -407,8 +407,8 @@ namespace hidpg
     MouseSpeed(int16_t percent);
 
   protected:
-    uint8_t onPress(uint8_t accumulation) override;
-    void onRelease() override;
+    void onPress(uint8_t accumulation) override;
+    uint8_t onRelease() override;
 
   private:
     const int16_t _percent;
@@ -425,11 +425,13 @@ namespace hidpg
     MouseScroll(int8_t scroll, int8_t horiz);
 
   protected:
-    uint8_t onPress(uint8_t accumulation) override;
+    void onPress(uint8_t accumulation) override;
+    uint8_t onRelease() override;
 
   private:
     const int8_t _scroll;
     const int8_t _horiz;
+    uint8_t _n_times;
   };
 
   static inline Command *MS_SCR(int8_t scroll, int8_t horiz) { return (new MouseScroll(scroll, horiz)); }
@@ -443,8 +445,8 @@ namespace hidpg
     MouseClick(MouseButton button);
 
   protected:
-    uint8_t onPress(uint8_t accumulation) override;
-    void onRelease() override;
+    void onPress(uint8_t accumulation) override;
+    uint8_t onRelease() override;
 
   private:
     const MouseButton _button;
@@ -467,7 +469,7 @@ namespace hidpg
     Macro(MacroCommand **m_commands, size_t len);
 
   protected:
-    uint8_t onPress(uint8_t accumulation) override;
+    void onPress(uint8_t accumulation) override;
     void onTimer() override;
 
   private:
@@ -566,8 +568,8 @@ namespace hidpg
     If(bool (*func)(), Command *true_command, Command *false_command);
 
   protected:
-    uint8_t onPress(uint8_t accumulation) override;
-    void onRelease() override;
+    void onPress(uint8_t accumulation) override;
+    uint8_t onRelease() override;
 
   private:
     bool (*const _func)();
@@ -587,8 +589,8 @@ namespace hidpg
     Double(Command *command1, Command *command2);
 
   protected:
-    uint8_t onPress(uint8_t accumulation) override;
-    void onRelease() override;
+    void onPress(uint8_t accumulation) override;
+    uint8_t onRelease() override;
 
   private:
     Command *const _command1;

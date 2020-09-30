@@ -36,7 +36,7 @@ namespace hidpg
     ConnectBluetooth(uint8_t slot);
 
   protected:
-    uint8_t onPress(uint8_t accumulation) override;
+    void onPress(uint8_t accumulation) override;
 
   private:
     const uint8_t _slot;
@@ -50,7 +50,7 @@ namespace hidpg
   class ResetConnection : public Command
   {
   protected:
-    uint8_t onPress(uint8_t accumulation) override;
+    void onPress(uint8_t accumulation) override;
   };
 
   static inline Command *RESET() { return (new ResetConnection); }
@@ -61,7 +61,7 @@ namespace hidpg
   class PrintBatteryLevel : public Command
   {
   protected:
-    uint8_t onPress(uint8_t accumulation) override;
+    void onPress(uint8_t accumulation) override;
   };
 
   static inline Command *PBL() { return (new PrintBatteryLevel); }

@@ -52,9 +52,8 @@ namespace hidpg
   }
 
   // instance method
-  uint8_t Command::press(uint8_t accumulation)
+  void Command::press(uint8_t accumulation)
   {
-    uint8_t result = 1;
     if (_prev_state == false) //FALL
     {
       _last_pressed_command = this;
@@ -67,19 +66,22 @@ namespace hidpg
           listener->onDifferentRootCommandPress();
         }
       }
-      result = onPress(accumulation);
+      onPress(accumulation);
     }
     _prev_state = true;
-    return result;
   }
 
-  void Command::release()
+  uint8_t Command::release()
   {
+    uint8_t result = 0;
+
     if (_prev_state == true) //RISE
     {
-      onRelease();
+      result = onRelease();
     }
     _prev_state = false;
+
+    return result;
   }
 
   bool Command::isLastPressed()
@@ -99,17 +101,17 @@ namespace hidpg
   {
   }
 
-  uint8_t NormalKey::onPress(uint8_t accumulation)
+  void NormalKey::onPress(uint8_t accumulation)
   {
     Hid.setKey(_key_code);
     Hid.sendKeyReport(true);
-    return 1;
   }
 
-  void NormalKey::onRelease()
+  uint8_t NormalKey::onRelease()
   {
     Hid.unsetKey(_key_code);
     Hid.sendKeyReport(false);
+    return 1;
   }
 
   //------------------------------------------------------------------+
@@ -119,17 +121,17 @@ namespace hidpg
   {
   }
 
-  uint8_t ModifierKey::onPress(uint8_t accumulation)
+  void ModifierKey::onPress(uint8_t accumulation)
   {
     Hid.setModifier(_modifier);
     Hid.sendKeyReport(true);
-    return 1;
   }
 
-  void ModifierKey::onRelease()
+  uint8_t ModifierKey::onRelease()
   {
     Hid.unsetModifier(_modifier);
     Hid.sendKeyReport(false);
+    return 1;
   }
 
   //------------------------------------------------------------------+
@@ -139,19 +141,19 @@ namespace hidpg
   {
   }
 
-  uint8_t CombinationKey::onPress(uint8_t accumulation)
+  void CombinationKey::onPress(uint8_t accumulation)
   {
     Hid.setKey(_key_code);
     Hid.setModifier(_modifier);
     Hid.sendKeyReport(true);
-    return 1;
   }
 
-  void CombinationKey::onRelease()
+  uint8_t CombinationKey::onRelease()
   {
     Hid.unsetKey(_key_code);
     Hid.unsetModifier(_modifier);
     Hid.sendKeyReport(false);
+    return 1;
   }
 
   //------------------------------------------------------------------+
@@ -163,13 +165,12 @@ namespace hidpg
     _command->setParent(this);
   }
 
-  uint8_t ModifierTap::onPress(uint8_t accumulation)
+  void ModifierTap::onPress(uint8_t accumulation)
   {
     Hid.setModifier(_modifier);
-    return 1;
   }
 
-  void ModifierTap::onRelease()
+  uint8_t ModifierTap::onRelease()
   {
     Hid.unsetModifier(_modifier);
     if (this->isLastPressed())
@@ -181,6 +182,7 @@ namespace hidpg
     {
       Hid.sendKeyReport(false);
     }
+    return 1;
   }
 
   //------------------------------------------------------------------+
@@ -190,15 +192,15 @@ namespace hidpg
   {
   }
 
-  uint8_t OneShotModifier::onPress(uint8_t accumulation)
+  void OneShotModifier::onPress(uint8_t accumulation)
   {
     Hid.holdOneShotModifier(_modifier);
-    return 1;
   }
 
-  void OneShotModifier::onRelease()
+  uint8_t OneShotModifier::onRelease()
   {
     Hid.releaseOneShotModifier(_modifier);
+    return 1;
   }
 
   //------------------------------------------------------------------+
@@ -215,7 +217,7 @@ namespace hidpg
     }
   }
 
-  uint8_t Layering::onPress(uint8_t accumulation)
+  void Layering::onPress(uint8_t accumulation)
   {
     // 現在のレイヤーの状態を取得
     bool layer_state[LAYER_SIZE];
@@ -245,20 +247,20 @@ namespace hidpg
       break;
     }
     // 委託する
+    if (_running_command != nullptr)
+    {
+      _running_command->press(accumulation);
+    }
+  }
+
+  uint8_t Layering::onRelease()
+  {
     uint8_t result = 1;
     if (_running_command != nullptr)
     {
-      result = _running_command->press(accumulation);
+      result = _running_command->release();
     }
     return result;
-  }
-
-  void Layering::onRelease()
-  {
-    if (_running_command != nullptr)
-    {
-      _running_command->release();
-    }
   }
 
   //------------------------------------------------------------------+
@@ -270,13 +272,12 @@ namespace hidpg
     _command->setParent(this);
   }
 
-  uint8_t LayerTap::onPress(uint8_t accumulation)
+  void LayerTap::onPress(uint8_t accumulation)
   {
     Layer.on(_layer_number);
-    return 1;
   }
 
-  void LayerTap::onRelease()
+  uint8_t LayerTap::onRelease()
   {
     Layer.off(_layer_number);
     if (this->isLastPressed())
@@ -284,6 +285,7 @@ namespace hidpg
       _command->press();
       _command->release();
     }
+    return 1;
   }
 
   //------------------------------------------------------------------+
@@ -293,10 +295,9 @@ namespace hidpg
   {
   }
 
-  uint8_t ToggleLayer::onPress(uint8_t accumulation)
+  void ToggleLayer::onPress(uint8_t accumulation)
   {
     Layer.toggle(_layer_number);
-    return 1;
   }
 
   //------------------------------------------------------------------+
@@ -306,15 +307,15 @@ namespace hidpg
   {
   }
 
-  uint8_t SwitchLayer::onPress(uint8_t accumulation)
+  void SwitchLayer::onPress(uint8_t accumulation)
   {
     Layer.on(_layer_number);
-    return 1;
   }
 
-  void SwitchLayer::onRelease()
+  uint8_t SwitchLayer::onRelease()
   {
     Layer.off(_layer_number);
+    return 1;
   }
 
   //------------------------------------------------------------------+
@@ -324,7 +325,7 @@ namespace hidpg
   {
   }
 
-  uint8_t OneShotLayer::onPress(uint8_t accumulation)
+  void OneShotLayer::onPress(uint8_t accumulation)
   {
     Layer.setOneShot(_layer_number);
     Layer.peekOneShot(_chained_osl);
@@ -335,10 +336,9 @@ namespace hidpg
         Layer.on(i);
       }
     }
-    return 1;
   }
 
-  void OneShotLayer::onRelease()
+  uint8_t OneShotLayer::onRelease()
   {
     for (int i = 0; i < LAYER_SIZE; i++)
     {
@@ -347,6 +347,7 @@ namespace hidpg
         Layer.off(i);
       }
     }
+    return 1;
   }
 
   //------------------------------------------------------------------+
@@ -363,7 +364,7 @@ namespace hidpg
     }
   }
 
-  uint8_t TapDance::onPress(uint8_t accumulation)
+  void TapDance::onPress(uint8_t accumulation)
   {
     if (_state == State::Unexecuted || _state == State::Tap_or_NextCommand)
     {
@@ -371,10 +372,9 @@ namespace hidpg
       _state = State::Unfixed;
       startTimer(TAPPING_TERM_MS);
     }
-    return 1;
   }
 
-  void TapDance::onRelease()
+  uint8_t TapDance::onRelease()
   {
     if (_state == State::FixedToHold)
     {
@@ -396,6 +396,7 @@ namespace hidpg
         startTimer(TAPPING_TERM_MS);
       }
     }
+    return 1;
   }
 
   void TapDance::onTimer()
@@ -444,17 +445,16 @@ namespace hidpg
     _hold_command->setParent(this);
   }
 
-  uint8_t TapOrHold::onPress(uint8_t accumulation)
+  void TapOrHold::onPress(uint8_t accumulation)
   {
     if (_state == State::Unexecuted)
     {
       _state = State::Unfixed;
       startTimer(_ms);
     }
-    return 1;
   }
 
-  void TapOrHold::onRelease()
+  uint8_t TapOrHold::onRelease()
   {
     if (_state == State::Unfixed)
     {
@@ -468,6 +468,7 @@ namespace hidpg
       _hold_command->release();
       _state = State::Unexecuted;
     }
+    return 1;
   }
 
   void TapOrHold::onTimer()
@@ -486,14 +487,14 @@ namespace hidpg
   {
   }
 
-  uint8_t ConsumerControll::onPress(uint8_t accumulation)
+  void ConsumerControll::onPress(uint8_t accumulation)
   {
     Hid.consumerKeyPress(_usage_code);
-    return 1;
   }
-  void ConsumerControll::onRelease()
+  uint8_t ConsumerControll::onRelease()
   {
     Hid.consumerKeyRelease();
+    return 1;
   }
 
   //------------------------------------------------------------------+
@@ -554,15 +555,15 @@ namespace hidpg
   {
   }
 
-  uint8_t MouseMove::onPress(uint8_t accumulation)
+  void MouseMove::onPress(uint8_t accumulation)
   {
     _mover.setXY(_x, _y);
-    return 1;
   }
 
-  void MouseMove::onRelease()
+  uint8_t MouseMove::onRelease()
   {
     _mover.unsetXY(_x, _y);
+    return 1;
   }
 
   //------------------------------------------------------------------+
@@ -573,7 +574,7 @@ namespace hidpg
   {
   }
 
-  uint8_t MouseSpeed::onPress(uint8_t accumulation)
+  void MouseSpeed::onPress(uint8_t accumulation)
   {
     if (_percent == 0)
     {
@@ -583,10 +584,9 @@ namespace hidpg
     {
       MouseSpeedController.accel(_percent);
     }
-    return 1;
   }
 
-  void MouseSpeed::onRelease()
+  uint8_t MouseSpeed::onRelease()
   {
     if (_percent == 0)
     {
@@ -596,6 +596,7 @@ namespace hidpg
     {
       MouseSpeedController.decel(_percent);
     }
+    return 1;
   }
 
   //------------------------------------------------------------------+
@@ -605,13 +606,18 @@ namespace hidpg
   {
   }
 
-  uint8_t MouseScroll::onPress(uint8_t accumulation)
+  void MouseScroll::onPress(uint8_t accumulation)
   {
     uint8_t possible = 127 / max(abs(_scroll), abs(_horiz));
     uint8_t n_times = min(accumulation, possible);
 
     Hid.mouseScroll(_scroll * n_times, _horiz * n_times);
-    return n_times;
+    _n_times = n_times;
+  }
+
+  uint8_t MouseScroll::onRelease()
+  {
+    return _n_times;
   }
 
   //------------------------------------------------------------------+
@@ -621,15 +627,15 @@ namespace hidpg
   {
   }
 
-  uint8_t MouseClick::onPress(uint8_t accumulation)
+  void MouseClick::onPress(uint8_t accumulation)
   {
     Hid.mouseButtonPress(_button);
-    return 1;
   }
 
-  void MouseClick::onRelease()
+  uint8_t MouseClick::onRelease()
   {
     Hid.mouseButtonRelease(_button);
+    return 1;
   }
 
   //------------------------------------------------------------------+
@@ -639,7 +645,7 @@ namespace hidpg
   {
   }
 
-  uint8_t Macro::onPress(uint8_t accumulation)
+  void Macro::onPress(uint8_t accumulation)
   {
     if (_is_running)
     {
@@ -651,7 +657,6 @@ namespace hidpg
       _count = 0;
       startTimer(1);
     }
-    return 1;
   }
 
   void Macro::onTimer()
@@ -748,16 +753,15 @@ namespace hidpg
     _false_command->setParent(this);
   }
 
-  uint8_t If::onPress(uint8_t accumulation)
+  void If::onPress(uint8_t accumulation)
   {
     _running_command = _func() ? _true_command : _false_command;
     _running_command->press();
-    return 1;
   }
 
-  void If::onRelease()
+  uint8_t If::onRelease()
   {
-    _running_command->release();
+    return _running_command->release();
   }
 
   //------------------------------------------------------------------+
@@ -770,17 +774,17 @@ namespace hidpg
     _command2->setParent(this);
   }
 
-  uint8_t Double::onPress(uint8_t accumulation)
+  void Double::onPress(uint8_t accumulation)
   {
     _command1->press();
     _command2->press();
-    return 1;
   }
 
-  void Double::onRelease()
+  uint8_t Double::onRelease()
   {
     _command2->release();
     _command1->release();
+    return 1;
   }
 
 } // namespace hidpg

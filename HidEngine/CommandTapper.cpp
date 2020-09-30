@@ -52,7 +52,7 @@ namespace hidpg
       _running.command = command;
       _running.num_of_taps = n_times;
 
-      _running.num_of_taps -= _running.command->press(_running.num_of_taps);
+      _running.command->press(_running.num_of_taps);
       _next_state = State::release;
       xTimerStart(_timer_handle, portMAX_DELAY);
       return;
@@ -75,7 +75,7 @@ namespace hidpg
   {
     if (_next_state == State::release)
     {
-      _running.command->release();
+      _running.num_of_taps -= _running.command->release();
       _next_state = State::press;
       if (_running.num_of_taps > 0)
       {
@@ -96,7 +96,7 @@ namespace hidpg
       {
         _running = _list.shift();
       }
-      _running.num_of_taps -= _running.command->press(_running.num_of_taps);
+      _running.command->press(_running.num_of_taps);
       _next_state = State::release;
       xTimerStart(_timer_handle, portMAX_DELAY);
     }

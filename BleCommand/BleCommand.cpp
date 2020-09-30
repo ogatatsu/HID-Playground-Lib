@@ -37,20 +37,18 @@ namespace hidpg
   {
   }
 
-  uint8_t ConnectBluetooth::onPress(uint8_t accumulation)
+  void ConnectBluetooth::onPress(uint8_t accumulation)
   {
     BleController.Periph.startConnection(_slot);
-    return 1;
   }
 
   //------------------------------------------------------------------+
   // ResetConnection
   //------------------------------------------------------------------+
-  uint8_t ResetConnection::onPress(uint8_t accumulation)
+  void ResetConnection::onPress(uint8_t accumulation)
   {
     BleController.Periph.clearBonds();
     NVIC_SystemReset();
-    return 1;
   }
 
   //------------------------------------------------------------------+
@@ -71,7 +69,7 @@ namespace hidpg
     Hid.sendKeyReport(false);
   }
 
-  uint8_t PrintBatteryLevel::onPress(uint8_t accumulation)
+  void PrintBatteryLevel::onPress(uint8_t accumulation)
   {
     uint8_t level = BatteryUtil.readBatteryLevel();
 
@@ -82,8 +80,6 @@ namespace hidpg
     tap(level3);
     tap(level2);
     tap(level1);
-
-    return 1;
   }
 
 } // namespace hidpg

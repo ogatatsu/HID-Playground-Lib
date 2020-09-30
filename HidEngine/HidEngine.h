@@ -136,7 +136,7 @@ namespace hidpg
     class SequenceMode : public Command
     {
     protected:
-      uint8_t onPress(uint8_t accumulation) override;
+      void onPress(uint8_t accumulation) override;
     };
 
     class Tracking : public Command
@@ -146,8 +146,8 @@ namespace hidpg
       uint8_t getID();
 
     protected:
-      uint8_t onPress(uint8_t accumulation) override;
-      void onRelease() override;
+      void onPress(uint8_t accumulation) override;
+      uint8_t onRelease() override;
 
     private:
       uint8_t _track_id;
@@ -159,7 +159,7 @@ namespace hidpg
       TrackTap(uint8_t track_id, Command *command);
 
     protected:
-      void onRelease() override;
+      uint8_t onRelease() override;
 
     private:
       Command *_command;

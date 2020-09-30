@@ -388,10 +388,9 @@ namespace hidpg
   //------------------------------------------------------------------+
   // SequenceMode
   //------------------------------------------------------------------+
-  uint8_t HidEngineClass::SequenceMode::onPress(uint8_t accumulation)
+  void HidEngineClass::SequenceMode::onPress(uint8_t accumulation)
   {
     HidEngineClass::switchSequenceMode();
-    return 1;
   }
 
   //------------------------------------------------------------------+
@@ -406,15 +405,15 @@ namespace hidpg
     return _track_id;
   }
 
-  uint8_t HidEngineClass::Tracking::onPress(uint8_t accumulation)
+  void HidEngineClass::Tracking::onPress(uint8_t accumulation)
   {
     HidEngineClass::startTracking(this);
-    return 1;
   }
 
-  void HidEngineClass::Tracking::onRelease()
+  uint8_t HidEngineClass::Tracking::onRelease()
   {
     HidEngineClass::stopTracking(this);
+    return 1;
   }
 
   //------------------------------------------------------------------+
@@ -425,7 +424,7 @@ namespace hidpg
     _command->setParent(this);
   }
 
-  void HidEngineClass::TrackTap::onRelease()
+  uint8_t HidEngineClass::TrackTap::onRelease()
   {
     Tracking::onRelease();
     if (this->isLastPressed())
@@ -433,6 +432,7 @@ namespace hidpg
       _command->press();
       _command->release();
     }
+    return 1;
   }
 
 } // namespace hidpg
