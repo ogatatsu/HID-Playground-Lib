@@ -62,26 +62,26 @@ namespace hidpg
 
   void HidEngineClass::applyToKeymap(const Set &key_ids)
   {
-    EventData e_data;
-    e_data.event_type = EventType::ApplyToKeymap;
-    e_data.apply_to_keymap.key_ids = key_ids;
-    HidEngineTask.enqueEvent(e_data);
+    EventData evt;
+    evt.event_type = EventType::ApplyToKeymap;
+    evt.apply_to_keymap.key_ids = key_ids;
+    HidEngineTask.enqueEvent(evt);
   }
 
   void HidEngineClass::tapCommand(Command *command, uint8_t n_times)
   {
-    EventData e_data;
-    e_data.event_type = EventType::TapCommand;
-    e_data.tap_command.command = command;
-    e_data.tap_command.n_times = n_times;
-    HidEngineTask.enqueEvent(e_data);
+    EventData evt;
+    evt.event_type = EventType::TapCommand;
+    evt.tap_command.command = command;
+    evt.tap_command.n_times = n_times;
+    HidEngineTask.enqueEvent(evt);
   }
 
   void HidEngineClass::mouseMove()
   {
-    EventData e_data;
-    e_data.event_type = EventType::MouseMove;
-    HidEngineTask.enqueEvent(e_data);
+    EventData evt;
+    evt.event_type = EventType::MouseMove;
+    HidEngineTask.enqueEvent(evt);
   }
 
   void HidEngineClass::setReadDeltaCallback(read_delta_callback_t cb)

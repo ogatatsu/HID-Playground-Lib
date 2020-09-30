@@ -39,28 +39,28 @@ namespace hidpg
     xTaskCreate(task, "HidEngine", HID_ENGINE_TASK_STACK_SIZE, nullptr, HID_ENGINE_TASK_PRIO, &_task_handle);
   }
 
-  void HidEngineTaskClass::enqueEvent(const EventData &e_data)
+  void HidEngineTaskClass::enqueEvent(const EventData &evt)
   {
-    xQueueSend(_event_queue, &e_data, portMAX_DELAY);
+    xQueueSend(_event_queue, &evt, portMAX_DELAY);
   }
 
   void HidEngineTaskClass::task(void *pvParameters)
   {
     while (true)
     {
-      EventData e_data;
-      xQueueReceive(_event_queue, &e_data, portMAX_DELAY);
+      EventData evt;
+      xQueueReceive(_event_queue, &evt, portMAX_DELAY);
 
-      switch (e_data.event_type)
+      switch (evt.event_type)
       {
       case EventType::ApplyToKeymap:
       {
-        HidEngine.applyToKeymap_impl(e_data.apply_to_keymap.key_ids);
+        HidEngine.applyToKeymap_impl(evt.apply_to_keymap.key_ids);
         break;
       }
       case EventType::TapCommand:
       {
-        CommandTapper.tap(e_data.tap_command.command, e_data.tap_command.n_times);
+        CommandTapper.tap(evt.tap_command.command, evt.tap_command.n_times);
         break;
       }
       case EventType::MouseMove:
@@ -70,8 +70,8 @@ namespace hidpg
       }
       case EventType::Timer:
       {
-        e_data.timer->cls->trigger(e_data.timer->timer_number);
-        delete e_data.timer;
+        evt.timer->cls->trigger(evt.timer->timer_number);
+        delete evt.timer;
         break;
       }
       case EventType::CommandTapper:

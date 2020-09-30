@@ -219,7 +219,7 @@ namespace hidpg
   {
     // 現在のレイヤーの状態を取得
     bool layer_state[LAYER_SIZE];
-    Layer.getState(layer_state);
+    Layer.takeState(layer_state);
 
     _running_command = nullptr;
 

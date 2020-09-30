@@ -105,9 +105,9 @@ namespace hidpg
   void CommandTapperClass::timer_callback(TimerHandle_t timerHandle)
   {
     // Software Timersのスタックを消費しないようにstaticで宣言
-    static EventData e_data;
-    e_data.event_type = EventType::CommandTapper;
-    HidEngineTask.enqueEvent(e_data);
+    static EventData evt;
+    evt.event_type = EventType::CommandTapper;
+    HidEngineTask.enqueEvent(evt);
   }
 
   CommandTapperClass CommandTapper;

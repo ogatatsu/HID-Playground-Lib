@@ -31,12 +31,12 @@ namespace hidpg
   void TimerMixin::timer_callback(TimerHandle_t timer_handle)
   {
     // Software Timersのスタックを消費しないようにstaticで宣言
-    static EventData e_data;
-    e_data.event_type = EventType::Timer;
+    static EventData evt;
+    evt.event_type = EventType::Timer;
 
     TimerEventData *te_data = static_cast<TimerEventData *>(pvTimerGetTimerID(timer_handle));
-    e_data.timer = te_data;
-    HidEngineTask.enqueEvent(e_data);
+    evt.timer = te_data;
+    HidEngineTask.enqueEvent(evt);
 
     xTimerDelete(timer_handle, portMAX_DELAY);
   }

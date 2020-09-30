@@ -88,7 +88,7 @@ namespace hidpg
   {
   public:
     static void begin();
-    static void enqueEvent(const EventData &e_data);
+    static void enqueEvent(const EventData &evt);
 
   private:
     static void task(void *pvParameters);

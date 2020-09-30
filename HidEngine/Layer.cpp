@@ -75,7 +75,7 @@ namespace hidpg
     }
   }
 
-  void LayerClass::getState(bool (&layer)[LAYER_SIZE])
+  void LayerClass::takeState(bool (&layer)[LAYER_SIZE])
   {
     for (int i = 0; i < LAYER_SIZE; i++)
     {

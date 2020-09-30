@@ -45,7 +45,7 @@ namespace hidpg
     static void peekOneShot(bool (&layer)[LAYER_SIZE]);
 
     // 現在の状態を取得
-    static void getState(bool (&layer)[LAYER_SIZE]);
+    static void takeState(bool (&layer)[LAYER_SIZE]);
 
   private:
     static bool _toggle[LAYER_SIZE];
