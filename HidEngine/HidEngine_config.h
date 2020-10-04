@@ -57,7 +57,7 @@
 
 // HidEngineタスクのスタックサイズ
 #ifndef HID_ENGINE_TASK_STACK_SIZE
-#define HID_ENGINE_TASK_STACK_SIZE 192
+#define HID_ENGINE_TASK_STACK_SIZE 256
 #endif
 
 // タスクのプライオリティ
