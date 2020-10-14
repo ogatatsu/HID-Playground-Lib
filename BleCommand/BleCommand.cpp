@@ -24,7 +24,6 @@
 
 #include "BleCommand.h"
 #include "Arduino.h"
-#include "BatteryUtil.h"
 #include "BleController.h"
 #include "HidCore.h"
 
@@ -49,37 +48,6 @@ namespace hidpg
   {
     BleController.Periph.clearBonds();
     NVIC_SystemReset();
-  }
-
-  //------------------------------------------------------------------+
-  // PrintBatteryLevel
-  //------------------------------------------------------------------+
-  static KeyCode numToKeycode(uint8_t num)
-  {
-    if (num == 0)
-      return KeyCode::_0;
-    return static_cast<KeyCode>(num + 29);
-  }
-
-  static void tap(KeyCode key_code)
-  {
-    Hid.setKey(key_code);
-    Hid.sendKeyReport(true);
-    Hid.unsetKey(key_code);
-    Hid.sendKeyReport(false);
-  }
-
-  void PrintBatteryLevel::onPress(uint8_t accumulation)
-  {
-    uint8_t level = BatteryUtil.readBatteryLevel();
-
-    KeyCode level1 = numToKeycode(level % 10);
-    KeyCode level2 = numToKeycode(level % 100 / 10);
-    KeyCode level3 = numToKeycode(level / 100);
-
-    tap(level3);
-    tap(level2);
-    tap(level1);
   }
 
 } // namespace hidpg

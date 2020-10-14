@@ -55,15 +55,4 @@ namespace hidpg
 
   static inline Command *RESET() { return (new ResetConnection); }
 
-  //------------------------------------------------------------------+
-  // PrintBatteryLevel
-  //------------------------------------------------------------------+
-  class PrintBatteryLevel : public Command
-  {
-  protected:
-    void onPress(uint8_t accumulation) override;
-  };
-
-  static inline Command *PBL() { return (new PrintBatteryLevel); }
-
 } // namespace hidpg
