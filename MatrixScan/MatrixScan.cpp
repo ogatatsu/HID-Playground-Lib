@@ -85,13 +85,13 @@ namespace hidpg
       pinMode(_in_pins[i], INPUT);
       attachInterrupt(digitalPinToInterrupt(_in_pins[i]), interrupt_callback, RISING);
 #elif (ACTIVE_STATE == LOW) && (USE_EXTERNAL_PULL_RESISTOR == false) && (USE_SENSE_INTERRUPT == true)
-      pinModeEx(_in_pins[i], INPUT_PULLUP, DRIVE_S0S1, SENSE_LOW);
+      pinMode(_in_pins[i], INPUT_PULLUP_SENSE);
 #elif (ACTIVE_STATE == HIGH) && (USE_EXTERNAL_PULL_RESISTOR == false) && (USE_SENSE_INTERRUPT == true)
-      pinModeEx(_in_pins[i], INPUT_PULLDOWN, DRIVE_S0S1, SENSE_HIGH);
+      pinMode(_in_pins[i], INPUT_PULLDOWN_SENSE);
 #elif (ACTIVE_STATE == LOW) && (USE_EXTERNAL_PULL_RESISTOR == true) && (USE_SENSE_INTERRUPT == true)
-      pinModeEx(_in_pins[i], INPUT, DRIVE_S0S1, SENSE_LOW);
+      pinMode(_in_pins[i], INPUT_SENSE_LOW);
 #elif (ACTIVE_STATE == HIGH) && (USE_EXTERNAL_PULL_RESISTOR == true) && (USE_SENSE_INTERRUPT == true)
-      pinModeEx(_in_pins[i], INPUT, DRIVE_S0S1, SENSE_HIGH);
+      pinMode(_in_pins[i], INPUT_SENSE_HIGH);
 #endif
     }
 
