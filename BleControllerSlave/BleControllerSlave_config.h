@@ -49,11 +49,6 @@
 #define ADV_LED_ACTIVE_STATE HIGH
 #endif
 
-// LEDをHighDriveで光らせるかどうか
-#ifndef IS_HIGH_DRIVE
-#define IS_HIGH_DRIVE false
-#endif
-
 // 自身のアドレスを変更したい場合は定義する(random static address)
 // （例）
 // #define OWN_ADDR {0x36, 0x9E, 0x59, 0xB6, 0xF4, 0xE0}

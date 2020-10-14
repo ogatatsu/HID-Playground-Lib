@@ -33,7 +33,7 @@ namespace hidpg
   BLEDis BleControllerPeripheral::_ble_dis;
   BLEBas BleControllerPeripheral::_ble_bas;
   BLEHid BleControllerPeripheral::_ble_hid;
-  BlinkLed BleControllerPeripheral::_adv_led(ADV_LED_PIN, ADV_LED_ACTIVE_STATE, IS_HIGH_DRIVE);
+  BlinkLed BleControllerPeripheral::_adv_led(ADV_LED_PIN, ADV_LED_ACTIVE_STATE);
   MemStore BleControllerPeripheral::_addr_store(STORE_DIR_ENAME);
   uint8_t BleControllerPeripheral::_current_slot;
   BleControllerPeripheral::cannotConnectCallback_t BleControllerPeripheral::_cannot_connect_cb = nullptr;

@@ -63,10 +63,6 @@
 #define ADV_LED_ACTIVE_STATE HIGH
 #endif
 
-// LEDをHighDriveで光らせるかどうか
-#ifndef IS_HIGH_DRIVE
-#define IS_HIGH_DRIVE false
-#endif
 
 /*
   According to Accessory Design Guidelines for Apple Devices:

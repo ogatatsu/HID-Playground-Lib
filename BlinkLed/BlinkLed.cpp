@@ -28,35 +28,18 @@
 namespace hidpg
 {
 
-#ifdef ARDUINO_ARCH_NRF52
-  static void pinMode_OutputEx(uint32_t pin, bool is_high_drive)
-  {
-    if (pin >= PINS_COUNT)
-    {
-      return;
-    }
-
-    pin = g_ADigitalPinMap[pin];
-
-    uint32_t drive_mode = is_high_drive ? GPIO_PIN_CNF_DRIVE_H0H1 : GPIO_PIN_CNF_DRIVE_S0S1;
-
-    NRF_GPIO->PIN_CNF[pin] = ((uint32_t)GPIO_PIN_CNF_DIR_Output << GPIO_PIN_CNF_DIR_Pos) |
-                             ((uint32_t)GPIO_PIN_CNF_INPUT_Disconnect << GPIO_PIN_CNF_INPUT_Pos) |
-                             ((uint32_t)GPIO_PIN_CNF_PULL_Disabled << GPIO_PIN_CNF_PULL_Pos) |
-                             (drive_mode << GPIO_PIN_CNF_DRIVE_Pos) |
-                             ((uint32_t)GPIO_PIN_CNF_SENSE_Disabled << GPIO_PIN_CNF_SENSE_Pos);
-  }
-#endif
-
-  BlinkLed::BlinkLed(uint8_t pin, uint8_t active_state, bool is_high_drive)
-      : _pin(pin), _active_state(active_state), _is_high_drive(is_high_drive), _is_blink(false), _n_times(0)
+  BlinkLed::BlinkLed(uint8_t pin, uint8_t active_state)
+      : _pin(pin), _active_state(active_state), _is_blink(false), _n_times(0)
   {
   }
 
   bool BlinkLed::begin()
   {
 #ifdef ARDUINO_ARCH_NRF52
-    pinMode_OutputEx(_pin, _is_high_drive);
+    if (_active_state == HIGH)
+      pinMode(_pin, OUTPUT_D0H1);
+    else
+      pinMode(_pin, OUTPUT_H0D1);
 #else
     pinMode(_pin, OUTPUT);
 #endif

@@ -30,7 +30,7 @@ namespace hidpg
 
   BLEUartLight BleControllerSlaveClass::_ble_uart;
   BLEBas BleControllerSlaveClass::_ble_bas;
-  BlinkLed BleControllerSlaveClass::_adv_led(ADV_LED_PIN, ADV_LED_ACTIVE_STATE, IS_HIGH_DRIVE);
+  BlinkLed BleControllerSlaveClass::_adv_led(ADV_LED_PIN, ADV_LED_ACTIVE_STATE);
   BleControllerSlaveClass::cannotConnectCallback_t BleControllerSlaveClass::_cannot_connect_cb = nullptr;
   BleControllerSlaveClass::receiveDataCallback_t BleControllerSlaveClass::_receive_data_cb = nullptr;
 
