@@ -24,9 +24,9 @@
 
 #pragma once
 
+#include "FreeRTOS.h"
 #include "Set.h"
 #include "Switch.h"
-#include "FreeRTOS.h"
 #include "task.h"
 
 namespace hidpg

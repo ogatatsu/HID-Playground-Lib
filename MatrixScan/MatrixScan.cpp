@@ -23,6 +23,7 @@
 */
 
 #include "MatrixScan.h"
+#include "SenseInterrupt.h"
 
 namespace hidpg
 {

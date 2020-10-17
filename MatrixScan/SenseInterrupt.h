@@ -1,7 +1,7 @@
 /*
   The MIT License (MIT)
 
-  Copyright (c) 2019 ogatatsu.
+  Copyright (c) 2020 ogatatsu.
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -24,33 +24,18 @@
 
 #pragma once
 
-// cherry mx bounce time is <= 5ms
-#ifndef DEBOUNCE_DELAY_MS
-#define DEBOUNCE_DELAY_MS 6
-#endif
+#include "MatrixScan_config.h"
 
-// スイッチがHIGHとLOWどちらでONになるか
-#ifndef ACTIVE_STATE
-#define ACTIVE_STATE LOW
-#endif
+#ifdef USE_SENSE_INTERRUPT
 
-// 外部のプル抵抗を使うか
-#ifndef USE_EXTERNAL_PULL_RESISTOR
-#define USE_EXTERNAL_PULL_RESISTOR false
-#endif
+#include "Arduino.h"
 
-// 割り込みにSense signalを使用するか
-// nRF52でのみ使用可能
-#ifndef USE_SENSE_INTERRUPT
-#define USE_SENSE_INTERRUPT false
-#endif
+namespace hidpg
+{
 
-// MatrixScanタスクのスタックサイズ
-#ifndef MATRIX_SCAN_TASK_STACK_SIZE
-#define MATRIX_SCAN_TASK_STACK_SIZE 128
-#endif
+  void attachSenseInterrupt(voidFuncPtr callback);
+  void detachSenseInterrupt();
 
-// MatrixScanタスクのプライオリティ
-#ifndef MATRIX_SCAN_TASK_PRIO
-#define MATRIX_SCAN_TASK_PRIO 1
+} // namespace hidpg
+
 #endif
