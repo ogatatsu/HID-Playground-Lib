@@ -1,0 +1,5 @@
+{
+  "name": "HID-Playground HwRotaryEncoder",
+  "frameworks": "arduino",
+  "platforms": "nordicnrf52"
+}
