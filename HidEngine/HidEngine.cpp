@@ -46,7 +46,7 @@ namespace hidpg
   uint8_t HidEngineClass::_trackmap_len = 0;
   uint8_t HidEngineClass::_encoderMap_len = 0;
 
-  HidEngineClass::read_delta_callback_t HidEngineClass::_read_delta_cb = nullptr;
+  HidEngineClass::read_mouse_delta_callback_t HidEngineClass::_read_mouse_delta_cb = nullptr;
   HidEngineClass::read_encoder_step_callback_t HidEngineClass::_read_encoder_step_cb = nullptr;
 
   HidEngineClass::SeqModeState HidEngineClass::_seq_mode_state = HidEngineClass::SeqModeState::Disable;
@@ -88,9 +88,9 @@ namespace hidpg
     HidEngineTask.enqueEvent(evt);
   }
 
-  void HidEngineClass::setReadDeltaCallback(read_delta_callback_t cb)
+  void HidEngineClass::setReadMouseDeltaCallback(read_mouse_delta_callback_t cb)
   {
-    _read_delta_cb = cb;
+    _read_mouse_delta_cb = cb;
   }
 
   void HidEngineClass::setReadEncoderStepCallback(read_encoder_step_callback_t cb)
@@ -280,10 +280,10 @@ namespace hidpg
         prev_track_id = track_id;
       }
 
-      if (_read_delta_cb != nullptr)
+      if (_read_mouse_delta_cb != nullptr)
       {
         int16_t x, y;
-        _read_delta_cb(&x, &y); // 距離を足す
+        _read_mouse_delta_cb(&x, &y); // 距離を足す
         _distance_x += x;
         _distance_y += y;
       }
@@ -348,12 +348,12 @@ namespace hidpg
     }
     else
     {
-      if (_read_delta_cb != nullptr)
+      if (_read_mouse_delta_cb != nullptr)
       {
         int16_t x, y;
 
         Hid.waitReady();
-        _read_delta_cb(&x, &y);
+        _read_mouse_delta_cb(&x, &y);
 
         if (!(x == 0 && y == 0))
         {

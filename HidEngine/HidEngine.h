@@ -118,7 +118,7 @@ namespace hidpg
       _encoderMap_len = encoderMap_len;
     }
 
-    using read_delta_callback_t = void (*)(int16_t *delta_x, int16_t *delta_y);
+    using read_mouse_delta_callback_t = void (*)(int16_t *delta_x, int16_t *delta_y);
     using read_encoder_step_callback_t = void (*)(uint8_t encoder_id, int32_t *step);
 
     static void setHidReporter(HidReporter *hid_reporter);
@@ -126,7 +126,7 @@ namespace hidpg
     static void applyToKeymap(const Set &key_ids);
     static void mouseMove();
     static void rotateEncoder(uint8_t encoder_id);
-    static void setReadDeltaCallback(read_delta_callback_t cb);
+    static void setReadMouseDeltaCallback(read_mouse_delta_callback_t cb);
     static void setReadEncoderStepCallback(read_encoder_step_callback_t cb);
 
   private:
@@ -148,7 +148,7 @@ namespace hidpg
     static uint8_t _trackmap_len;
     static uint8_t _encoderMap_len;
 
-    static read_delta_callback_t _read_delta_cb;
+    static read_mouse_delta_callback_t _read_mouse_delta_cb;
     static read_encoder_step_callback_t _read_encoder_step_cb;
 
     //------------------------------------------------------------------+
