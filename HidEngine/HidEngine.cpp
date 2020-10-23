@@ -38,11 +38,16 @@ namespace hidpg
   SimulKey *HidEngineClass::_simul_keymap = nullptr;
   SeqKey *HidEngineClass::_seq_keymap = nullptr;
   Track *HidEngineClass::_trackmap = nullptr;
+  Encoder *HidEngineClass::_encoderMap = nullptr;
+
   uint8_t HidEngineClass::_keymap_len = 0;
   uint8_t HidEngineClass::_simul_keymap_len = 0;
   uint8_t HidEngineClass::_seq_keymap_len = 0;
   uint8_t HidEngineClass::_trackmap_len = 0;
+  uint8_t HidEngineClass::_encoderMap_len = 0;
+
   HidEngineClass::read_delta_callback_t HidEngineClass::_read_delta_cb = nullptr;
+  HidEngineClass::read_encoder_step_callback_t HidEngineClass::_read_encoder_step_cb = nullptr;
 
   HidEngineClass::SeqModeState HidEngineClass::_seq_mode_state = HidEngineClass::SeqModeState::Disable;
   LinkedList<HidEngineClass::Tracking *> HidEngineClass::_tracking_list;
@@ -68,15 +73,6 @@ namespace hidpg
     HidEngineTask.enqueEvent(evt);
   }
 
-  void HidEngineClass::tapCommand(Command *command, uint8_t n_times)
-  {
-    EventData evt;
-    evt.event_type = EventType::TapCommand;
-    evt.tap_command.command = command;
-    evt.tap_command.n_times = n_times;
-    HidEngineTask.enqueEvent(evt);
-  }
-
   void HidEngineClass::mouseMove()
   {
     EventData evt;
@@ -84,9 +80,22 @@ namespace hidpg
     HidEngineTask.enqueEvent(evt);
   }
 
+  void HidEngineClass::rotateEncoder(uint8_t encoder_id)
+  {
+    EventData evt;
+    evt.event_type = EventType::RotateEncoder;
+    evt.rotate_encoder.encoder_id = encoder_id;
+    HidEngineTask.enqueEvent(evt);
+  }
+
   void HidEngineClass::setReadDeltaCallback(read_delta_callback_t cb)
   {
     _read_delta_cb = cb;
+  }
+
+  void HidEngineClass::setReadEncoderStepCallback(read_encoder_step_callback_t cb)
+  {
+    _read_encoder_step_cb = cb;
   }
 
   size_t HidEngineClass::getValidLength(const uint8_t key_ids[], size_t max_len)
@@ -350,6 +359,43 @@ namespace hidpg
         {
           Hid.mouseMove(x, y);
         }
+      }
+    }
+  }
+
+  void HidEngineClass::rotateEncoder_impl(uint8_t encoder_id)
+  {
+    // encoderMapから一致するencoder_idのインデックスを検索
+    int idx = -1;
+    for (int i = 0; i < _encoderMap_len; i++)
+    {
+      if (_encoderMap[i].encoder_id == encoder_id)
+      {
+        idx = i;
+        break;
+      }
+    }
+
+    // 一致するencoder_idが無かったら抜ける
+    if (idx == -1)
+    {
+      return;
+    }
+
+    if (_read_encoder_step_cb != nullptr)
+    {
+      int32_t step;
+
+      Hid.waitReady();
+      _read_encoder_step_cb(encoder_id, &step);
+
+      if (step >= 0)
+      {
+        CommandTapper.tap(_encoderMap[idx].clockwise_command, step);
+      }
+      else
+      {
+        CommandTapper.tap(_encoderMap[idx].counterclockwise_command, -step);
       }
     }
   }

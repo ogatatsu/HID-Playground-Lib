@@ -61,6 +61,13 @@ namespace hidpg
     Command *right_command;
   };
 
+  struct Encoder
+  {
+    uint8_t encoder_id;
+    Command *counterclockwise_command;
+    Command *clockwise_command;
+  };
+
   class HidEngineClass
   {
     friend class HidEngineTaskClass;
@@ -104,18 +111,28 @@ namespace hidpg
       _trackmap_len = trackmap_len;
     }
 
+    template <uint8_t encoderMap_len>
+    static void setEncoderMap(Encoder (&encoderMap)[encoderMap_len])
+    {
+      _encoderMap = encoderMap;
+      _encoderMap_len = encoderMap_len;
+    }
+
     using read_delta_callback_t = void (*)(int16_t *delta_x, int16_t *delta_y);
+    using read_encoder_step_callback_t = void (*)(uint8_t encoder_id, int32_t *step);
 
     static void setHidReporter(HidReporter *hid_reporter);
     static void begin();
     static void applyToKeymap(const Set &key_ids);
-    static void tapCommand(Command *command, uint8_t n_times);
     static void mouseMove();
+    static void rotateEncoder(uint8_t encoder_id);
     static void setReadDeltaCallback(read_delta_callback_t cb);
+    static void setReadEncoderStepCallback(read_encoder_step_callback_t cb);
 
   private:
     static void applyToKeymap_impl(const Set &key_ids);
     static void mouseMove_impl();
+    static void rotateEncoder_impl(uint8_t encoder_id);
     static int match_with_seqKeymap(const uint8_t id_seq[], size_t len, SeqKey **matched);
     static size_t getValidLength(const uint8_t key_ids[], size_t max_len);
 
@@ -123,11 +140,16 @@ namespace hidpg
     static SimulKey *_simul_keymap;
     static SeqKey *_seq_keymap;
     static Track *_trackmap;
+    static Encoder *_encoderMap;
+
     static uint8_t _keymap_len;
     static uint8_t _simul_keymap_len;
     static uint8_t _seq_keymap_len;
     static uint8_t _trackmap_len;
+    static uint8_t _encoderMap_len;
+
     static read_delta_callback_t _read_delta_cb;
+    static read_encoder_step_callback_t _read_encoder_step_cb;
 
     //------------------------------------------------------------------+
     // HidEngine inner command

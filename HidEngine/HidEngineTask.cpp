@@ -58,14 +58,14 @@ namespace hidpg
         HidEngine.applyToKeymap_impl(evt.apply_to_keymap.key_ids);
         break;
       }
-      case EventType::TapCommand:
-      {
-        CommandTapper.tap(evt.tap_command.command, evt.tap_command.n_times);
-        break;
-      }
       case EventType::MouseMove:
       {
         HidEngine.mouseMove_impl();
+        break;
+      }
+      case EventType::RotateEncoder:
+      {
+        HidEngine.rotateEncoder_impl(evt.rotate_encoder.encoder_id);
         break;
       }
       case EventType::Timer:

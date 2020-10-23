@@ -38,6 +38,7 @@ namespace hidpg
     ApplyToKeymap,
     TapCommand,
     MouseMove,
+    RotateEncoder,
     Timer,
     CommandTapper,
   };
@@ -47,15 +48,14 @@ namespace hidpg
     Set key_ids;
   };
 
-  struct TapCommandEventData
-  {
-    Command *command;
-    uint8_t n_times;
-  };
-
   struct MouseMoveEventData
   {
     //empty
+  };
+
+  struct RotateEncoderEventData
+  {
+    uint8_t encoder_id;
   };
 
   struct TimerEventData
@@ -77,8 +77,8 @@ namespace hidpg
     union
     {
       ApplyToKeymapEventData apply_to_keymap;
-      TapCommandEventData tap_command;
       MouseMoveEventData mouse_move;
+      RotateEncoderEventData rotate_encoder;
       TimerEventData *timer;
       CommandTapperEventData command_tapper;
     };
