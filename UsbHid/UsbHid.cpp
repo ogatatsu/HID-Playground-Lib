@@ -210,12 +210,12 @@ namespace hidpg
   Adafruit_USBD_HID UsbHidClass::_usb_hid;
   UsbHidClass::UsbHidReporter UsbHidClass::_reporter;
 
-  void UsbHidClass::begin()
+  bool UsbHidClass::begin()
   {
     _usb_hid.setPollInterval(2);
     _usb_hid.enableOutEndpoint(true);
     _usb_hid.setReportDescriptor(hid_report_descriptor, sizeof(hid_report_descriptor));
-    _usb_hid.begin();
+    return _usb_hid.begin();
   }
 
   HidReporter *UsbHidClass::getHidReporter()

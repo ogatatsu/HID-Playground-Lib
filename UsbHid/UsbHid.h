@@ -33,7 +33,7 @@ namespace hidpg
   class UsbHidClass
   {
   public:
-    static void begin();
+    static bool begin();
     static HidReporter *getHidReporter();
 
   private:
