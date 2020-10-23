@@ -26,7 +26,7 @@
 
 #include "MatrixScan_config.h"
 
-#ifdef USE_SENSE_INTERRUPT
+#ifdef MATRIX_SCAN_USE_SENSE_INTERRUPT
 
 #include "Arduino.h"
 

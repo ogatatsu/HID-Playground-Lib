@@ -39,7 +39,7 @@ namespace hidpg
 
   public:
     // 論理的なIDをセットする
-    Switch(uint8_t id, uint16_t debounce_delay_ms = DEBOUNCE_DELAY_MS);
+    Switch(uint8_t id, uint16_t debounce_delay_ms = MATRIX_SCAN_DEBOUNCE_DELAY_MS);
     // スキャン時に呼ばれる、押されてるかを自分でチェックして自分のIDをセットする
     void updateState(Set &switch_ids);
 

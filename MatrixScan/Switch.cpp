@@ -36,7 +36,7 @@ namespace hidpg
   {
     if (this->update())
     {
-      if (this->read() == ACTIVE_STATE)
+      if (this->read() == MATRIX_SCAN_ACTIVE_STATE)
       {
         switch_ids.add(_id);
       }

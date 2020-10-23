@@ -25,24 +25,24 @@
 #pragma once
 
 // cherry mx bounce time is <= 5ms
-#ifndef DEBOUNCE_DELAY_MS
-#define DEBOUNCE_DELAY_MS 6
+#ifndef MATRIX_SCAN_DEBOUNCE_DELAY_MS
+#define MATRIX_SCAN_DEBOUNCE_DELAY_MS 6
 #endif
 
 // スイッチがHIGHとLOWどちらでONになるか
-#ifndef ACTIVE_STATE
-#define ACTIVE_STATE LOW
+#ifndef MATRIX_SCAN_ACTIVE_STATE
+#define MATRIX_SCAN_ACTIVE_STATE LOW
 #endif
 
 // 外部のプル抵抗を使うか
-#ifndef USE_EXTERNAL_PULL_RESISTOR
-#define USE_EXTERNAL_PULL_RESISTOR false
+#ifndef MATRIX_SCAN_USE_EXTERNAL_PULL_RESISTOR
+#define MATRIX_SCAN_USE_EXTERNAL_PULL_RESISTOR false
 #endif
 
 // 割り込みにSense signalを使用するか
 // nRF52でのみ使用可能
-#ifndef USE_SENSE_INTERRUPT
-#define USE_SENSE_INTERRUPT false
+#ifndef MATRIX_SCAN_USE_SENSE_INTERRUPT
+#define MATRIX_SCAN_USE_SENSE_INTERRUPT false
 #endif
 
 // MatrixScanタスクのスタックサイズ
