@@ -104,11 +104,11 @@ namespace hidpg
       }
     }
 
-    template <uint8_t trackmap_len>
-    static void setTrackmap(Track (&trackmap)[trackmap_len])
+    template <uint8_t trackMap_len>
+    static void setTrackMap(Track (&trackMap)[trackMap_len])
     {
-      _trackmap = trackmap;
-      _trackmap_len = trackmap_len;
+      _trackMap = trackMap;
+      _trackMap_len = trackMap_len;
     }
 
     template <uint8_t encoderMap_len>
@@ -139,13 +139,13 @@ namespace hidpg
     static Key *_keymap;
     static SimulKey *_simul_keymap;
     static SeqKey *_seq_keymap;
-    static Track *_trackmap;
+    static Track *_trackMap;
     static Encoder *_encoderMap;
 
     static uint8_t _keymap_len;
     static uint8_t _simul_keymap_len;
     static uint8_t _seq_keymap_len;
-    static uint8_t _trackmap_len;
+    static uint8_t _trackMap_len;
     static uint8_t _encoderMap_len;
 
     static read_mouse_delta_callback_t _read_mouse_delta_cb;

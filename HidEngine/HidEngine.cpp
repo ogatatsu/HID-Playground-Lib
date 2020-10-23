@@ -37,13 +37,13 @@ namespace hidpg
   Key *HidEngineClass::_keymap = nullptr;
   SimulKey *HidEngineClass::_simul_keymap = nullptr;
   SeqKey *HidEngineClass::_seq_keymap = nullptr;
-  Track *HidEngineClass::_trackmap = nullptr;
+  Track *HidEngineClass::_trackMap = nullptr;
   Encoder *HidEngineClass::_encoderMap = nullptr;
 
   uint8_t HidEngineClass::_keymap_len = 0;
   uint8_t HidEngineClass::_simul_keymap_len = 0;
   uint8_t HidEngineClass::_seq_keymap_len = 0;
-  uint8_t HidEngineClass::_trackmap_len = 0;
+  uint8_t HidEngineClass::_trackMap_len = 0;
   uint8_t HidEngineClass::_encoderMap_len = 0;
 
   HidEngineClass::read_mouse_delta_callback_t HidEngineClass::_read_mouse_delta_cb = nullptr;
@@ -288,11 +288,11 @@ namespace hidpg
         _distance_y += y;
       }
 
-      // trackmapから一致するtrack_idのインデックスを検索
+      // trackMapから一致するtrack_idのインデックスを検索
       int idx = -1;
-      for (int i = 0; i < _trackmap_len; i++)
+      for (int i = 0; i < _trackMap_len; i++)
       {
-        if (_trackmap[i].track_id == track_id)
+        if (_trackMap[i].track_id == track_id)
         {
           idx = i;
           break;
@@ -306,23 +306,23 @@ namespace hidpg
       }
 
       // 測った距離が閾値を超えてたらコマンドを発火する
-      int16_t threshold = _trackmap[idx].threshold_distance;
+      int16_t threshold = _trackMap[idx].threshold_distance;
       if (_distance_y <= -threshold) // 上
       {
         uint8_t n_times = min(static_cast<int>(abs(_distance_y / threshold)), UINT8_MAX);
         _distance_y %= threshold;
-        if (_trackmap[idx].up_command != nullptr)
+        if (_trackMap[idx].up_command != nullptr)
         {
-          CommandTapper.tap(_trackmap[idx].up_command, n_times);
+          CommandTapper.tap(_trackMap[idx].up_command, n_times);
         }
       }
       else if (_distance_y >= threshold) // 下
       {
         uint8_t n_times = min(static_cast<int>(_distance_y / threshold), UINT8_MAX);
         _distance_y %= threshold;
-        if (_trackmap[idx].down_command != nullptr)
+        if (_trackMap[idx].down_command != nullptr)
         {
-          CommandTapper.tap(_trackmap[idx].down_command, n_times);
+          CommandTapper.tap(_trackMap[idx].down_command, n_times);
         }
       }
 
@@ -330,9 +330,9 @@ namespace hidpg
       {
         uint8_t n_times = min(static_cast<int>(abs(_distance_x / threshold)), UINT8_MAX);
         _distance_x %= threshold;
-        if (_trackmap[idx].left_command != nullptr)
+        if (_trackMap[idx].left_command != nullptr)
         {
-          CommandTapper.tap(_trackmap[idx].left_command, n_times);
+          CommandTapper.tap(_trackMap[idx].left_command, n_times);
         }
       }
       else if (_distance_x >= threshold) // 右
@@ -340,9 +340,9 @@ namespace hidpg
         uint8_t n_times = min(static_cast<int>(_distance_x / threshold), UINT8_MAX);
         _distance_x %= threshold;
 
-        if (_trackmap[idx].right_command != nullptr)
+        if (_trackMap[idx].right_command != nullptr)
         {
-          CommandTapper.tap(_trackmap[idx].right_command, n_times);
+          CommandTapper.tap(_trackMap[idx].right_command, n_times);
         }
       }
     }
