@@ -33,12 +33,12 @@ namespace hidpg
 {
 
   // clang-format off
-#ifndef SLAVE_ADDR_LIST
-#define SLAVE_ADDR_LIST {}
+#ifndef BLE_SLAVE_ADDR_LIST
+#define BLE_SLAVE_ADDR_LIST {}
 #endif
   // clang-format on
 
-#define NUM_OF_SLAVES (sizeof((uint8_t[][6])SLAVE_ADDR_LIST) / 6)
+#define NUM_OF_SLAVES (sizeof((uint8_t[][6])BLE_SLAVE_ADDR_LIST) / 6)
 
   class BleControllerCentral
   {

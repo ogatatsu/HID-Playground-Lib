@@ -30,7 +30,7 @@ namespace hidpg
 
   BLEUartLight BleControllerSlaveClass::_ble_uart;
   BLEBas BleControllerSlaveClass::_ble_bas;
-  BlinkLed BleControllerSlaveClass::_adv_led(ADV_LED_PIN, ADV_LED_ACTIVE_STATE);
+  BlinkLed BleControllerSlaveClass::_adv_led(BLE_ADV_LED_PIN, BLE_ADV_LED_ACTIVE_STATE);
   BleControllerSlaveClass::cannotConnectCallback_t BleControllerSlaveClass::_cannot_connect_cb = nullptr;
   BleControllerSlaveClass::receiveDataCallback_t BleControllerSlaveClass::_receive_data_cb = nullptr;
 
@@ -39,17 +39,17 @@ namespace hidpg
   //------------------------------------------------------------------+
   void BleControllerSlaveClass::begin()
   {
-    Bluefruit.configPrphConn(BLE_GATT_ATT_MTU_DEFAULT, BLE_GAP_EVENT_LENGTH_DEFAULT, HVN_TX_QUEUE_SIZE, BLE_GATTC_WRITE_CMD_TX_QUEUE_SIZE_DEFAULT);
+    Bluefruit.configPrphConn(BLE_GATT_ATT_MTU_DEFAULT, BLE_GAP_EVENT_LENGTH_DEFAULT, BLE_HVN_TX_QUEUE_SIZE, BLE_GATTC_WRITE_CMD_TX_QUEUE_SIZE_DEFAULT);
     Bluefruit.begin();
-    Bluefruit.setTxPower(TX_POWER);
-    Bluefruit.setName(DEVICE_NAME);
+    Bluefruit.setTxPower(BLE_TX_POWER);
+    Bluefruit.setName(BLE_DEVICE_NAME);
     Bluefruit.autoConnLed(false);
 
     Bluefruit.Periph.setConnectCallback(connect_callback);
     Bluefruit.Periph.setDisconnectCallback(disconnect_callback);
 
-#ifdef OWN_ADDR
-    uint8_t addr[6] = OWN_ADDR;
+#ifdef BLE_OWN_ADDR
+    uint8_t addr[6] = BLE_OWN_ADDR;
     ble_gap_addr_t tmp;
     tmp.addr_type = BLE_GAP_ADDR_TYPE_RANDOM_STATIC;
     memcpy(tmp.addr, addr, 6);
@@ -175,7 +175,7 @@ namespace hidpg
   void BleControllerSlaveClass::connect_callback(uint16_t conn_handle)
   {
     BLEConnection *conn = Bluefruit.Connection(conn_handle);
-    conn->requestConnectionParameter(CONNECTION_INTERVAL, SLAVE_LATENCY, SUPERVISION_TIMEOUT);
+    conn->requestConnectionParameter(BLE_CONNECTION_INTERVAL, BLE_SLAVE_LATENCY, BLE_SUPERVISION_TIMEOUT);
     conn->requestPHY();
     _adv_led.off();
   }

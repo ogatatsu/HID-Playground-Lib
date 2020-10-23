@@ -33,7 +33,7 @@ namespace hidpg
   BLEDis BleControllerPeripheral::_ble_dis;
   BLEBas BleControllerPeripheral::_ble_bas;
   BLEHid BleControllerPeripheral::_ble_hid;
-  BlinkLed BleControllerPeripheral::_adv_led(ADV_LED_PIN, ADV_LED_ACTIVE_STATE);
+  BlinkLed BleControllerPeripheral::_adv_led(BLE_ADV_LED_PIN, BLE_ADV_LED_ACTIVE_STATE);
   MemStore BleControllerPeripheral::_addr_store(STORE_DIR_ENAME);
   uint8_t BleControllerPeripheral::_current_slot;
   BleControllerPeripheral::cannotConnectCallback_t BleControllerPeripheral::_cannot_connect_cb = nullptr;
@@ -56,8 +56,8 @@ namespace hidpg
     Bluefruit.Periph.setDisconnectCallback(disconnect_callback);
 
     // Configure and Start Device Information Service
-    _ble_dis.setManufacturer(MANUFACTURER_NAME);
-    _ble_dis.setModel(MODEL_NUMBER);
+    _ble_dis.setManufacturer(BLE_MANUFACTURER_NAME);
+    _ble_dis.setModel(BLE_MODEL_NUMBER);
     _ble_dis.begin();
 
     // Start BLE Battery Service
@@ -228,7 +228,7 @@ namespace hidpg
   void BleControllerPeripheral::connect_callback(uint16_t conn_handle)
   {
     BLEConnection *conn = Bluefruit.Connection(conn_handle);
-    conn->requestConnectionParameter(CONNECTION_INTERVAL, SLAVE_LATENCY, SUPERVISION_TIMEOUT);
+    conn->requestConnectionParameter(BLE_CONNECTION_INTERVAL, BLE_SLAVE_LATENCY, BLE_SUPERVISION_TIMEOUT);
     conn->requestPHY();
     _adv_led.off();
   }

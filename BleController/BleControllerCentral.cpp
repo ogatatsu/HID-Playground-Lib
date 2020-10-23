@@ -27,9 +27,9 @@
 namespace hidpg
 {
 
-  uint8_t BleControllerCentral::_slave_addr_list[NUM_OF_SLAVES][6] = SLAVE_ADDR_LIST;
+  uint8_t BleControllerCentral::_slave_addr_list[NUM_OF_SLAVES][6] = BLE_SLAVE_ADDR_LIST;
   BleControllerCentral::SlaveInfo BleControllerCentral::_slaves[NUM_OF_SLAVES];
-  BlinkLed BleControllerCentral::_scan_led(SCAN_LED_PIN, SCAN_LED_ACTIVE_STATE);
+  BlinkLed BleControllerCentral::_scan_led(BLE_SCAN_LED_PIN, BLE_SCAN_LED_ACTIVE_STATE);
   BleControllerCentral::receiveDataCallback_t BleControllerCentral::_receive_data_cb = nullptr;
   BleControllerCentral::disconnectCallback_t BleControllerCentral::_disconnect_cb = nullptr;
 

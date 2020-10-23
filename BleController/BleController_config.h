@@ -25,22 +25,22 @@
 #pragma once
 
 // デバイスの名前、ペアリングする時にPCやスマホ側に出てくる名前
-#ifndef DEVICE_NAME
-#define DEVICE_NAME "..."
+#ifndef BLE_DEVICE_NAME
+#define BLE_DEVICE_NAME "..."
 #endif
 
 // デバイス情報
-#ifndef MANUFACTURER_NAME
-#define MANUFACTURER_NAME "..."
+#ifndef BLE_MANUFACTURER_NAME
+#define BLE_MANUFACTURER_NAME "..."
 #endif
 
-#ifndef MODEL_NUMBER
-#define MODEL_NUMBER "..."
+#ifndef BLE_MODEL_NUMBER
+#define BLE_MODEL_NUMBER "..."
 #endif
 
 // BLEの送信電波強度: -40, -30, -20, -16, -12, -8, -4, 0, 4
-#ifndef TX_POWER
-#define TX_POWER 4
+#ifndef BLE_TX_POWER
+#define BLE_TX_POWER 4
 #endif
 
 // ペアリングする時にセントラル側の設定画面に現れる見た目
@@ -49,18 +49,18 @@
 #endif
 
 // Minimum guaranteed number of Handle Value Notifications that can be queued for transmission.
-#ifndef HVN_TX_QUEUE_SIZE
-#define HVN_TX_QUEUE_SIZE 2
+#ifndef BLE_HVN_TX_QUEUE_SIZE
+#define BLE_HVN_TX_QUEUE_SIZE 2
 #endif
 
 // アドバタイジング時に点滅させるLEDのピン番号
-#ifndef ADV_LED_PIN
-#define ADV_LED_PIN PIN_LED2
+#ifndef BLE_ADV_LED_PIN
+#define BLE_ADV_LED_PIN PIN_LED2
 #endif
 
 // アドバタイジングLEDがHIGHとLOWどちらでONになるか
-#ifndef ADV_LED_ACTIVE_STATE
-#define ADV_LED_ACTIVE_STATE HIGH
+#ifndef BLE_ADV_LED_ACTIVE_STATE
+#define BLE_ADV_LED_ACTIVE_STATE HIGH
 #endif
 
 
@@ -87,18 +87,18 @@
 */
 
 // Connection Interval (unit of 1.25ms)
-#ifndef CONNECTION_INTERVAL
-#define CONNECTION_INTERVAL 9
+#ifndef BLE_CONNECTION_INTERVAL
+#define BLE_CONNECTION_INTERVAL 9
 #endif
 
 // Slave Latency
-#ifndef SLAVE_LATENCY
-#define SLAVE_LATENCY 30
+#ifndef BLE_SLAVE_LATENCY
+#define BLE_SLAVE_LATENCY 30
 #endif
 
 // Supervision Timeout (unit of 10ms)
-#ifndef SUPERVISION_TIMEOUT
-#define SUPERVISION_TIMEOUT 200
+#ifndef BLE_SUPERVISION_TIMEOUT
+#define BLE_SUPERVISION_TIMEOUT 200
 #endif
 
 // スレーブがある場合のみ定義する
@@ -106,7 +106,7 @@
 // 定義するとBleControllerにセントラル用の関数が生える
 // （例）
 /*
- #define SLAVE_ADDR_LIST {                 \
+ #define BLE_SLAVE_ADDR_LIST {                 \
      {0x6E, 0x4A, 0x38, 0x76, 0x43, 0xF9}, \
      {0xA6, 0xA2, 0x06, 0xA0, 0xCF, 0xDD}, \
  }
@@ -114,12 +114,12 @@
 
 // スレーブがある場合のみ使用される
 // スキャン時に点滅させるLEDのピン番号
-#ifndef SCAN_LED_PIN
-#define SCAN_LED_PIN PIN_LED1
+#ifndef BLE_SCAN_LED_PIN
+#define BLE_SCAN_LED_PIN PIN_LED1
 #endif
 
 // スレーブがある場合のみ使用される
 // スキャンLEDがHIGHとLOWどちらでONになるか
-#ifndef SCAN_LED_ACTIVE_STATE
-#define SCAN_LED_ACTIVE_STATE HIGH
+#ifndef BLE_SCAN_LED_ACTIVE_STATE
+#define BLE_SCAN_LED_ACTIVE_STATE HIGH
 #endif

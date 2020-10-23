@@ -25,46 +25,46 @@
 #pragma once
 
 // デバイスの名前、ペアリングする時にPCやスマホ側に出てくる名前
-#ifndef DEVICE_NAME
-#define DEVICE_NAME "..."
+#ifndef BLE_DEVICE_NAME
+#define BLE_DEVICE_NAME "..."
 #endif
 
 // BLEの送信電波強度: -40, -30, -20, -16, -12, -8, -4, 0, 4
-#ifndef TX_POWER
-#define TX_POWER 4
+#ifndef BLE_TX_POWER
+#define BLE_TX_POWER 4
 #endif
 
 // Minimum guaranteed number of Handle Value Notifications that can be queued for transmission.
-#ifndef HVN_TX_QUEUE_SIZE
-#define HVN_TX_QUEUE_SIZE 8
+#ifndef BLE_HVN_TX_QUEUE_SIZE
+#define BLE_HVN_TX_QUEUE_SIZE 8
 #endif
 
 // アドバタイジング時に点滅させるLEDのピン番号
-#ifndef ADV_LED_PIN
-#define ADV_LED_PIN PIN_LED2
+#ifndef BLE_ADV_LED_PIN
+#define BLE_ADV_LED_PIN PIN_LED2
 #endif
 
 // アドバタイジングLEDがHIGHとLOWどちらでONになるか
-#ifndef ADV_LED_ACTIVE_STATE
-#define ADV_LED_ACTIVE_STATE HIGH
+#ifndef BLE_ADV_LED_ACTIVE_STATE
+#define BLE_ADV_LED_ACTIVE_STATE HIGH
 #endif
 
 // 自身のアドレスを変更したい場合は定義する(random static address)
 // （例）
-// #define OWN_ADDR {0x36, 0x9E, 0x59, 0xB6, 0xF4, 0xE0}
+// #define BLE_OWN_ADDR {0x36, 0x9E, 0x59, 0xB6, 0xF4, 0xE0}
 
 // SUPERVISION_TIMEOUT * 4 > (1 + SLAVE_LATENCY) * CONNECTION_INTERVAL
 // Connection Interval (unit of 1.25ms)
-#ifndef CONNECTION_INTERVAL
-#define CONNECTION_INTERVAL 6
+#ifndef BLE_CONNECTION_INTERVAL
+#define BLE_CONNECTION_INTERVAL 6
 #endif
 
 // Slave Latency
-#ifndef SLAVE_LATENCY
-#define SLAVE_LATENCY 65
+#ifndef BLE_SLAVE_LATENCY
+#define BLE_SLAVE_LATENCY 65
 #endif
 
 // Supervision Timeout (unit of 10ms)
-#ifndef SUPERVISION_TIMEOUT
-#define SUPERVISION_TIMEOUT 100
+#ifndef BLE_SUPERVISION_TIMEOUT
+#define BLE_SUPERVISION_TIMEOUT 100
 #endif
