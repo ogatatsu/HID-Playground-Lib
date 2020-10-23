@@ -165,7 +165,7 @@ namespace hidpg
   class Layering : public Command
   {
   public:
-    Layering(Command *commands[LAYER_SIZE]);
+    Layering(Command *commands[HID_ENGINE_LAYER_SIZE]);
 
   protected:
     void onPress(uint8_t accumulation) override;
@@ -181,9 +181,9 @@ namespace hidpg
   template <size_t N>
   static Command *LY(const CommandPtr (&arr)[N])
   {
-    static_assert(N <= LAYER_SIZE, "");
+    static_assert(N <= HID_ENGINE_LAYER_SIZE, "");
 
-    Command **arg = new Command *[LAYER_SIZE] {};
+    Command **arg = new Command *[HID_ENGINE_LAYER_SIZE] {};
     for (size_t i = 0; i < N; i++)
     {
       arg[i] = arr[i];
@@ -259,7 +259,7 @@ namespace hidpg
 
   private:
     const uint8_t _layer_number;
-    bool _chained_osl[LAYER_SIZE];
+    bool _chained_osl[HID_ENGINE_LAYER_SIZE];
   };
 
   static inline Command *OSL(uint8_t layer_number) { return (new OneShotLayer(layer_number)); }

@@ -42,15 +42,15 @@ namespace hidpg
 
     // OneShot
     static void setOneShot(uint8_t number);
-    static void peekOneShot(bool (&layer)[LAYER_SIZE]);
+    static void peekOneShot(bool (&layer)[HID_ENGINE_LAYER_SIZE]);
 
     // 現在の状態を取得
-    static void takeState(bool (&layer)[LAYER_SIZE]);
+    static void takeState(bool (&layer)[HID_ENGINE_LAYER_SIZE]);
 
   private:
-    static bool _toggle[LAYER_SIZE];
-    static uint8_t _on_counters[LAYER_SIZE];
-    static bool _one_shot[LAYER_SIZE];
+    static bool _toggle[HID_ENGINE_LAYER_SIZE];
+    static uint8_t _on_counters[HID_ENGINE_LAYER_SIZE];
+    static bool _one_shot[HID_ENGINE_LAYER_SIZE];
   };
 
   extern LayerClass Layer;

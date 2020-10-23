@@ -25,34 +25,34 @@
 #pragma once
 
 // レイヤーのサイズ
-#ifndef LAYER_SIZE
-#define LAYER_SIZE 8
+#ifndef HID_ENGINE_LAYER_SIZE
+#define HID_ENGINE_LAYER_SIZE 8
 #endif
 
 // TapDanceコマンドのタップ判定時間 (ms)
-#ifndef TAPPING_TERM_MS
-#define TAPPING_TERM_MS 200
+#ifndef HID_ENGINE_TAPPING_TERM_MS
+#define HID_ENGINE_TAPPING_TERM_MS 200
 #endif
 
 // 同時押しキーマップの最大同時押し数
-#ifndef MAX_SIMUL_PRESS_COUNT
-#define MAX_SIMUL_PRESS_COUNT 5
+#ifndef HID_ENGINE_MAX_SIMUL_PRESS_COUNT
+#define HID_ENGINE_MAX_SIMUL_PRESS_COUNT 5
 #endif
 
 // シーケンスキーマップの最大シーケンス数
-#ifndef MAX_SEQ_COUNT
-#define MAX_SEQ_COUNT 5
+#ifndef HID_ENGINE_MAX_SEQ_COUNT
+#define HID_ENGINE_MAX_SEQ_COUNT 5
 #endif
 
 // MouseMoveコマンドの最初のキープレス時のディレイ
-#ifndef MOUSEKEY_DELAY_MS
-#define MOUSEKEY_DELAY_MS 200
+#ifndef HID_ENGINE_MOUSEKEY_DELAY_MS
+#define HID_ENGINE_MOUSEKEY_DELAY_MS 200
 #endif
 
 // MouseMoveのマウスカーソルの動く間隔 (ms)
 // ワイヤレスの場合下げすぎると不安定になるかも
-#ifndef MOUSEKEY_INTERVAL_MS
-#define MOUSEKEY_INTERVAL_MS 15
+#ifndef HID_ENGINE_MOUSEKEY_INTERVAL_MS
+#define HID_ENGINE_MOUSEKEY_INTERVAL_MS 15
 #endif
 
 // HidEngineタスクのスタックサイズ

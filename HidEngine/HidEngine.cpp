@@ -105,7 +105,7 @@ namespace hidpg
   void HidEngineClass::applyToKeymap_impl(const Set &key_ids)
   {
     static Set prev_ids, pressed_in_seq_mode_ids;
-    static uint8_t id_seq[MAX_SEQ_COUNT];
+    static uint8_t id_seq[HID_ENGINE_MAX_SEQ_COUNT];
     static size_t id_seq_len = 0;
     static SeqKey *matched;
 
@@ -189,7 +189,7 @@ namespace hidpg
 
       // id_seqにシーケンスモードになってから新しく押されたidを順番に保存する
       size_t i = 0;
-      while ((id_seq_len < MAX_SEQ_COUNT) && (i < new_press_len))
+      while ((id_seq_len < HID_ENGINE_MAX_SEQ_COUNT) && (i < new_press_len))
       {
         id_seq[id_seq_len++] = new_press_arr[i++];
       }

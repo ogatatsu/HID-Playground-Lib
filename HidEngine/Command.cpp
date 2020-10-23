@@ -206,9 +206,9 @@ namespace hidpg
   //------------------------------------------------------------------+
   // Layering
   //------------------------------------------------------------------+
-  Layering::Layering(Command *commands[LAYER_SIZE]) : _commands(commands)
+  Layering::Layering(Command *commands[HID_ENGINE_LAYER_SIZE]) : _commands(commands)
   {
-    for (int i = 0; i < LAYER_SIZE; i++)
+    for (int i = 0; i < HID_ENGINE_LAYER_SIZE; i++)
     {
       if (commands[i] != nullptr)
       {
@@ -220,13 +220,13 @@ namespace hidpg
   void Layering::onPress(uint8_t accumulation)
   {
     // 現在のレイヤーの状態を取得
-    bool layer_state[LAYER_SIZE];
+    bool layer_state[HID_ENGINE_LAYER_SIZE];
     Layer.takeState(layer_state);
 
     _running_command = nullptr;
 
     // layerを上から舐めていってonのlayerを探す
-    int i = LAYER_SIZE - 1;
+    int i = HID_ENGINE_LAYER_SIZE - 1;
     for (; i >= 0; i--)
     {
       if (layer_state[i] == true)
@@ -329,7 +329,7 @@ namespace hidpg
   {
     Layer.setOneShot(_layer_number);
     Layer.peekOneShot(_chained_osl);
-    for (int i = 0; i < LAYER_SIZE; i++)
+    for (int i = 0; i < HID_ENGINE_LAYER_SIZE; i++)
     {
       if (_chained_osl[i])
       {
@@ -340,7 +340,7 @@ namespace hidpg
 
   uint8_t OneShotLayer::onRelease()
   {
-    for (int i = 0; i < LAYER_SIZE; i++)
+    for (int i = 0; i < HID_ENGINE_LAYER_SIZE; i++)
     {
       if (_chained_osl[i])
       {
@@ -370,7 +370,7 @@ namespace hidpg
     {
       _count++;
       _state = State::Unfixed;
-      startTimer(TAPPING_TERM_MS);
+      startTimer(HID_ENGINE_TAPPING_TERM_MS);
     }
   }
 
@@ -393,7 +393,7 @@ namespace hidpg
       else
       {
         _state = State::Tap_or_NextCommand;
-        startTimer(TAPPING_TERM_MS);
+        startTimer(HID_ENGINE_TAPPING_TERM_MS);
       }
     }
     return 1;
@@ -513,7 +513,7 @@ namespace hidpg
     Hid.mouseMove(x, y);
     if (_count == 1)
     {
-      startTimer(MOUSEKEY_DELAY_MS);
+      startTimer(HID_ENGINE_MOUSEKEY_DELAY_MS);
     }
   }
 
@@ -533,7 +533,7 @@ namespace hidpg
     int16_t x, y;
     calcXY(x, y);
     Hid.mouseMove(x, y);
-    startTimer(MOUSEKEY_INTERVAL_MS);
+    startTimer(HID_ENGINE_MOUSEKEY_INTERVAL_MS);
   }
 
   void MouseMove::Mover::calcXY(int16_t &x, int16_t &y)

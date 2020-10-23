@@ -39,14 +39,14 @@ namespace hidpg
 
   struct SimulKey
   {
-    uint8_t key_ids[MAX_SIMUL_PRESS_COUNT];
+    uint8_t key_ids[HID_ENGINE_MAX_SIMUL_PRESS_COUNT];
     Command *command;
     size_t key_ids_len;
   };
 
   struct SeqKey
   {
-    uint8_t key_ids[MAX_SEQ_COUNT];
+    uint8_t key_ids[HID_ENGINE_MAX_SEQ_COUNT];
     Command *command;
     size_t key_ids_len;
   };
@@ -81,7 +81,7 @@ namespace hidpg
 
       for (int i = 0; i < _simul_keymap_len; i++)
       {
-        _simul_keymap[i].key_ids_len = getValidLength(_simul_keymap[i].key_ids, MAX_SIMUL_PRESS_COUNT);
+        _simul_keymap[i].key_ids_len = getValidLength(_simul_keymap[i].key_ids, HID_ENGINE_MAX_SIMUL_PRESS_COUNT);
       }
     }
 
@@ -93,7 +93,7 @@ namespace hidpg
 
       for (int i = 0; i < _seq_keymap_len; i++)
       {
-        _seq_keymap[i].key_ids_len = getValidLength(_seq_keymap[i].key_ids, MAX_SEQ_COUNT);
+        _seq_keymap[i].key_ids_len = getValidLength(_seq_keymap[i].key_ids, HID_ENGINE_MAX_SEQ_COUNT);
       }
     }
 
