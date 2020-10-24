@@ -67,5 +67,5 @@
 
 // HidEngine内部で使用しているイベントキューのサイズ
 #ifndef HID_ENGINE_EVENT_QUEUE_SIZE
-#define HID_ENGINE_EVENT_QUEUE_SIZE 16
+#define HID_ENGINE_EVENT_QUEUE_SIZE 8
 #endif
