@@ -388,14 +388,15 @@ namespace hidpg
 
       Hid.waitReady();
       _read_encoder_step_cb(encoder_id, &step);
+      uint8_t step_u8 = constrain(abs(step), 0, UINT8_MAX);
 
       if (step >= 0)
       {
-        CommandTapper.tap(_encoderMap[idx].clockwise_command, step);
+        CommandTapper.tap(_encoderMap[idx].clockwise_command, step_u8);
       }
       else
       {
-        CommandTapper.tap(_encoderMap[idx].counterclockwise_command, -step);
+        CommandTapper.tap(_encoderMap[idx].counterclockwise_command, step_u8);
       }
     }
   }

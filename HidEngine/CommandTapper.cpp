@@ -61,7 +61,7 @@ namespace hidpg
     Pair last = _list.get(_list.size() - 1);
     if (last.command == command)
     {
-      last.num_of_taps += n_times;
+      last.num_of_taps = constrain(last.num_of_taps + n_times, 0, UINT8_MAX);
       _list.set(_list.size() - 1, last);
       return;
     }
