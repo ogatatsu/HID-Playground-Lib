@@ -56,7 +56,7 @@ namespace hidpg
   {
     if (_task_handles[0] != nullptr)
     {
-      xTaskNotifyFromISR(_task_handles[0], 0, eNoAction, nullptr);
+      xTaskNotifyFromISR(_task_handles[0], 1, eSetValueWithOverwrite, nullptr);
     }
   }
 
@@ -64,7 +64,7 @@ namespace hidpg
   {
     if (_task_handles[1] != nullptr)
     {
-      xTaskNotifyFromISR(_task_handles[1], 0, eNoAction, nullptr);
+      xTaskNotifyFromISR(_task_handles[1], 1, eSetValueWithOverwrite, nullptr);
     }
   }
 
