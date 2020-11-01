@@ -36,7 +36,6 @@ namespace hidpg
   enum class EventType
   {
     ApplyToKeymap,
-    TapCommand,
     MouseMove,
     RotateEncoder,
     Timer,

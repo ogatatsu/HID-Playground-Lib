@@ -79,10 +79,6 @@ namespace hidpg
         CommandTapper.onTimer();
         break;
       }
-      default:
-      {
-        break;
-      }
       }
     }
   }
