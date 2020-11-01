@@ -36,7 +36,7 @@
 
 // Minimum guaranteed number of Handle Value Notifications that can be queued for transmission.
 #ifndef BLE_HVN_TX_QUEUE_SIZE
-#define BLE_HVN_TX_QUEUE_SIZE 8
+#define BLE_HVN_TX_QUEUE_SIZE 2
 #endif
 
 // アドバタイジング時に点滅させるLEDのピン番号
