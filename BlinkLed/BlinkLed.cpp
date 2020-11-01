@@ -59,7 +59,7 @@ namespace hidpg
     while (true)
     {
       that->_is_blink = false;
-      xTaskNotifyWait(0, 0, nullptr, portMAX_DELAY);
+      ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
       while (that->_n_times != 0)
       {
         that->_is_blink = true;
@@ -78,7 +78,7 @@ namespace hidpg
   void BlinkLed::blink(uint8_t n_times)
   {
     _n_times = n_times;
-    xTaskNotify(_task_handle, 0, eNoAction);
+    xTaskNotify(_task_handle, 1, eSetValueWithOverwrite);
   }
 
   void BlinkLed::off()
