@@ -111,7 +111,7 @@ namespace hidpg
     return i;
   }
 
-  void HidEngineClass::applyToKeymap_impl(const Set &key_ids)
+  void HidEngineClass::processSeqKeymap(Set &key_ids)
   {
     static Set prev_ids, pressed_in_seq_mode_ids;
     static uint8_t id_seq[HID_ENGINE_MAX_SEQ_COUNT];
@@ -121,74 +121,15 @@ namespace hidpg
     // シーケンスモード中に押されたidがリリースされるまで監視する
     if (pressed_in_seq_mode_ids.count() != 0)
     {
-      // 1つ前のids - 現在のids = リリースされたids
+      // リリースされたids = 1つ前のids - 現在のids
       Set release_ids = prev_ids - key_ids;
       pressed_in_seq_mode_ids -= release_ids;
     }
 
-    // process keymap
-    for (size_t i = 0; i < _keymap_len; i++)
-    {
-      // シーケンスモード中に押されたidなら何もしない
-      if (pressed_in_seq_mode_ids.contains(_keymap[i].key_id))
-      {
-        continue;
-      }
-      // idが押されているかを取得
-      bool pressed = key_ids.contains(_keymap[i].key_id);
-      // シーケンスモード中はコマンドを新しく実行しない、リリースのみ許可する
-      if ((pressed == true) && (_seq_mode_state == SeqModeState::Running))
-      {
-        continue;
-      }
-      // コマンドに現在の状態を適用する
-      if (pressed)
-      {
-        _keymap[i].command->press();
-      }
-      else
-      {
-        _keymap[i].command->release();
-      }
-    }
-
-    // process simul_keymap
-    for (size_t i = 0; i < _simul_keymap_len; i++)
-    {
-      // シーケンスモード中に押されたidが含まれていたら何もしない
-      if (pressed_in_seq_mode_ids.containsAny(_simul_keymap[i].key_ids, _simul_keymap[i].key_ids_len))
-      {
-        continue;
-      }
-      // 全てのidが押されているかを取得
-      bool pressed = key_ids.containsAll(_simul_keymap[i].key_ids, _simul_keymap[i].key_ids_len);
-      // シーケンスモード中はコマンドを新しく実行しない、リリースのみ許可する
-      if ((pressed == true) && (_seq_mode_state == SeqModeState::Running))
-      {
-        continue;
-      }
-      // コマンドに現在の状態を適用する
-      if (pressed)
-      {
-        _simul_keymap[i].command->press();
-      }
-      else
-      {
-        _simul_keymap[i].command->release();
-      }
-    }
-
-    // process seq_keymap
-    if (_seq_mode_state == SeqModeState::Triggered)
-    {
-      // SEQ_MODEコマンドが実行されたら_seq_mode_stateがTriggeredになりここに来る
-      // 次の入力からシーケンスモードを開始する
-      _seq_mode_state = SeqModeState::Running;
-    }
-    else if (_seq_mode_state == SeqModeState::Running)
+    if (_seq_mode_state == SeqModeState::Running)
     {
       // 新しく押されたidを順番に保存していきseq_keymap内で一致している物があるかどうかを調べる
-      // 現在のids - 1つ前のids = 新しく押されたids
+      // 新しく押されたids = 現在のids - 1つ前のids
       Set new_press_ids = key_ids - prev_ids;
 
       // Setだと直接値を取得できないので配列に変換
@@ -239,6 +180,55 @@ namespace hidpg
 
     // 1つ前のidとして保存
     prev_ids = key_ids;
+
+    if (pressed_in_seq_mode_ids.count() != 0)
+    {
+      // シーケンスモード中に押されたidはprocessKeymap()では処理しない
+      key_ids -= pressed_in_seq_mode_ids;
+    }
+  }
+
+  void HidEngineClass::processKeymap(Set &key_ids)
+  {
+    // process keymap
+    for (size_t i = 0; i < _keymap_len; i++)
+    {
+      // idが押されているかを取得
+      bool pressed = key_ids.contains(_keymap[i].key_id);
+
+      // コマンドに現在の状態を適用する
+      if (pressed)
+      {
+        _keymap[i].command->press();
+      }
+      else
+      {
+        _keymap[i].command->release();
+      }
+    }
+
+    // process simul_keymap
+    for (size_t i = 0; i < _simul_keymap_len; i++)
+    {
+      // 全てのidが押されているかを取得
+      bool pressed = key_ids.containsAll(_simul_keymap[i].key_ids, _simul_keymap[i].key_ids_len);
+
+      // コマンドに現在の状態を適用する
+      if (pressed)
+      {
+        _simul_keymap[i].command->press();
+      }
+      else
+      {
+        _simul_keymap[i].command->release();
+      }
+    }
+  }
+
+  void HidEngineClass::applyToKeymap_impl(Set &key_ids)
+  {
+    processSeqKeymap(key_ids);
+    processKeymap(key_ids);
   }
 
   // 引数のid_seqがseq_keymapの定義とマッチするか調べる
@@ -405,7 +395,7 @@ namespace hidpg
   {
     if (_seq_mode_state == SeqModeState::Disable)
     {
-      _seq_mode_state = SeqModeState::Triggered;
+      _seq_mode_state = SeqModeState::Running;
     }
   }
 

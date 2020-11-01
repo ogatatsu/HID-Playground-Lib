@@ -130,7 +130,9 @@ namespace hidpg
     static void setReadEncoderStepCallback(read_encoder_step_callback_t cb);
 
   private:
-    static void applyToKeymap_impl(const Set &key_ids);
+    static void applyToKeymap_impl(Set &key_ids);
+    static void processSeqKeymap(Set &key_ids);
+    static void processKeymap(Set &key_ids);
     static void mouseMove_impl();
     static void rotateEncoder_impl(uint8_t encoder_id);
     static int match_with_seqKeymap(const uint8_t id_seq[], size_t len, SeqKey **matched);
@@ -191,7 +193,6 @@ namespace hidpg
     enum class SeqModeState
     {
       Disable,
-      Triggered,
       Running,
       WaitRelease,
     };
