@@ -166,7 +166,7 @@ namespace hidpg
 
   void BleControllerPeripheral::clearBonds()
   {
-    bond_clear_prph();
+    Bluefruit.Periph.clearBonds();
     _addr_store.clear();
   }
 

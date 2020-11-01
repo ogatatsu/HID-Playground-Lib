@@ -113,7 +113,7 @@ namespace hidpg
 
   void BleControllerSlaveClass::clearBonds()
   {
-    Bluefruit.clearBonds();
+    Bluefruit.Periph.clearBonds();
   }
 
   void BleControllerSlaveClass::setBatteryLevel(uint8_t level)
