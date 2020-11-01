@@ -121,6 +121,20 @@ namespace hidpg
     _ble_bas.write(level);
   }
 
+  bool BleControllerSlaveClass::waitReady()
+  {
+    uint16_t conn_hdl = Bluefruit.connHandle();
+    auto conn = Bluefruit.Connection(conn_hdl);
+
+    if (conn != nullptr)
+    {
+      if (conn->getHvnPacket() == false)
+        return false;
+      conn->releaseHvnPacket();
+    }
+    return true;
+  }
+
   void BleControllerSlaveClass::setCannnotConnectCallback(cannotConnectCallback_t callback)
   {
     _cannot_connect_cb = callback;

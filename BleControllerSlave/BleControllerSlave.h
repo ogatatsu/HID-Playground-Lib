@@ -45,6 +45,7 @@ namespace hidpg
     static uint16_t sendData(const uint8_t *data, uint16_t len);
     static void clearBonds();
     static void setBatteryLevel(uint8_t level);
+    static bool waitReady();
     static void setCannnotConnectCallback(cannotConnectCallback_t callback);
     static void setReceiveDataCallback(receiveDataCallback_t callback);
 
