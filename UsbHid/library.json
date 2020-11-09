@@ -4,6 +4,9 @@
   "dependencies": [
     {
       "name": "HID-Playground HidReporter"
+    },
+    {
+      "name": "Adafruit TinyUSB Library"
     }
   ]
 }
