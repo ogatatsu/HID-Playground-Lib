@@ -46,6 +46,8 @@ namespace hidpg
     void removeAll(const uint8_t vals[], size_t len);
     Set &operator-=(const Set &rhs);
 
+    void update(uint8_t val, bool b);
+
     void clear();
 
     bool contains(uint8_t val) const;

@@ -86,6 +86,18 @@ namespace hidpg
     return *this;
   }
 
+  void Set::update(uint8_t val, bool b)
+  {
+    if (b)
+    {
+      add(val);
+    }
+    else
+    {
+      remove(val);
+    }
+  }
+
   void Set::clear()
   {
     memset(_data, 0, sizeof(_data));
