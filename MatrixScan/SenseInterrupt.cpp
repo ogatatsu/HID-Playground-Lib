@@ -24,7 +24,7 @@
 
 #include "MatrixScan_config.h"
 
-#ifdef MATRIX_SCAN_USE_SENSE_INTERRUPT
+#if MATRIX_SCAN_USE_SENSE_INTERRUPT
 
 #include "SenseInterrupt.h"
 #include "nrf_egu.h"
