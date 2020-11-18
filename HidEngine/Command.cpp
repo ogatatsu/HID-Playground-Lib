@@ -58,12 +58,13 @@ namespace hidpg
     {
       _last_pressed_command = this;
 
+      // notify before different command press
       for (int i = 0; i < _listener_list().size(); i++)
       {
         Command *listener = _listener_list().get(i);
         if (getRootCommand(listener) != getRootCommand(this))
         {
-          listener->onDifferentRootCommandPress();
+          listener->onBeforeInput();
         }
       }
       onPress(accumulation);
@@ -89,9 +90,18 @@ namespace hidpg
     return _last_pressed_command == this;
   }
 
-  void Command::addEventListener_DifferentRootCommandPress()
+  void Command::addEventListener_BeforeInput()
   {
     _listener_list().add(this);
+  }
+
+  void Command::_notifyBeforeMouseMove()
+  {
+    for (int i = 0; i < _listener_list().size(); i++)
+    {
+      Command *listener = _listener_list().get(i);
+      listener->onBeforeInput();
+    }
   }
 
   //------------------------------------------------------------------+
@@ -356,7 +366,7 @@ namespace hidpg
   TapDance::TapDance(Pair pairs[], size_t len)
       : TimerMixin(), _pairs(pairs), _len(len), _count(-1), _state(State::Unexecuted)
   {
-    addEventListener_DifferentRootCommandPress();
+    addEventListener_BeforeInput();
     for (size_t i = 0; i < len; i++)
     {
       pairs[i].tap_command->setParent(this);
@@ -417,7 +427,7 @@ namespace hidpg
     }
   }
 
-  void TapDance::onDifferentRootCommandPress()
+  void TapDance::onBeforeInput()
   {
     if (_state == State::Unfixed)
     {

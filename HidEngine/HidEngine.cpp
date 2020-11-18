@@ -258,6 +258,8 @@ namespace hidpg
   {
     static uint8_t prev_track_id;
 
+    Command::_notifyBeforeMouseMove();
+
     if (_tracking_list.size() > 0) // Tracking Commandが実行中の場合
     {
       // 一番上のtrack_idを取得

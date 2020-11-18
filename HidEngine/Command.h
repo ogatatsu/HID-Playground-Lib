@@ -45,15 +45,17 @@ namespace hidpg
     void setParent(Command *parent) { _parent = parent; }
     Command *getParent() { return _parent; }
 
+    static void _notifyBeforeMouseMove();
+
   protected:
     bool isLastPressed();
     virtual void onPress(uint8_t accumulation) {}
     virtual uint8_t onRelease() { return 1; }
-    virtual void onDifferentRootCommandPress() {}
-    void addEventListener_DifferentRootCommandPress();
+    virtual void onBeforeInput() {}
+    void addEventListener_BeforeInput();
 
   private:
-    // keymap(グローバル変数)の定義で特定のコマンドがnewされたときにaddEventListener_DifferentRootCommandPress()が呼ばれる
+    // keymap(グローバル変数)の定義で特定のコマンドがnewされたときにaddEventListener_BeforeInput()が呼ばれる
     // _listenerListはその内部で使用するので単純なstatic変数にすると初期化順序が問題になる。
     // https://isocpp.org/wiki/faq/ctors#static-init-order-on-first-use
     static LinkedList<Command *> &_listener_list()
@@ -282,7 +284,7 @@ namespace hidpg
     void onPress(uint8_t accumulation) override;
     uint8_t onRelease() override;
     void onTimer() override;
-    void onDifferentRootCommandPress() override;
+    void onBeforeInput() override;
 
   private:
     enum class State
