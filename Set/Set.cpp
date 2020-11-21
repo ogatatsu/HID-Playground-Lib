@@ -28,73 +28,85 @@
 namespace hidpg
 {
 
-  Set::Set() : _data(), _count(0), _needs_recount(false)
+  Set::Set() : _data(), _count(0)
   {
   }
 
-  void Set::add(uint8_t val)
+  bool Set::add(uint8_t val)
   {
+    if (contains(val))
+    {
+      return false;
+    }
+
     bitSet(_data[val / 8], val % 8);
-    _needs_recount = true;
+    _count++;
+    return true;
   }
 
   void Set::addAll(const uint8_t vals[], size_t len)
   {
     for (size_t i = 0; i < len; i++)
     {
-      bitSet(_data[vals[i] / 8], vals[i] % 8);
+      add(vals[i]);
     }
-    _needs_recount = true;
   }
 
   Set &Set::operator|=(const Set &rhs)
   {
     uint32_t *data_32 = reinterpret_cast<uint32_t *>(_data);
     uint32_t *rhs_data_32 = reinterpret_cast<uint32_t *>(const_cast<uint8_t *>(rhs._data));
+    _count = 0;
     for (int i = 0; i < 8; i++)
     {
       data_32[i] |= rhs_data_32[i];
+      _count += __builtin_popcountl(data_32[i]);
     }
-    _needs_recount = true;
     return *this;
   }
 
-  void Set::remove(uint8_t val)
+  bool Set::remove(uint8_t val)
   {
+    if (contains(val) == false)
+    {
+      return false;
+    }
+
     bitClear(_data[val / 8], val % 8);
-    _needs_recount = true;
+    _count--;
+    return true;
   }
 
   void Set::removeAll(const uint8_t vals[], size_t len)
   {
     for (size_t i = 0; i < len; i++)
     {
-      bitClear(_data[vals[i] / 8], vals[i] % 8);
+      remove(vals[i]);
     }
-    _needs_recount = true;
   }
 
   Set &Set::operator-=(const Set &rhs)
   {
     uint32_t *data_32 = reinterpret_cast<uint32_t *>(_data);
     uint32_t *rhs_data_32 = reinterpret_cast<uint32_t *>(const_cast<uint8_t *>(rhs._data));
+    _count = 0;
     for (int i = 0; i < 8; i++)
     {
       data_32[i] &= ~(rhs_data_32[i]);
+      _count += __builtin_popcountl(data_32[i]);
     }
-    _needs_recount = true;
     return *this;
   }
 
-  void Set::update(uint8_t val, bool b)
+  bool Set::update(uint8_t val, bool b)
   {
     if (b)
     {
-      add(val);
+      return add(val);
     }
     else
     {
-      remove(val);
+      return remove(val);
     }
   }
 
@@ -102,7 +114,6 @@ namespace hidpg
   {
     memset(_data, 0, sizeof(_data));
     _count = 0;
-    _needs_recount = false;
   }
 
   bool Set::contains(uint8_t val) const
@@ -136,34 +147,36 @@ namespace hidpg
 
   void Set::toArray(uint8_t buf[]) const
   {
-    uint16_t buf_size = this->count();
-    uint16_t buf_size_cnt = 0;
+    if (_count == 0)
+      return;
 
-    for (int num = 0;; num++)
+    uint16_t buf_cnt = 0;
+    uint32_t *data_32 = reinterpret_cast<uint32_t *>(const_cast<uint8_t *>(_data));
+
+    for (int i = 0; i < 8; i++)
     {
-      if (buf_size_cnt == buf_size)
+      if (data_32[i] == 0)
       {
-        return;
+        continue;
       }
-      if (contains(num))
+      for (int j = 0; j < 32; j++)
       {
-        buf[buf_size_cnt++] = num;
+        uint8_t val = i * 32 + j;
+        if (contains(val))
+        {
+          buf[buf_cnt++] = val;
+
+          if (buf_cnt == _count)
+          {
+            return;
+          }
+        }
       }
     }
   }
 
   uint16_t Set::count() const
   {
-    if (_needs_recount)
-    {
-      _count = 0;
-      uint32_t *data_32 = reinterpret_cast<uint32_t *>(const_cast<uint8_t *>(_data));
-      for (int i = 0; i < 8; i++)
-      {
-        _count += __builtin_popcountl(data_32[i]);
-      }
-      _needs_recount = false;
-    }
     return _count;
   }
 
@@ -184,16 +197,34 @@ namespace hidpg
   Set operator|(const Set &a, const Set &b)
   {
     Set result;
-    result |= a;
-    result |= b;
+
+    uint32_t *a_data_32 = reinterpret_cast<uint32_t *>(const_cast<uint8_t *>(a._data));
+    uint32_t *b_data_32 = reinterpret_cast<uint32_t *>(const_cast<uint8_t *>(b._data));
+    uint32_t *r_data_32 = reinterpret_cast<uint32_t *>(const_cast<uint8_t *>(result._data));
+
+    for (int i = 0; i < 8; i++)
+    {
+      r_data_32[i] |= a_data_32[i];
+      r_data_32[i] |= b_data_32[i];
+      result._count += __builtin_popcountl(r_data_32[i]);
+    }
     return result;
   }
 
   Set operator-(const Set &a, const Set &b)
   {
     Set result;
-    result |= a;
-    result -= b;
+
+    uint32_t *a_data_32 = reinterpret_cast<uint32_t *>(const_cast<uint8_t *>(a._data));
+    uint32_t *b_data_32 = reinterpret_cast<uint32_t *>(const_cast<uint8_t *>(b._data));
+    uint32_t *r_data_32 = reinterpret_cast<uint32_t *>(const_cast<uint8_t *>(result._data));
+
+    for (int i = 0; i < 8; i++)
+    {
+      r_data_32[i] |= a_data_32[i];
+      r_data_32[i] &= ~(b_data_32[i]);
+      result._count += __builtin_popcountl(r_data_32[i]);
+    }
     return result;
   }
 

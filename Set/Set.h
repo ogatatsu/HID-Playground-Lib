@@ -34,19 +34,21 @@ namespace hidpg
   class Set
   {
     friend bool operator==(const Set &a, const Set &b);
+    friend Set operator|(const Set &a, const Set &b);
+    friend Set operator-(const Set &a, const Set &b);
 
   public:
     Set();
 
-    void add(uint8_t val);
+    bool add(uint8_t val);
     void addAll(const uint8_t vals[], size_t len);
     Set &operator|=(const Set &rhs);
 
-    void remove(uint8_t val);
+    bool remove(uint8_t val);
     void removeAll(const uint8_t vals[], size_t len);
     Set &operator-=(const Set &rhs);
 
-    void update(uint8_t val, bool b);
+    bool update(uint8_t val, bool b);
 
     void clear();
 
@@ -60,8 +62,7 @@ namespace hidpg
   private:
     // 8 * 32 = 256
     uint8_t _data[32];
-    mutable uint16_t _count;
-    mutable bool _needs_recount;
+    uint16_t _count;
   };
 
   // 比較
