@@ -33,26 +33,29 @@ namespace hidpg
   class LayerClass
   {
   public:
+    LayerClass();
+
     // 恒久的な操作
-    static void toggle(uint8_t number);
+    void toggle(uint8_t number);
 
     // 一時的な操作
-    static void on(uint8_t number);
-    static void off(uint8_t number);
+    void on(uint8_t number);
+    void off(uint8_t number);
 
     // OneShot
-    static void setOneShot(uint8_t number);
-    static void peekOneShot(bool (&layer)[HID_ENGINE_LAYER_SIZE]);
+    void setOneShot(uint8_t number);
+    void peekOneShot(bool (&layer)[HID_ENGINE_LAYER_SIZE]);
 
     // 現在の状態を取得
-    static void takeState(bool (&layer)[HID_ENGINE_LAYER_SIZE]);
+    void takeState(bool (&layer)[HID_ENGINE_LAYER_SIZE]);
 
   private:
-    static bool _toggle[HID_ENGINE_LAYER_SIZE];
-    static uint8_t _on_counters[HID_ENGINE_LAYER_SIZE];
-    static bool _one_shot[HID_ENGINE_LAYER_SIZE];
+    bool _toggle[HID_ENGINE_LAYER_SIZE];
+    uint8_t _on_counters[HID_ENGINE_LAYER_SIZE];
+    bool _one_shot[HID_ENGINE_LAYER_SIZE];
   };
 
-  extern LayerClass Layer;
+  extern LayerClass Layer1;
+  extern LayerClass Layer2;
 
 } // namespace hidpg

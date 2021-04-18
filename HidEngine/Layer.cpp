@@ -27,9 +27,9 @@
 namespace hidpg
 {
 
-  bool LayerClass::_toggle[HID_ENGINE_LAYER_SIZE] = {};
-  uint8_t LayerClass::_on_counters[HID_ENGINE_LAYER_SIZE] = {};
-  bool LayerClass::_one_shot[HID_ENGINE_LAYER_SIZE] = {};
+  LayerClass::LayerClass() : _toggle(), _on_counters(), _one_shot()
+  {
+  }
 
   void LayerClass::toggle(uint8_t number)
   {
@@ -98,6 +98,7 @@ namespace hidpg
     layer[0] = true;
   }
 
-  LayerClass Layer;
+  LayerClass Layer1;
+  LayerClass Layer2;
 
 } // namespace hidpg

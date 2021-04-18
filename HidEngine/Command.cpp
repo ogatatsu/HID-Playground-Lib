@@ -25,7 +25,6 @@
 #include "Command.h"
 #include "Arduino.h"
 #include "HidCore.h"
-#include "Layer.h"
 #include "MouseSpeedController.h"
 
 namespace hidpg
@@ -216,7 +215,7 @@ namespace hidpg
   //------------------------------------------------------------------+
   // Layering
   //------------------------------------------------------------------+
-  Layering::Layering(Command *commands[HID_ENGINE_LAYER_SIZE]) : _commands(commands)
+  Layering::Layering(LayerClass *layer, Command *commands[HID_ENGINE_LAYER_SIZE]) : _layer(layer), _commands(commands)
   {
     for (int i = 0; i < HID_ENGINE_LAYER_SIZE; i++)
     {
@@ -231,7 +230,7 @@ namespace hidpg
   {
     // 現在のレイヤーの状態を取得
     bool layer_state[HID_ENGINE_LAYER_SIZE];
-    Layer.takeState(layer_state);
+    _layer->takeState(layer_state);
 
     _running_command = nullptr;
 
@@ -276,20 +275,20 @@ namespace hidpg
   //------------------------------------------------------------------+
   // LayerTap
   //------------------------------------------------------------------+
-  LayerTap::LayerTap(uint8_t layer_number, Command *command)
-      : _layer_number(layer_number), _command(command)
+  LayerTap::LayerTap(LayerClass *layer, uint8_t layer_number, Command *command)
+      : _layer(layer), _layer_number(layer_number), _command(command)
   {
     _command->setParent(this);
   }
 
   void LayerTap::onPress(uint8_t accumulation)
   {
-    Layer.on(_layer_number);
+    _layer->on(_layer_number);
   }
 
   uint8_t LayerTap::onRelease()
   {
-    Layer.off(_layer_number);
+    _layer->off(_layer_number);
     if (this->isLastPressed())
     {
       _command->press();
@@ -301,49 +300,49 @@ namespace hidpg
   //------------------------------------------------------------------+
   // ToggleLayer
   //------------------------------------------------------------------+
-  ToggleLayer::ToggleLayer(uint8_t layer_number) : _layer_number(layer_number)
+  ToggleLayer::ToggleLayer(LayerClass *layer, uint8_t layer_number) : _layer(layer), _layer_number(layer_number)
   {
   }
 
   void ToggleLayer::onPress(uint8_t accumulation)
   {
-    Layer.toggle(_layer_number);
+    _layer->toggle(_layer_number);
   }
 
   //------------------------------------------------------------------+
   // SwitchLayer
   //------------------------------------------------------------------+
-  SwitchLayer::SwitchLayer(uint8_t layer_number) : _layer_number(layer_number)
+  SwitchLayer::SwitchLayer(LayerClass *layer, uint8_t layer_number) : _layer(layer), _layer_number(layer_number)
   {
   }
 
   void SwitchLayer::onPress(uint8_t accumulation)
   {
-    Layer.on(_layer_number);
+    _layer->on(_layer_number);
   }
 
   uint8_t SwitchLayer::onRelease()
   {
-    Layer.off(_layer_number);
+    _layer->off(_layer_number);
     return 1;
   }
 
   //------------------------------------------------------------------+
   // OneShotLayer
   //------------------------------------------------------------------+
-  OneShotLayer::OneShotLayer(uint8_t layer_number) : _layer_number(layer_number)
+  OneShotLayer::OneShotLayer(LayerClass *layer, uint8_t layer_number) : _layer(layer), _layer_number(layer_number)
   {
   }
 
   void OneShotLayer::onPress(uint8_t accumulation)
   {
-    Layer.setOneShot(_layer_number);
-    Layer.peekOneShot(_chained_osl);
+    _layer->setOneShot(_layer_number);
+    _layer->peekOneShot(_chained_osl);
     for (int i = 0; i < HID_ENGINE_LAYER_SIZE; i++)
     {
       if (_chained_osl[i])
       {
-        Layer.on(i);
+        _layer->on(i);
       }
     }
   }
@@ -354,7 +353,7 @@ namespace hidpg
     {
       if (_chained_osl[i])
       {
-        Layer.off(i);
+        _layer->off(i);
       }
     }
     return 1;

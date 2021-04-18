@@ -26,6 +26,7 @@
 
 #include "HidEngine_config.h"
 #include "KeyCode.h"
+#include "Layer.h"
 #include "LinkedList.h"
 #include "TimerMixin.h"
 #include <stddef.h>
@@ -167,13 +168,14 @@ namespace hidpg
   class Layering : public Command
   {
   public:
-    Layering(Command *commands[HID_ENGINE_LAYER_SIZE]);
+    Layering(LayerClass *layer, Command *commands[HID_ENGINE_LAYER_SIZE]);
 
   protected:
     void onPress(uint8_t accumulation) override;
     uint8_t onRelease() override;
 
   private:
+    LayerClass *_layer;
     Command **const _commands;
     Command *_running_command;
   };
@@ -181,7 +183,7 @@ namespace hidpg
   using CommandPtr = Command *;
 
   template <size_t N>
-  static Command *LY(const CommandPtr (&arr)[N])
+  static Command *LY1(const CommandPtr (&arr)[N])
   {
     static_assert(N <= HID_ENGINE_LAYER_SIZE, "");
 
@@ -190,7 +192,20 @@ namespace hidpg
     {
       arg[i] = arr[i];
     }
-    return (new Layering(arg));
+    return (new Layering(&Layer1, arg));
+  }
+
+  template <size_t N>
+  static Command *LY2(const CommandPtr (&arr)[N])
+  {
+    static_assert(N <= HID_ENGINE_LAYER_SIZE, "");
+
+    Command **arg = new Command *[HID_ENGINE_LAYER_SIZE] {};
+    for (size_t i = 0; i < N; i++)
+    {
+      arg[i] = arr[i];
+    }
+    return (new Layering(&Layer2, arg));
   }
 
   //------------------------------------------------------------------+
@@ -199,18 +214,20 @@ namespace hidpg
   class LayerTap : public Command
   {
   public:
-    LayerTap(uint8_t layer_number, Command *command);
+    LayerTap(LayerClass *layer, uint8_t layer_number, Command *command);
 
   protected:
     void onPress(uint8_t accumulation) override;
     uint8_t onRelease() override;
 
   private:
+    LayerClass *_layer;
     const uint8_t _layer_number;
     Command *_command;
   };
 
-  static inline Command *LT(uint8_t layer_number, Command *command) { return (new LayerTap(layer_number, command)); }
+  static inline Command *LT1(uint8_t layer_number, Command *command) { return (new LayerTap(&Layer1, layer_number, command)); }
+  static inline Command *LT2(uint8_t layer_number, Command *command) { return (new LayerTap(&Layer2, layer_number, command)); }
 
   //------------------------------------------------------------------+
   // ToggleLayer
@@ -218,16 +235,18 @@ namespace hidpg
   class ToggleLayer : public Command
   {
   public:
-    ToggleLayer(uint8_t layer_number);
+    ToggleLayer(LayerClass *layer, uint8_t layer_number);
 
   protected:
     void onPress(uint8_t accumulation) override;
 
   private:
+    LayerClass *_layer;
     const uint8_t _layer_number;
   };
 
-  static inline Command *TL(uint8_t layer_number) { return (new ToggleLayer(layer_number)); }
+  static inline Command *TL1(uint8_t layer_number) { return (new ToggleLayer(&Layer1, layer_number)); }
+  static inline Command *TL2(uint8_t layer_number) { return (new ToggleLayer(&Layer2, layer_number)); }
 
   //------------------------------------------------------------------+
   // SwitchLayer
@@ -235,17 +254,19 @@ namespace hidpg
   class SwitchLayer : public Command
   {
   public:
-    SwitchLayer(uint8_t layer_number);
+    SwitchLayer(LayerClass *layer, uint8_t layer_number);
 
   protected:
     void onPress(uint8_t accumulation) override;
     uint8_t onRelease() override;
 
   private:
+    LayerClass *_layer;
     const uint8_t _layer_number;
   };
 
-  static inline Command *SL(uint8_t layer_number) { return (new SwitchLayer(layer_number)); }
+  static inline Command *SL1(uint8_t layer_number) { return (new SwitchLayer(&Layer1, layer_number)); }
+  static inline Command *SL2(uint8_t layer_number) { return (new SwitchLayer(&Layer2, layer_number)); }
 
   //------------------------------------------------------------------+
   // OneShotLayer
@@ -253,18 +274,20 @@ namespace hidpg
   class OneShotLayer : public Command
   {
   public:
-    OneShotLayer(uint8_t layer_number);
+    OneShotLayer(LayerClass *layer, uint8_t layer_number);
 
   protected:
     void onPress(uint8_t accumulation) override;
     uint8_t onRelease() override;
 
   private:
+    LayerClass *_layer;
     const uint8_t _layer_number;
     bool _chained_osl[HID_ENGINE_LAYER_SIZE];
   };
 
-  static inline Command *OSL(uint8_t layer_number) { return (new OneShotLayer(layer_number)); }
+  static inline Command *OSL1(uint8_t layer_number) { return (new OneShotLayer(&Layer1, layer_number)); }
+  static inline Command *OSL2(uint8_t layer_number) { return (new OneShotLayer(&Layer2, layer_number)); }
 
   //------------------------------------------------------------------+
   // TapDance
