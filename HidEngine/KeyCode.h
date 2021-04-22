@@ -147,7 +147,7 @@ namespace hidpg
     F22             = 113,
     F23             = 114,
     F24             = 115,
-
+    KeypadComma     = 133,
     Int1            = 135,
     Int2            = 136,
     Int3            = 137,

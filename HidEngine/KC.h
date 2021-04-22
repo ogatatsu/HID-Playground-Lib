@@ -148,6 +148,8 @@ namespace hidpg
   static constexpr KeyCode F23             = KeyCode::F23;
   static constexpr KeyCode F24             = KeyCode::F24;
 
+  static constexpr KeyCode KeypadComma     = KeyCode::KeypadComma;
+
   static constexpr KeyCode Int1            = KeyCode::Int1;
   static constexpr KeyCode Int2            = KeyCode::Int2;
   static constexpr KeyCode Int3            = KeyCode::Int3;
