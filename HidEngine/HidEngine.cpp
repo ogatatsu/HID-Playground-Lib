@@ -427,7 +427,7 @@ namespace hidpg
   //------------------------------------------------------------------+
   // SequenceMode
   //------------------------------------------------------------------+
-  void HidEngineClass::SequenceMode::onPress(uint8_t accumulation)
+  void HidEngineClass::SequenceMode::onPress(uint8_t n_times)
   {
     HidEngineClass::switchSequenceMode();
   }
@@ -444,7 +444,7 @@ namespace hidpg
     return _track_id;
   }
 
-  void HidEngineClass::Tracking::onPress(uint8_t accumulation)
+  void HidEngineClass::Tracking::onPress(uint8_t n_times)
   {
     HidEngineClass::startTracking(this);
   }

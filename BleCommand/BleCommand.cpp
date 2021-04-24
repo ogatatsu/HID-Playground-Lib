@@ -36,7 +36,7 @@ namespace hidpg
   {
   }
 
-  void ConnectBluetooth::onPress(uint8_t accumulation)
+  void ConnectBluetooth::onPress(uint8_t n_times)
   {
     BleController.Periph.startConnection(_slot);
   }
@@ -44,7 +44,7 @@ namespace hidpg
   //------------------------------------------------------------------+
   // ResetConnection
   //------------------------------------------------------------------+
-  void ResetConnection::onPress(uint8_t accumulation)
+  void ResetConnection::onPress(uint8_t n_times)
   {
     BleController.Periph.clearBonds();
     NVIC_SystemReset();

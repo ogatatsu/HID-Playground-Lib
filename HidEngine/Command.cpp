@@ -51,7 +51,7 @@ namespace hidpg
   }
 
   // instance method
-  void Command::press(uint8_t accumulation)
+  void Command::press(uint8_t n_times)
   {
     if (_prev_state == false) //FALL
     {
@@ -66,7 +66,7 @@ namespace hidpg
           listener->onBeforeInput();
         }
       }
-      onPress(accumulation);
+      onPress(n_times);
     }
     _prev_state = true;
   }
@@ -110,7 +110,7 @@ namespace hidpg
   {
   }
 
-  void NormalKey::onPress(uint8_t accumulation)
+  void NormalKey::onPress(uint8_t n_times)
   {
     Hid.setKey(_key_code);
     Hid.sendKeyReport(true);
@@ -130,7 +130,7 @@ namespace hidpg
   {
   }
 
-  void ModifierKey::onPress(uint8_t accumulation)
+  void ModifierKey::onPress(uint8_t n_times)
   {
     Hid.setModifier(_modifier);
     Hid.sendKeyReport(true);
@@ -150,7 +150,7 @@ namespace hidpg
   {
   }
 
-  void CombinationKey::onPress(uint8_t accumulation)
+  void CombinationKey::onPress(uint8_t n_times)
   {
     Hid.setKey(_key_code);
     Hid.setModifier(_modifier);
@@ -174,7 +174,7 @@ namespace hidpg
     _command->setParent(this);
   }
 
-  void ModifierTap::onPress(uint8_t accumulation)
+  void ModifierTap::onPress(uint8_t n_times)
   {
     Hid.setModifier(_modifier);
   }
@@ -201,7 +201,7 @@ namespace hidpg
   {
   }
 
-  void OneShotModifier::onPress(uint8_t accumulation)
+  void OneShotModifier::onPress(uint8_t n_times)
   {
     Hid.holdOneShotModifier(_modifier);
   }
@@ -226,7 +226,7 @@ namespace hidpg
     }
   }
 
-  void Layering::onPress(uint8_t accumulation)
+  void Layering::onPress(uint8_t n_times)
   {
     // 現在のレイヤーの状態を取得
     bool layer_state[HID_ENGINE_LAYER_SIZE];
@@ -258,7 +258,7 @@ namespace hidpg
     // 委託する
     if (_running_command != nullptr)
     {
-      _running_command->press(accumulation);
+      _running_command->press(n_times);
     }
   }
 
@@ -281,7 +281,7 @@ namespace hidpg
     _command->setParent(this);
   }
 
-  void LayerTap::onPress(uint8_t accumulation)
+  void LayerTap::onPress(uint8_t n_times)
   {
     _layer->on(_layer_number);
   }
@@ -304,7 +304,7 @@ namespace hidpg
   {
   }
 
-  void ToggleLayer::onPress(uint8_t accumulation)
+  void ToggleLayer::onPress(uint8_t n_times)
   {
     _layer->toggle(_layer_number);
   }
@@ -316,7 +316,7 @@ namespace hidpg
   {
   }
 
-  void SwitchLayer::onPress(uint8_t accumulation)
+  void SwitchLayer::onPress(uint8_t n_times)
   {
     _layer->on(_layer_number);
   }
@@ -334,7 +334,7 @@ namespace hidpg
   {
   }
 
-  void OneShotLayer::onPress(uint8_t accumulation)
+  void OneShotLayer::onPress(uint8_t n_times)
   {
     _layer->setOneShot(_layer_number);
     _layer->peekOneShot(_chained_osl);
@@ -367,7 +367,7 @@ namespace hidpg
     _command->setParent(this);
   }
 
-  void Tap::onPress(uint8_t accumulation)
+  void Tap::onPress(uint8_t n_times)
   {
     for (int i = 0; i < _n_times; i++)
     {
@@ -390,7 +390,7 @@ namespace hidpg
     }
   }
 
-  void TapDance::onPress(uint8_t accumulation)
+  void TapDance::onPress(uint8_t n_times)
   {
     if (_state == State::Unexecuted || _state == State::Tap_or_NextCommand)
     {
@@ -471,7 +471,7 @@ namespace hidpg
     _hold_command->setParent(this);
   }
 
-  void TapOrHold::onPress(uint8_t accumulation)
+  void TapOrHold::onPress(uint8_t n_times)
   {
     if (_state == State::Unexecuted)
     {
@@ -513,7 +513,7 @@ namespace hidpg
   {
   }
 
-  void ConsumerControll::onPress(uint8_t accumulation)
+  void ConsumerControll::onPress(uint8_t n_times)
   {
     Hid.consumerKeyPress(_usage_code);
   }
@@ -581,7 +581,7 @@ namespace hidpg
   {
   }
 
-  void MouseMove::onPress(uint8_t accumulation)
+  void MouseMove::onPress(uint8_t n_times)
   {
     _mover.setXY(_x, _y);
   }
@@ -600,7 +600,7 @@ namespace hidpg
   {
   }
 
-  void MouseSpeed::onPress(uint8_t accumulation)
+  void MouseSpeed::onPress(uint8_t n_times)
   {
     if (_percent == 0)
     {
@@ -632,13 +632,13 @@ namespace hidpg
   {
   }
 
-  void MouseScroll::onPress(uint8_t accumulation)
+  void MouseScroll::onPress(uint8_t n_times)
   {
     uint8_t possible = 127 / max(abs(_scroll), abs(_horiz));
-    uint8_t n_times = min(accumulation, possible);
+    possible = min(n_times, possible);
 
-    Hid.mouseScroll(_scroll * n_times, _horiz * n_times);
-    _n_times = n_times;
+    Hid.mouseScroll(_scroll * possible, _horiz * possible);
+    _n_times = possible;
   }
 
   uint8_t MouseScroll::onRelease()
@@ -653,7 +653,7 @@ namespace hidpg
   {
   }
 
-  void MouseClick::onPress(uint8_t accumulation)
+  void MouseClick::onPress(uint8_t n_times)
   {
     Hid.mouseButtonPress(_button);
   }
@@ -671,7 +671,7 @@ namespace hidpg
   {
   }
 
-  void Macro::onPress(uint8_t accumulation)
+  void Macro::onPress(uint8_t n_times)
   {
     if (_is_running)
     {
@@ -779,7 +779,7 @@ namespace hidpg
     _false_command->setParent(this);
   }
 
-  void If::onPress(uint8_t accumulation)
+  void If::onPress(uint8_t n_times)
   {
     _running_command = _func() ? _true_command : _false_command;
     _running_command->press();
@@ -800,7 +800,7 @@ namespace hidpg
     _command2->setParent(this);
   }
 
-  void Double::onPress(uint8_t accumulation)
+  void Double::onPress(uint8_t n_times)
   {
     _command1->press();
     _command2->press();

@@ -160,7 +160,7 @@ namespace hidpg
     class SequenceMode : public Command
     {
     protected:
-      void onPress(uint8_t accumulation) override;
+      void onPress(uint8_t n_times) override;
     };
 
     class Tracking : public Command
@@ -170,7 +170,7 @@ namespace hidpg
       uint8_t getID();
 
     protected:
-      void onPress(uint8_t accumulation) override;
+      void onPress(uint8_t n_times) override;
       uint8_t onRelease() override;
 
     private:
