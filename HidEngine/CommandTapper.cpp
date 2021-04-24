@@ -37,7 +37,7 @@ namespace hidpg
 
   void CommandTapperClass::begin()
   {
-    _timer_handle = xTimerCreate(nullptr, pdMS_TO_TICKS(1), false, nullptr, timer_callback);
+    _timer_handle = xTimerCreate(nullptr, pdMS_TO_TICKS(10), false, nullptr, timer_callback);
   }
 
   void CommandTapperClass::tap(Command *command, uint8_t n_times)
