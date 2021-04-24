@@ -289,6 +289,24 @@ namespace hidpg
   static inline Command *OSL1(uint8_t layer_number) { return (new OneShotLayer(&Layer1, layer_number)); }
   static inline Command *OSL2(uint8_t layer_number) { return (new OneShotLayer(&Layer2, layer_number)); }
 
+  // ------------------------------------------------------------------+
+  // Tap
+  // ------------------------------------------------------------------+
+  class Tap : public Command
+  {
+  public:
+    Tap(Command *command, uint8_t n_times);
+
+  protected:
+    void onPress(uint8_t accumulation) override;
+
+  private:
+    Command *_command;
+    const uint8_t _n_times;
+  };
+
+  static inline Command *TAP(Command *command, uint8_t n_times) { return (new Tap(command, n_times)); }
+
   //------------------------------------------------------------------+
   // TapDance
   //------------------------------------------------------------------+

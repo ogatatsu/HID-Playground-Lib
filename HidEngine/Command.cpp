@@ -360,6 +360,23 @@ namespace hidpg
   }
 
   //------------------------------------------------------------------+
+  // Tap
+  //------------------------------------------------------------------+
+  Tap::Tap(Command *command, uint8_t n_times) : _command(command), _n_times(n_times)
+  {
+    _command->setParent(this);
+  }
+
+  void Tap::onPress(uint8_t accumulation)
+  {
+    for (int i = 0; i < _n_times; i++)
+    {
+      _command->press();
+      _command->release();
+    }
+  }
+
+  //------------------------------------------------------------------+
   // TapDance
   //------------------------------------------------------------------+
   TapDance::TapDance(Pair pairs[], size_t len)
