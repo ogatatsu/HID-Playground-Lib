@@ -24,6 +24,7 @@
 
 #include "Command.h"
 #include "Arduino.h"
+#include "CommandTapper.h"
 #include "HidCore.h"
 #include "MouseSpeedController.h"
 
@@ -184,8 +185,7 @@ namespace hidpg
     Hid.unsetModifier(_modifier);
     if (this->isLastPressed())
     {
-      _command->press();
-      _command->release();
+      CommandTapper.tap(_command);
     }
     else
     {
@@ -291,8 +291,7 @@ namespace hidpg
     _layer->off(_layer_number);
     if (this->isLastPressed())
     {
-      _command->press();
-      _command->release();
+      CommandTapper.tap(_command);
     }
     return 1;
   }
@@ -369,11 +368,7 @@ namespace hidpg
 
   void Tap::onPress(uint8_t n_times)
   {
-    for (int i = 0; i < _n_times; i++)
-    {
-      _command->press();
-      _command->release();
-    }
+    CommandTapper.tap(_command, _n_times);
   }
 
   //------------------------------------------------------------------+
@@ -411,8 +406,7 @@ namespace hidpg
     {
       if (_count == _len - 1)
       {
-        _pairs[_count].tap_command->press();
-        _pairs[_count].tap_command->release();
+        CommandTapper.tap(_pairs[_count].tap_command);
         _count = -1;
         _state = State::Unexecuted;
       }
@@ -436,8 +430,7 @@ namespace hidpg
     }
     else if (_state == State::Tap_or_NextCommand)
     {
-      _pairs[_count].tap_command->press();
-      _pairs[_count].tap_command->release();
+      CommandTapper.tap(_pairs[_count].tap_command);
       _count = -1;
       _state = State::Unexecuted;
     }
@@ -454,8 +447,7 @@ namespace hidpg
     }
     else if (_state == State::Tap_or_NextCommand)
     {
-      _pairs[_count].tap_command->press();
-      _pairs[_count].tap_command->release();
+      CommandTapper.tap(_pairs[_count].tap_command);
       _count = -1;
       _state = State::Unexecuted;
     }
@@ -484,8 +476,7 @@ namespace hidpg
   {
     if (_state == State::Unfixed)
     {
-      _tap_command->press();
-      _tap_command->release();
+      CommandTapper.tap(_tap_command);
       _state = State::Unexecuted;
       stopTimer();
     }
