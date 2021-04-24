@@ -519,23 +519,33 @@ namespace hidpg
   static inline Command *IF(bool (*func)(), Command *true_command, Command *false_command) { return (new If(func, true_command, false_command)); }
 
   //------------------------------------------------------------------+
-  // Double
+  // Multi
   //------------------------------------------------------------------+
-  class Double : public Command
+  class Multi : public Command
   {
   public:
-    Double(Command *command1, Command *command2);
+    Multi(Command *commands[], size_t len);
 
   protected:
     void onPress(uint8_t n_times) override;
     uint8_t onRelease() override;
 
   private:
-    Command *const _command1;
-    Command *const _command2;
+    Command **const _commands;
+    const size_t _len;
   };
 
-  static inline Command *DBL(Command *command1, Command *command2) { return (new Double(command1, command2)); }
+  template <size_t N>
+  static Command *MLT(const CommandPtr (&arr)[N])
+  {
+    Command **arg = new Command *[N] {};
+
+    for (size_t i = 0; i < N; i++)
+    {
+      arg[i] = arr[i];
+    }
+    return (new Multi(arg, N));
+  }
 
   //------------------------------------------------------------------+
   // Other Command

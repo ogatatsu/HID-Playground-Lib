@@ -677,25 +677,31 @@ namespace hidpg
   }
 
   //------------------------------------------------------------------+
-  // Double
+  // Multi
   //------------------------------------------------------------------+
-  Double::Double(Command *command1, Command *command2)
-      : _command1(command1), _command2(command2)
+  Multi::Multi(Command *commands[], size_t len)
+      : _commands(commands), _len(len)
   {
-    _command1->setParent(this);
-    _command2->setParent(this);
+    for (size_t i = 0; i < len; i++)
+    {
+      _commands[i]->setParent(this);
+    }
   }
 
-  void Double::onPress(uint8_t n_times)
+  void Multi::onPress(uint8_t n_times)
   {
-    _command1->press();
-    _command2->press();
+    for (size_t i = 0; i < _len; i++)
+    {
+      _commands[i]->press();
+    }
   }
 
-  uint8_t Double::onRelease()
+  uint8_t Multi::onRelease()
   {
-    _command2->release();
-    _command1->release();
+    for (size_t i = 0; i < _len; i++)
+    {
+      _commands[i]->release();
+    }
     return 1;
   }
 
