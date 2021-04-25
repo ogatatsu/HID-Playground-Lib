@@ -498,6 +498,37 @@ namespace hidpg
   static inline Command *MS_CLK(MouseButton button) { return (new MouseClick(button)); }
 
   //------------------------------------------------------------------+
+  // RadialClick
+  //------------------------------------------------------------------+
+  class RadialClick : public Command
+  {
+  protected:
+    void onPress(uint8_t n_times) override;
+    uint8_t onRelease() override;
+  };
+
+  static inline Command *RD_CLK() { return (new RadialClick()); }
+
+  //------------------------------------------------------------------+
+  // RadialRotate
+  //------------------------------------------------------------------+
+  class RadialRotate : public Command
+  {
+  public:
+    RadialRotate(int16_t deci_degree);
+
+  protected:
+    void onPress(uint8_t n_times) override;
+    uint8_t onRelease() override;
+
+  private:
+    const int16_t _deci_degree;
+    uint8_t _n_times;
+  };
+
+  static inline Command *RD_ROT(int16_t deci_degree) { return (new RadialRotate(deci_degree)); }
+
+  //------------------------------------------------------------------+
   // If
   //------------------------------------------------------------------+
   class If : public Command

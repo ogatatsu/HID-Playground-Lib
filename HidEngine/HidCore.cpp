@@ -37,8 +37,10 @@ namespace hidpg
   int32_t HidCore::_one_shot_modifier_counters[8] = {};
   int32_t HidCore::_triggered_one_shot_modifier_counters[8] = {};
   uint8_t HidCore::_prev_sent_modifier = 0;
-  uint8_t HidCore::_prev_sent_button = 0;
-  uint8_t HidCore::_button_counters[5] = {};
+  uint8_t HidCore::_prev_sent_mouse_button = 0;
+  uint8_t HidCore::_mouse_button_counters[5] = {};
+  bool HidCore::_prev_sent_radial_button = false;
+  uint8_t HidCore::_radial_button_counter = 0;
 
   void HidCore::setReporter(HidReporter *hid_reporter)
   {
@@ -262,7 +264,7 @@ namespace hidpg
   {
     if (_hid_reporter != nullptr)
     {
-      _hid_reporter->mouseReport(_prev_sent_button, x, y, 0, 0);
+      _hid_reporter->mouseReport(_prev_sent_mouse_button, x, y, 0, 0);
     }
   }
 
@@ -271,7 +273,7 @@ namespace hidpg
     sendKeyReport(true);
     if (_hid_reporter != nullptr)
     {
-      _hid_reporter->mouseReport(_prev_sent_button, 0, 0, scroll, horiz);
+      _hid_reporter->mouseReport(_prev_sent_mouse_button, 0, 0, scroll, horiz);
     }
     sendKeyReport(false);
   }
@@ -279,7 +281,7 @@ namespace hidpg
   void HidCore::mouseButtonPress(MouseButton button)
   {
     uint8_t btn = static_cast<uint8_t>(button);
-    countUp(_button_counters, btn);
+    countUp(_mouse_button_counters, btn);
     sendKeyReport(true);
     sendMouseButtonReport();
   }
@@ -287,7 +289,7 @@ namespace hidpg
   void HidCore::mouseButtonRelease(MouseButton button)
   {
     uint8_t btn = static_cast<uint8_t>(button);
-    countDown(_button_counters, btn);
+    countDown(_mouse_button_counters, btn);
     sendKeyReport(false);
     sendMouseButtonReport();
   }
@@ -298,17 +300,51 @@ namespace hidpg
 
     for (int i = 0; i < 5; i++)
     {
-      if (_button_counters[i] > 0)
+      if (_mouse_button_counters[i] > 0)
       {
         button |= bit(i);
       }
     }
-    if (button != _prev_sent_button)
+    if (button != _prev_sent_mouse_button)
     {
-      _prev_sent_button = button;
+      _prev_sent_mouse_button = button;
       if (_hid_reporter != nullptr)
       {
         _hid_reporter->mouseReport(button, 0, 0, 0, 0);
+      }
+    }
+  }
+
+  void HidCore::radialControllerButtonPress()
+  {
+    _radial_button_counter++;
+    sendRadialControllerButtonReport();
+  }
+
+  void HidCore::radialControllerButtonRelease()
+  {
+    _radial_button_counter--;
+    sendRadialControllerButtonReport();
+  }
+
+  void HidCore::radialControllerDialRotate(int16_t deci_degree)
+  {
+    if (_hid_reporter != nullptr)
+    {
+      _hid_reporter->radialControllerReport(_prev_sent_radial_button, deci_degree);
+    }
+  }
+
+  void HidCore::sendRadialControllerButtonReport()
+  {
+    bool button = (_radial_button_counter > 0) ? true : false;
+
+    if (button != _prev_sent_radial_button)
+    {
+      _prev_sent_radial_button = button;
+      if (_hid_reporter != nullptr)
+      {
+        _hid_reporter->radialControllerReport(button, 0);
       }
     }
   }

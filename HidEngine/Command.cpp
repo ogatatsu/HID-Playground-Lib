@@ -656,6 +656,39 @@ namespace hidpg
   }
 
   //------------------------------------------------------------------+
+  // RadialClick
+  //------------------------------------------------------------------+
+
+  void RadialClick::onPress(uint8_t n_times)
+  {
+    Hid.radialControllerButtonPress();
+  }
+
+  uint8_t RadialClick::onRelease()
+  {
+    Hid.radialControllerButtonRelease();
+    return 1;
+  }
+
+  //------------------------------------------------------------------+
+  // RadialRotate
+  //------------------------------------------------------------------+
+  RadialRotate::RadialRotate(int16_t deci_degree) : _deci_degree(deci_degree)
+  {
+  }
+
+  void RadialRotate::onPress(uint8_t n_times)
+  {
+    _n_times = min(3600 / abs(_deci_degree), n_times);
+    Hid.radialControllerDialRotate(_deci_degree * _n_times);
+  }
+
+  uint8_t RadialRotate::onRelease()
+  {
+    return _n_times;
+  }
+
+  //------------------------------------------------------------------+
   // If
   //------------------------------------------------------------------+
   If::If(bool (*func)(), Command *true_command, Command *false_command)

@@ -60,8 +60,15 @@ namespace hidpg
     static void mouseButtonPress(MouseButton button);
     static void mouseButtonRelease(MouseButton button);
 
+    // Radial Controller API
+    // radialControllerButtonPress,Releaseは複数スイッチでの同時押しに対応
+    static void radialControllerButtonPress();
+    static void radialControllerButtonRelease();
+    static void radialControllerDialRotate(int16_t deci_degree);
+
   private:
     static void sendMouseButtonReport();
+    static void sendRadialControllerButtonReport();
 
     static HidReporter *_hid_reporter;
 
@@ -75,8 +82,12 @@ namespace hidpg
 
     static uint8_t _prev_sent_modifier;
 
-    static uint8_t _prev_sent_button;
-    static uint8_t _button_counters[5];
+    static uint8_t _prev_sent_mouse_button;
+    static uint8_t _mouse_button_counters[5];
+
+    static bool _prev_sent_radial_button;
+    static uint8_t _radial_button_counter;
+
   };
 
   extern HidCore Hid;
