@@ -32,7 +32,7 @@ namespace hidpg
     friend class HidEngineTaskClass;
 
   public:
-    static void tap(Command *command, uint8_t n_times = 1);
+    static bool tap(Command *command, uint8_t n_times = 1);
     static void begin();
 
   private:

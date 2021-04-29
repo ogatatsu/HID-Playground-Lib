@@ -29,6 +29,16 @@
 #define HID_ENGINE_LAYER_SIZE 8
 #endif
 
+// タップの間隔
+#ifndef HID_ENGINE_TAP_INTERVAL_MS
+#define HID_ENGINE_TAP_INTERVAL_MS 10
+#endif
+
+// CommandTapper内部で使われているキューのサイズ
+#ifndef HID_ENGINE_COMMAND_TAPPER_QUEUE_SIZE
+#define HID_ENGINE_COMMAND_TAPPER_QUEUE_SIZE 32
+#endif
+
 // TapDanceコマンドのタップ判定時間 (ms)
 #ifndef HID_ENGINE_TAPPING_TERM_MS
 #define HID_ENGINE_TAPPING_TERM_MS 200

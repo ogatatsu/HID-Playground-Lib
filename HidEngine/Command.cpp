@@ -619,22 +619,20 @@ namespace hidpg
   //------------------------------------------------------------------+
   // MouseScroll
   //------------------------------------------------------------------+
-  MouseScroll::MouseScroll(int8_t scroll, int8_t horiz) : _scroll(scroll), _horiz(horiz)
+  MouseScroll::MouseScroll(int8_t scroll, int8_t horiz)
+      : _scroll(scroll), _horiz(horiz), _max_n_times(127 / max(abs(_scroll), abs(_horiz)))
   {
   }
 
   void MouseScroll::onPress(uint8_t n_times)
   {
-    uint8_t possible = 127 / max(abs(_scroll), abs(_horiz));
-    possible = min(n_times, possible);
-
-    Hid.mouseScroll(_scroll * possible, _horiz * possible);
-    _n_times = possible;
+    _actual_n_times = min(n_times, _max_n_times);
+    Hid.mouseScroll(_scroll * _actual_n_times, _horiz * _actual_n_times);
   }
 
   uint8_t MouseScroll::onRelease()
   {
-    return _n_times;
+    return _actual_n_times;
   }
 
   //------------------------------------------------------------------+
@@ -673,19 +671,20 @@ namespace hidpg
   //------------------------------------------------------------------+
   // RadialRotate
   //------------------------------------------------------------------+
-  RadialRotate::RadialRotate(int16_t deci_degree) : _deci_degree(deci_degree)
+  RadialRotate::RadialRotate(int16_t deci_degree)
+      : _deci_degree(deci_degree), _max_n_times(3600 / abs(_deci_degree))
   {
   }
 
   void RadialRotate::onPress(uint8_t n_times)
   {
-    _n_times = min(3600 / abs(_deci_degree), n_times);
-    Hid.radialControllerDialRotate(_deci_degree * _n_times);
+    _actual_n_times = min(n_times, _max_n_times);
+    Hid.radialControllerDialRotate(_deci_degree * _actual_n_times);
   }
 
   uint8_t RadialRotate::onRelease()
   {
-    return _n_times;
+    return _actual_n_times;
   }
 
   //------------------------------------------------------------------+
@@ -701,7 +700,7 @@ namespace hidpg
   void If::onPress(uint8_t n_times)
   {
     _running_command = _func() ? _true_command : _false_command;
-    _running_command->press();
+    _running_command->press(n_times);
   }
 
   uint8_t If::onRelease()

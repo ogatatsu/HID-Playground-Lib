@@ -24,8 +24,8 @@
 
 #include "CommandTapper.h"
 #include "Arduino.h"
-#include "HidEngineTask.h"
 #include "FreeRTOS.h"
+#include "HidEngineTask.h"
 
 namespace hidpg
 {
@@ -37,14 +37,14 @@ namespace hidpg
 
   void CommandTapperClass::begin()
   {
-    _timer_handle = xTimerCreate(nullptr, pdMS_TO_TICKS(10), false, nullptr, timer_callback);
+    _timer_handle = xTimerCreate(nullptr, pdMS_TO_TICKS(HID_ENGINE_TAP_INTERVAL_MS), false, nullptr, timer_callback);
   }
 
-  void CommandTapperClass::tap(Command *command, uint8_t n_times)
+  bool CommandTapperClass::tap(Command *command, uint8_t n_times)
   {
     if (n_times == 0 || command == nullptr)
     {
-      return;
+      return true;
     }
 
     if (_list.size() == 0 && _running.command == nullptr)
@@ -55,7 +55,7 @@ namespace hidpg
       _running.command->press(_running.num_of_taps);
       _next_state = State::release;
       xTimerStart(_timer_handle, portMAX_DELAY);
-      return;
+      return true;
     }
 
     Pair last = _list.get(_list.size() - 1);
@@ -63,12 +63,18 @@ namespace hidpg
     {
       last.num_of_taps = constrain(last.num_of_taps + n_times, 0, UINT8_MAX);
       _list.set(_list.size() - 1, last);
-      return;
+      return true;
+    }
+
+    if (_list.size() > HID_ENGINE_COMMAND_TAPPER_QUEUE_SIZE)
+    {
+      return false;
     }
 
     last.command = command;
     last.num_of_taps = n_times;
     _list.add(last);
+    return true;
   }
 
   void CommandTapperClass::onTimer()

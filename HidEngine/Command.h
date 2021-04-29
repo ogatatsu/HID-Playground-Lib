@@ -474,7 +474,8 @@ namespace hidpg
   private:
     const int8_t _scroll;
     const int8_t _horiz;
-    uint8_t _n_times;
+    const uint8_t _max_n_times;
+    uint8_t _actual_n_times;
   };
 
   static inline Command *MS_SCR(int8_t scroll, int8_t horiz) { return (new MouseScroll(scroll, horiz)); }
@@ -523,7 +524,8 @@ namespace hidpg
 
   private:
     const int16_t _deci_degree;
-    uint8_t _n_times;
+    const uint16_t _max_n_times;
+    uint8_t _actual_n_times;
   };
 
   static inline Command *RD_ROT(int16_t deci_degree) { return (new RadialRotate(deci_degree)); }
