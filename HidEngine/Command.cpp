@@ -58,13 +58,13 @@ namespace hidpg
     {
       _last_pressed_command = this;
 
-      // notify before different command press
-      for (int i = 0; i < _listener_list().size(); i++)
+      // notify before different root command press
+      for (int i = 0; i < _bdrcp_listener_list().size(); i++)
       {
-        Command *listener = _listener_list().get(i);
+        Command *listener = _bdrcp_listener_list().get(i);
         if (getRootCommand(listener) != getRootCommand(this))
         {
-          listener->onBeforeInput();
+          listener->onBeforeDifferentRootCommandPress();
         }
       }
       onPress(n_times);
@@ -90,17 +90,22 @@ namespace hidpg
     return _last_pressed_command == this;
   }
 
-  void Command::addEventListener_BeforeInput()
+  void Command::addEventListener_BeforeDifferentRootCommandPress()
   {
-    _listener_list().add(this);
+    _bdrcp_listener_list().add(this);
+  }
+
+  void Command::addEventListener_BeforeMouseMove()
+  {
+    _bmm_listener_list().add(this);
   }
 
   void Command::_notifyBeforeMouseMove()
   {
-    for (int i = 0; i < _listener_list().size(); i++)
+    for (int i = 0; i < _bmm_listener_list().size(); i++)
     {
-      Command *listener = _listener_list().get(i);
-      listener->onBeforeInput();
+      Command *listener = _bmm_listener_list().get(i);
+      listener->onBeforeMouseMove();
     }
   }
 
@@ -374,10 +379,14 @@ namespace hidpg
   //------------------------------------------------------------------+
   // TapDance
   //------------------------------------------------------------------+
-  TapDance::TapDance(Pair pairs[], size_t len)
+  TapDance::TapDance(Pair pairs[], size_t len, bool confirm_command_with_mouse_move)
       : TimerMixin(), _pairs(pairs), _len(len), _count(-1), _state(State::Unexecuted)
   {
-    addEventListener_BeforeInput();
+    addEventListener_BeforeDifferentRootCommandPress();
+    if (confirm_command_with_mouse_move)
+    {
+      addEventListener_BeforeMouseMove();
+    }
     for (size_t i = 0; i < len; i++)
     {
       pairs[i].tap_command->setParent(this);
@@ -451,6 +460,16 @@ namespace hidpg
       _count = -1;
       _state = State::Unexecuted;
     }
+  }
+
+  void TapDance::onBeforeDifferentRootCommandPress()
+  {
+    onBeforeInput();
+  }
+
+  void TapDance::onBeforeMouseMove()
+  {
+    onBeforeInput();
   }
 
   //------------------------------------------------------------------+

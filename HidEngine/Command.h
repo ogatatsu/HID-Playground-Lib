@@ -52,18 +52,27 @@ namespace hidpg
     bool isLastPressed();
     virtual void onPress(uint8_t n_times) {}
     virtual uint8_t onRelease() { return 1; }
-    virtual void onBeforeInput() {}
-    void addEventListener_BeforeInput();
+    virtual void onBeforeDifferentRootCommandPress() {}
+    virtual void onBeforeMouseMove() {}
+    void addEventListener_BeforeDifferentRootCommandPress();
+    void addEventListener_BeforeMouseMove();
 
   private:
     // keymap(グローバル変数)の定義で特定のコマンドがnewされたときにaddEventListener_BeforeInput()が呼ばれる
     // _listenerListはその内部で使用するので単純なstatic変数にすると初期化順序が問題になる。
     // https://isocpp.org/wiki/faq/ctors#static-init-order-on-first-use
-    static LinkedList<Command *> &_listener_list()
+    static LinkedList<Command *> &_bdrcp_listener_list()
     {
       static LinkedList<Command *> *list = new LinkedList<Command *>;
       return *list;
     };
+
+    static LinkedList<Command *> &_bmm_listener_list()
+    {
+      static LinkedList<Command *> *list = new LinkedList<Command *>;
+      return *list;
+    };
+
     static Command *_last_pressed_command;
 
     Command *_parent;
@@ -319,13 +328,15 @@ namespace hidpg
       Command *hold_command;
     };
 
-    TapDance(Pair pairs[], size_t len);
+    TapDance(Pair pairs[], size_t len, bool confirm_command_with_mouse_move);
 
   protected:
     void onPress(uint8_t n_times) override;
     uint8_t onRelease() override;
     void onTimer() override;
-    void onBeforeInput() override;
+    void onBeforeDifferentRootCommandPress() override;
+    void onBeforeMouseMove() override;
+    void onBeforeInput();
 
   private:
     enum class State
@@ -344,7 +355,7 @@ namespace hidpg
   };
 
   template <size_t N>
-  static Command *TD(const TapDance::Pair (&arr)[N])
+  static Command *TD(const TapDance::Pair (&arr)[N], bool confirm_command_with_mouse_move = false)
   {
     TapDance::Pair *arg = new TapDance::Pair[N];
     for (size_t i = 0; i < N; i++)
@@ -352,7 +363,7 @@ namespace hidpg
       arg[i].tap_command = arr[i].tap_command;
       arg[i].hold_command = arr[i].hold_command;
     }
-    return (new TapDance(arg, N));
+    return (new TapDance(arg, N, confirm_command_with_mouse_move));
   }
 
   //------------------------------------------------------------------+
@@ -587,7 +598,7 @@ namespace hidpg
   // No Operation
   static inline Command *NOP() { return (new Command); }
 
-  // Transparent (_ * 7)
-  #define _______ (static_cast<Command *>(nullptr))
+// Transparent (_ * 7)
+#define _______ (static_cast<Command *>(nullptr))
 
 } // namespace hidpg
