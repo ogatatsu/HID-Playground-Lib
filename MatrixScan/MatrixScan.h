@@ -60,7 +60,6 @@ namespace hidpg
     static void task(void *pvParameters);
 
     static callback_t _callback;
-    static TaskHandle_t _task_handle;
     static uint16_t _polling_interval_ms;
     static uint16_t _max_polling_count;
     static Switch **_matrix;
@@ -68,6 +67,10 @@ namespace hidpg
     static const uint8_t *_out_pins;
     static uint8_t _in_pins_len;
     static uint8_t _out_pins_len;
+
+    static TaskHandle_t _task_handle;
+    static StackType_t _task_stack[];
+    static StaticTask_t _task_tcb;
   };
 
   extern MatrixScanClass MatrixScan;

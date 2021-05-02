@@ -31,12 +31,16 @@ namespace hidpg
 {
 
   TaskHandle_t HidEngineTaskClass::_task_handle = nullptr;
+  StackType_t HidEngineTaskClass::_task_stack[HID_ENGINE_TASK_STACK_SIZE];
+  StaticTask_t HidEngineTaskClass::_task_tcb;
   QueueHandle_t HidEngineTaskClass::_event_queue = nullptr;
+  uint8_t HidEngineTaskClass::_event_queue_storage[HID_ENGINE_EVENT_QUEUE_SIZE * sizeof(EventData)];
+  StaticQueue_t HidEngineTaskClass::_event_queue_struct;
 
   void HidEngineTaskClass::begin()
   {
-    _event_queue = xQueueCreate(HID_ENGINE_EVENT_QUEUE_SIZE, sizeof(EventData));
-    xTaskCreate(task, "HidEngine", HID_ENGINE_TASK_STACK_SIZE, nullptr, HID_ENGINE_TASK_PRIO, &_task_handle);
+    _event_queue = xQueueCreateStatic(HID_ENGINE_EVENT_QUEUE_SIZE, sizeof(EventData), _event_queue_storage, &_event_queue_struct);
+    _task_handle = xTaskCreateStatic(task, "HidEngine", HID_ENGINE_TASK_STACK_SIZE, nullptr, HID_ENGINE_TASK_PRIO, _task_stack, &_task_tcb);
   }
 
   void HidEngineTaskClass::enqueEvent(const EventData &evt)

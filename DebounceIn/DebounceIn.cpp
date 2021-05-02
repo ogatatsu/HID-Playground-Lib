@@ -30,11 +30,14 @@ namespace hidpg
 {
 
   DebounceInClass::callback_t DebounceInClass::_callback = nullptr;
-  TaskHandle_t DebounceInClass::_task_handle = nullptr;
   LinkedList<DebounceInClass::PinInfo *> DebounceInClass::_pin_info_list;
   uint16_t DebounceInClass::_max_debounce_delay_ms = 0;
   uint16_t DebounceInClass::_polling_interval_ms = UINT16_MAX;
   uint16_t DebounceInClass::_max_polling_count = 0;
+
+  TaskHandle_t DebounceInClass::_task_handle = nullptr;
+  StackType_t DebounceInClass::_task_stack[DEBOUNCE_IN_TASK_STACK_SIZE];
+  StaticTask_t DebounceInClass::_task_tcb;
 
   void DebounceInClass::begin()
   {
@@ -48,7 +51,7 @@ namespace hidpg
     _max_polling_count = (_max_debounce_delay_ms + (_polling_interval_ms - 1)) / _polling_interval_ms; // ceil(_max_debounce_delay_ms / _polling_interval_ms) 相当
     _max_polling_count += 3;
 
-    xTaskCreate(task, "Debounce", DEBOUNCE_IN_TASK_STACK_SIZE, nullptr, DEBOUNCE_IN_TASK_PRIO, &_task_handle);
+    _task_handle = xTaskCreateStatic(task, "DebounceIn", DEBOUNCE_IN_TASK_STACK_SIZE, nullptr, DEBOUNCE_IN_TASK_PRIO, _task_stack, &_task_tcb);
   }
 
   void DebounceInClass::addPin(uint8_t pin, int mode, uint16_t debounce_delay_ms)

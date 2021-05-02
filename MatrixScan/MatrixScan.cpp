@@ -29,7 +29,6 @@ namespace hidpg
 {
 
   MatrixScanClass::callback_t MatrixScanClass::_callback = nullptr;
-  TaskHandle_t MatrixScanClass::_task_handle = nullptr;
   uint16_t MatrixScanClass::_polling_interval_ms = 0;
   uint16_t MatrixScanClass::_max_polling_count = 0;
   Switch **MatrixScanClass::_matrix = nullptr;
@@ -37,6 +36,10 @@ namespace hidpg
   const uint8_t *MatrixScanClass::_out_pins = nullptr;
   uint8_t MatrixScanClass::_in_pins_len = 0;
   uint8_t MatrixScanClass::_out_pins_len = 0;
+
+  TaskHandle_t MatrixScanClass::_task_handle = nullptr;
+  StackType_t MatrixScanClass::_task_stack[MATRIX_SCAN_TASK_STACK_SIZE];
+  StaticTask_t MatrixScanClass::_task_tcb;
 
   void MatrixScanClass::setCallback(callback_t callback)
   {
@@ -125,7 +128,7 @@ namespace hidpg
     _max_polling_count = (max_debounce_delay_ms + (_polling_interval_ms - 1)) / _polling_interval_ms; // ceil(max_debounce_delay_ms / _polling_interval_ms) 相当
     _max_polling_count += 2;
 
-    xTaskCreate(task, "MatrixScan", MATRIX_SCAN_TASK_STACK_SIZE, nullptr, MATRIX_SCAN_TASK_PRIO, &_task_handle);
+    _task_handle = xTaskCreateStatic(task, "MatrixScan", MATRIX_SCAN_TASK_STACK_SIZE, nullptr, MATRIX_SCAN_TASK_PRIO, _task_stack, &_task_tcb);
   }
 
   // 起きる

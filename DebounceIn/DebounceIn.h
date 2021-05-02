@@ -54,12 +54,15 @@ namespace hidpg
     static bool needsUpdate();
     static void interrupt_callback();
 
-    static TaskHandle_t _task_handle;
     static callback_t _callback;
     static LinkedList<PinInfo *> _pin_info_list;
     static uint16_t _max_debounce_delay_ms;
     static uint16_t _polling_interval_ms;
     static uint16_t _max_polling_count;
+
+    static TaskHandle_t _task_handle;
+    static StackType_t _task_stack[];
+    static StaticTask_t _task_tcb;
   };
 
   extern DebounceInClass DebounceIn;
