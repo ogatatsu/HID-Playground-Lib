@@ -596,11 +596,24 @@ namespace hidpg
   }
 
   //------------------------------------------------------------------+
+  // NoOperation
+  //------------------------------------------------------------------+
+  class NoOperation : public Command
+  {
+
+  protected:
+    void onPress(uint8_t n_times) override;
+    uint8_t onRelease() override;
+
+  private:
+    uint8_t _n_times;
+  };
+
+  static inline Command *NOP() { return (new NoOperation()); }
+
+  //------------------------------------------------------------------+
   // Other Command
   //------------------------------------------------------------------+
-
-  // No Operation
-  static inline Command *NOP() { return (new Command); }
 
   // Transparent (_ * 7)
   #define _______ (static_cast<Command *>(nullptr))

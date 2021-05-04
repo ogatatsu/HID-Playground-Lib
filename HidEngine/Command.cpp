@@ -757,4 +757,18 @@ namespace hidpg
     return 1;
   }
 
+  //------------------------------------------------------------------+
+  // NoOperation
+  //------------------------------------------------------------------+
+
+  void NoOperation::onPress(uint8_t n_times)
+  {
+    _n_times = n_times;
+  }
+
+  uint8_t NoOperation::onRelease()
+  {
+    return _n_times;
+  }
+
 } // namespace hidpg
