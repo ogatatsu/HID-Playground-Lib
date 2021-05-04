@@ -51,10 +51,17 @@ namespace hidpg
     size_t key_ids_len;
   };
 
+  enum class AngleSnap : uint8_t
+  {
+    Enable,
+    Disable,
+  };
+
   struct Track
   {
     uint8_t track_id;
     uint16_t threshold_distance;
+    AngleSnap angle_snap;
     Command *up_command;
     Command *down_command;
     Command *left_command;
@@ -134,6 +141,8 @@ namespace hidpg
     static void processSeqKeymap(Set &key_ids);
     static void processKeymap(Set &key_ids);
     static void mouseMove_impl();
+    static void processTrackX(size_t track_map_idx);
+    static void processTrackY(size_t track_map_idx);
     static void rotateEncoder_impl(uint8_t encoder_id);
     static int match_with_seqKeymap(const uint8_t id_seq[], size_t len, SeqKey **matched);
     static size_t getValidLength(const uint8_t key_ids[], size_t max_len);

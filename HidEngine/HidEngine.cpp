@@ -272,70 +272,42 @@ namespace hidpg
         prev_track_id = track_id;
       }
 
+      int16_t delta_x = 0, delta_y = 0;
+
       if (_read_mouse_delta_cb != nullptr)
       {
-        int16_t x, y;
-        _read_mouse_delta_cb(&x, &y); // 距離を足す
-        _distance_x += x;
-        _distance_y += y;
+        _read_mouse_delta_cb(&delta_x, &delta_y); // 距離を足す
+        _distance_x += delta_x;
+        _distance_y += delta_y;
       }
 
       // trackMapから一致するtrack_idのインデックスを検索
-      int idx = -1;
+      int match_idx = -1;
       for (int i = 0; i < _trackMap_len; i++)
       {
         if (_trackMap[i].track_id == track_id)
         {
-          idx = i;
+          match_idx = i;
           break;
         }
       }
 
       // 一致するtrack_idが無かったら抜ける
-      if (idx == -1)
+      if (match_idx == -1)
       {
         return;
       }
 
-      // 測った距離が閾値を超えてたらコマンドを発火する
-      int16_t threshold = _trackMap[idx].threshold_distance;
-      if (_distance_y <= -threshold) // 上
+      // 距離の大きさによって実行する順序を変える
+      if (abs(delta_x) >= abs(delta_y))
       {
-        uint8_t n_times = min(static_cast<int>(abs(_distance_y / threshold)), UINT8_MAX);
-        _distance_y %= threshold;
-        if (_trackMap[idx].up_command != nullptr)
-        {
-          CommandTapper.tap(_trackMap[idx].up_command, n_times);
-        }
+        processTrackX(match_idx);
+        processTrackY(match_idx);
       }
-      else if (_distance_y >= threshold) // 下
+      else
       {
-        uint8_t n_times = min(static_cast<int>(_distance_y / threshold), UINT8_MAX);
-        _distance_y %= threshold;
-        if (_trackMap[idx].down_command != nullptr)
-        {
-          CommandTapper.tap(_trackMap[idx].down_command, n_times);
-        }
-      }
-
-      if (_distance_x <= -threshold) // 左
-      {
-        uint8_t n_times = min(static_cast<int>(abs(_distance_x / threshold)), UINT8_MAX);
-        _distance_x %= threshold;
-        if (_trackMap[idx].left_command != nullptr)
-        {
-          CommandTapper.tap(_trackMap[idx].left_command, n_times);
-        }
-      }
-      else if (_distance_x >= threshold) // 右
-      {
-        uint8_t n_times = min(static_cast<int>(_distance_x / threshold), UINT8_MAX);
-        _distance_x %= threshold;
-
-        if (_trackMap[idx].right_command != nullptr)
-        {
-          CommandTapper.tap(_trackMap[idx].right_command, n_times);
-        }
+        processTrackY(match_idx);
+        processTrackX(match_idx);
       }
     }
     else
@@ -351,6 +323,58 @@ namespace hidpg
         {
           Hid.mouseMove(x, y);
         }
+      }
+    }
+  }
+
+  void HidEngineClass::processTrackY(size_t track_map_idx)
+  {
+    int16_t threshold = _trackMap[track_map_idx].threshold_distance;
+
+    if (_distance_y <= -threshold) // 上
+    {
+      uint8_t n_times = min(abs(_distance_y / threshold), UINT8_MAX);
+      _distance_y %= threshold;
+      CommandTapper.tap(_trackMap[track_map_idx].up_command, n_times);
+      if (_trackMap[track_map_idx].angle_snap == AngleSnap::Enable)
+      {
+        _distance_x = 0;
+      }
+    }
+    else if (_distance_y >= threshold) // 下
+    {
+      uint8_t n_times = min(_distance_y / threshold, UINT8_MAX);
+      _distance_y %= threshold;
+      CommandTapper.tap(_trackMap[track_map_idx].down_command, n_times);
+      if (_trackMap[track_map_idx].angle_snap == AngleSnap::Enable)
+      {
+        _distance_x = 0;
+      }
+    }
+  }
+
+  void HidEngineClass::processTrackX(size_t track_map_idx)
+  {
+    int16_t threshold = _trackMap[track_map_idx].threshold_distance;
+
+    if (_distance_x <= -threshold) // 左
+    {
+      uint8_t n_times = min(abs(_distance_x / threshold), UINT8_MAX);
+      _distance_x %= threshold;
+      CommandTapper.tap(_trackMap[track_map_idx].left_command, n_times);
+      if (_trackMap[track_map_idx].angle_snap == AngleSnap::Enable)
+      {
+        _distance_y = 0;
+      }
+    }
+    else if (_distance_x >= threshold) // 右
+    {
+      uint8_t n_times = min(_distance_x / threshold, UINT8_MAX);
+      _distance_x %= threshold;
+      CommandTapper.tap(_trackMap[track_map_idx].right_command, n_times);
+      if (_trackMap[track_map_idx].angle_snap == AngleSnap::Enable)
+      {
+        _distance_y = 0;
       }
     }
   }
