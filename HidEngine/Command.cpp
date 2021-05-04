@@ -379,15 +379,16 @@ namespace hidpg
   //------------------------------------------------------------------+
   // TapDance
   //------------------------------------------------------------------+
-  TapDance::TapDance(Pair pairs[], size_t len, bool confirm_command_with_mouse_move)
-      : TimerMixin(), _pairs(pairs), _len(len), _count(-1), _state(State::Unexecuted)
+  TapDance::TapDance(Pair pairs[], int8_t len, bool confirm_command_with_mouse_move)
+      : TimerMixin(), _pairs(pairs), _len(len), _idx_count(-1), _state(State::Unexecuted)
   {
     addEventListener_BeforeDifferentRootCommandPress();
     if (confirm_command_with_mouse_move)
     {
       addEventListener_BeforeMouseMove();
     }
-    for (size_t i = 0; i < len; i++)
+
+    for (int i = 0; i < len; i++)
     {
       pairs[i].tap_command->setParent(this);
       pairs[i].hold_command->setParent(this);
@@ -398,7 +399,7 @@ namespace hidpg
   {
     if (_state == State::Unexecuted || _state == State::Tap_or_NextCommand)
     {
-      _count++;
+      _idx_count++;
       _state = State::Unfixed;
       startTimer(HID_ENGINE_TAPPING_TERM_MS);
     }
@@ -413,10 +414,10 @@ namespace hidpg
     }
     else if (_state == State::Unfixed)
     {
-      if (_count == _len - 1)
+      if (_idx_count == _len - 1)
       {
-        CommandTapper.tap(_pairs[_count].tap_command);
-        _count = -1;
+        CommandTapper.tap(_pairs[_idx_count].tap_command);
+        _idx_count = -1;
         _state = State::Unexecuted;
       }
       else
@@ -433,14 +434,14 @@ namespace hidpg
     if (_state == State::Unfixed)
     {
       _state = State::FixedToHold;
-      _running_command = _pairs[_count].hold_command;
-      _count = -1;
+      _running_command = _pairs[_idx_count].hold_command;
+      _idx_count = -1;
       _running_command->press();
     }
     else if (_state == State::Tap_or_NextCommand)
     {
-      CommandTapper.tap(_pairs[_count].tap_command);
-      _count = -1;
+      CommandTapper.tap(_pairs[_idx_count].tap_command);
+      _idx_count = -1;
       _state = State::Unexecuted;
     }
   }
@@ -450,14 +451,14 @@ namespace hidpg
     if (_state == State::Unfixed)
     {
       _state = State::FixedToHold;
-      _running_command = _pairs[_count].hold_command;
-      _count = -1;
+      _running_command = _pairs[_idx_count].hold_command;
+      _idx_count = -1;
       _running_command->press();
     }
     else if (_state == State::Tap_or_NextCommand)
     {
-      CommandTapper.tap(_pairs[_count].tap_command);
-      _count = -1;
+      CommandTapper.tap(_pairs[_idx_count].tap_command);
+      _idx_count = -1;
       _state = State::Unexecuted;
     }
   }
@@ -691,7 +692,7 @@ namespace hidpg
   // RadialRotate
   //------------------------------------------------------------------+
   RadialRotate::RadialRotate(int16_t deci_degree)
-      : _deci_degree(deci_degree), _max_n_times(3600 / abs(_deci_degree))
+      : _deci_degree(deci_degree), _max_n_times(min(3600 / abs(_deci_degree), UINT8_MAX))
   {
   }
 
@@ -730,7 +731,7 @@ namespace hidpg
   //------------------------------------------------------------------+
   // Multi
   //------------------------------------------------------------------+
-  Multi::Multi(Command *commands[], size_t len)
+  Multi::Multi(Command *commands[], uint8_t len)
       : _commands(commands), _len(len)
   {
     for (size_t i = 0; i < len; i++)

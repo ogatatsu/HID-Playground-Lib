@@ -328,7 +328,7 @@ namespace hidpg
       Command *hold_command;
     };
 
-    TapDance(Pair pairs[], size_t len, bool confirm_command_with_mouse_move);
+    TapDance(Pair pairs[], int8_t len, bool confirm_command_with_mouse_move);
 
   protected:
     void onPress(uint8_t n_times) override;
@@ -339,7 +339,7 @@ namespace hidpg
     void onBeforeInput();
 
   private:
-    enum class State
+    enum class State : uint8_t
     {
       Unexecuted,
       Unfixed,
@@ -349,16 +349,16 @@ namespace hidpg
 
     Pair *const _pairs;
     Command *_running_command;
-    const size_t _len;
-    size_t _count;
+    const int8_t _len;
+    int8_t _idx_count;
     State _state;
   };
 
-  template <size_t N>
+  template <int8_t N>
   static Command *TD(const TapDance::Pair (&arr)[N], bool confirm_command_with_mouse_move = false)
   {
     TapDance::Pair *arg = new TapDance::Pair[N];
-    for (size_t i = 0; i < N; i++)
+    for (int i = 0; i < N; i++)
     {
       arg[i].tap_command = arr[i].tap_command;
       arg[i].hold_command = arr[i].hold_command;
@@ -380,7 +380,7 @@ namespace hidpg
     void onTimer() override;
 
   private:
-    enum class State
+    enum class State : uint8_t
     {
       Unexecuted,
       Unfixed,
@@ -535,11 +535,15 @@ namespace hidpg
 
   private:
     const int16_t _deci_degree;
-    const uint16_t _max_n_times;
+    const uint8_t _max_n_times;
     uint8_t _actual_n_times;
   };
 
-  static inline Command *RD_ROT(int16_t deci_degree) { return (new RadialRotate(deci_degree)); }
+  static inline Command *RD_ROT(int16_t deci_degree)
+  {
+    deci_degree = constrain(deci_degree, -3600, 3600);
+    return (new RadialRotate(deci_degree));
+  }
 
   //------------------------------------------------------------------+
   // If
@@ -568,7 +572,7 @@ namespace hidpg
   class Multi : public Command
   {
   public:
-    Multi(Command *commands[], size_t len);
+    Multi(Command *commands[], uint8_t len);
 
   protected:
     void onPress(uint8_t n_times) override;
@@ -576,10 +580,10 @@ namespace hidpg
 
   private:
     Command **const _commands;
-    const size_t _len;
+    const uint8_t _len;
   };
 
-  template <size_t N>
+  template <uint8_t N>
   static Command *MLT(const CommandPtr (&arr)[N])
   {
     Command **arg = new Command *[N] {};
@@ -598,7 +602,7 @@ namespace hidpg
   // No Operation
   static inline Command *NOP() { return (new Command); }
 
-// Transparent (_ * 7)
-#define _______ (static_cast<Command *>(nullptr))
+  // Transparent (_ * 7)
+  #define _______ (static_cast<Command *>(nullptr))
 
 } // namespace hidpg
