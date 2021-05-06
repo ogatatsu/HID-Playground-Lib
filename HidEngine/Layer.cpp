@@ -100,5 +100,6 @@ namespace hidpg
 
   LayerClass Layer1;
   LayerClass Layer2;
+  LayerClass Layer3;
 
 } // namespace hidpg

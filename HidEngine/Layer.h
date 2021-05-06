@@ -57,5 +57,6 @@ namespace hidpg
 
   extern LayerClass Layer1;
   extern LayerClass Layer2;
+  extern LayerClass Layer3;
 
 } // namespace hidpg

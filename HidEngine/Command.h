@@ -217,6 +217,19 @@ namespace hidpg
     return (new Layering(&Layer2, arg));
   }
 
+  template <size_t N>
+  static Command *LY3(const CommandPtr (&arr)[N])
+  {
+    static_assert(N <= HID_ENGINE_LAYER_SIZE, "");
+
+    Command **arg = new Command *[HID_ENGINE_LAYER_SIZE] {};
+    for (size_t i = 0; i < N; i++)
+    {
+      arg[i] = arr[i];
+    }
+    return (new Layering(&Layer3, arg));
+  }
+
   //------------------------------------------------------------------+
   // LayerTap
   //------------------------------------------------------------------+
@@ -237,6 +250,7 @@ namespace hidpg
 
   static inline Command *LT1(uint8_t layer_number, Command *command) { return (new LayerTap(&Layer1, layer_number, command)); }
   static inline Command *LT2(uint8_t layer_number, Command *command) { return (new LayerTap(&Layer2, layer_number, command)); }
+  static inline Command *LT3(uint8_t layer_number, Command *command) { return (new LayerTap(&Layer3, layer_number, command)); }
 
   //------------------------------------------------------------------+
   // ToggleLayer
@@ -256,6 +270,7 @@ namespace hidpg
 
   static inline Command *TL1(uint8_t layer_number) { return (new ToggleLayer(&Layer1, layer_number)); }
   static inline Command *TL2(uint8_t layer_number) { return (new ToggleLayer(&Layer2, layer_number)); }
+  static inline Command *TL3(uint8_t layer_number) { return (new ToggleLayer(&Layer3, layer_number)); }
 
   //------------------------------------------------------------------+
   // SwitchLayer
@@ -276,6 +291,7 @@ namespace hidpg
 
   static inline Command *SL1(uint8_t layer_number) { return (new SwitchLayer(&Layer1, layer_number)); }
   static inline Command *SL2(uint8_t layer_number) { return (new SwitchLayer(&Layer2, layer_number)); }
+  static inline Command *SL3(uint8_t layer_number) { return (new SwitchLayer(&Layer3, layer_number)); }
 
   //------------------------------------------------------------------+
   // OneShotLayer
@@ -297,6 +313,7 @@ namespace hidpg
 
   static inline Command *OSL1(uint8_t layer_number) { return (new OneShotLayer(&Layer1, layer_number)); }
   static inline Command *OSL2(uint8_t layer_number) { return (new OneShotLayer(&Layer2, layer_number)); }
+  static inline Command *OSL3(uint8_t layer_number) { return (new OneShotLayer(&Layer3, layer_number)); }
 
   // ------------------------------------------------------------------+
   // Tap
