@@ -632,7 +632,7 @@ namespace hidpg
   // Other Command
   //------------------------------------------------------------------+
 
-  // Transparent (_ * 7)
-  #define _______ (static_cast<Command *>(nullptr))
+  // Transparent (x * 7)
+  static constexpr Command *xxxxxxx = nullptr;
 
 } // namespace hidpg
