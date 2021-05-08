@@ -23,7 +23,6 @@
 */
 
 #include "BlinkLed.h"
-#include "BlinkLed_config.h"
 
 namespace hidpg
 {
@@ -33,7 +32,7 @@ namespace hidpg
   {
   }
 
-  bool BlinkLed::begin()
+  void BlinkLed::begin()
   {
 #ifdef ARDUINO_ARCH_NRF52
     if (_active_state == HIGH)
@@ -49,7 +48,7 @@ namespace hidpg
     task_name[4] += _pin % 100 / 10;
     task_name[5] += _pin % 10;
 
-    return pdPASS == xTaskCreate(task, task_name, BLINK_LED_TASK_STACK_SIZE, this, BLINK_LED_TASK_PRIO, &_task_handle);
+    _task_handle = xTaskCreateStatic(task, task_name, BLINK_LED_TASK_STACK_SIZE, this, BLINK_LED_TASK_PRIO, _task_stack, &_task_tcb);
   }
 
   void BlinkLed::task(void *pvParameters)

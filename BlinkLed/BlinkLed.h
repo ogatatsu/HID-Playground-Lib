@@ -25,6 +25,7 @@
 #pragma once
 
 #include "Arduino.h"
+#include "BlinkLed_config.h"
 #include "FreeRTOS.h"
 
 namespace hidpg
@@ -35,7 +36,7 @@ namespace hidpg
   public:
     BlinkLed(uint8_t pin, uint8_t active_state = HIGH);
 
-    bool begin();
+    void begin();
     void blink(uint8_t n_times = 1);
     void off();
     void syncOff();
@@ -49,6 +50,8 @@ namespace hidpg
     volatile bool _is_blink;
     volatile uint8_t _n_times;
     TaskHandle_t _task_handle;
+    StackType_t _task_stack[BLINK_LED_TASK_STACK_SIZE];
+    StaticTask_t _task_tcb;
   };
 
 } // namespace hidpg
