@@ -40,13 +40,13 @@
 namespace hidpg
 {
 
-  BLEHid::BLEHid() : BLEHidGeneric(4, 1, 0), _kbd_led_cb1(nullptr), _kbd_led_cb2(nullptr)
+  BLEHid::BLEHid() : BLEHidGeneric(5, 1, 0), _kbd_led_cb1(nullptr), _kbd_led_cb2(nullptr)
   {
   }
 
   err_t BLEHid::begin()
   {
-    uint16_t input_len[] = {sizeof(hid_keyboard_report_t), sizeof(hid_consumer_control_report_t), sizeof(hid_mouse_report_ex_t), sizeof(hid_radial_controller_report_t)};
+    uint16_t input_len[] = {sizeof(hid_keyboard_report_t), sizeof(hid_consumer_control_report_t), sizeof(hid_mouse_report_ex_t), sizeof(uint16_t), sizeof(uint8_t)};
     uint16_t output_len[] = {1};
 
     setReportLen(input_len, output_len, NULL);
@@ -161,6 +161,16 @@ namespace hidpg
   bool BLEHid::radialControllerReport(bool button, int16_t dial)
   {
     return radialControllerReport(BLE_CONN_HANDLE_INVALID, button, dial);
+  }
+
+  bool BLEHid::systemControlReport(uint16_t conn_hdl, uint8_t usage_code)
+  {
+    return inputReport(conn_hdl, REPORT_ID_SYSTEM_CONTROL, &usage_code, sizeof(usage_code));
+  }
+
+  bool BLEHid::systemControlReport(uint8_t usage_code)
+  {
+    return systemControlReport(BLE_CONN_HANDLE_INVALID, usage_code);
   }
 
   bool BLEHid::waitReady(uint16_t conn_hdl)

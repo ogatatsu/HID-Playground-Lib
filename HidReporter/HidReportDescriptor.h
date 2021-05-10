@@ -180,6 +180,7 @@ namespace hidpg
     REPORT_ID_CONSUMER_CONTROL,
     REPORT_ID_MOUSE,
     REPORT_ID_RADIAL_CONTROLLER,
+    REPORT_ID_SYSTEM_CONTROL,
   };
 
 #pragma pack(1)
@@ -201,6 +202,6 @@ namespace hidpg
 
   // clang-format on
 
-  extern uint8_t const hid_report_descriptor[229];
+  extern uint8_t const hid_report_descriptor[260];
 
 } // namespace hidpg

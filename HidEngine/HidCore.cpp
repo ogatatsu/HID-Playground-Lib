@@ -244,7 +244,7 @@ namespace hidpg
     }
   }
 
-  void HidCore::consumerKeyPress(UsageCode usage_code)
+  void HidCore::consumerKeyPress(ConsumerControlCode usage_code)
   {
     if (_hid_reporter != nullptr)
     {
@@ -257,6 +257,22 @@ namespace hidpg
     if (_hid_reporter != nullptr)
     {
       _hid_reporter->consumerReport(0);
+    }
+  }
+
+  void HidCore::systemControlKeyPress(SystemControlCode usage_code)
+  {
+    if (_hid_reporter != nullptr)
+    {
+      _hid_reporter->systemControlReport(static_cast<uint8_t>(usage_code));
+    }
+  }
+
+  void HidCore::systemControlKeyRelease()
+  {
+    if (_hid_reporter != nullptr)
+    {
+      _hid_reporter->systemControlReport(0);
     }
   }
 

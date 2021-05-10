@@ -50,7 +50,7 @@ namespace hidpg
     static void sendKeyReport(bool trigger_one_shot);
 
     // Consumer API
-    static void consumerKeyPress(UsageCode usage_code);
+    static void consumerKeyPress(ConsumerControlCode usage_code);
     static void consumerKeyRelease();
 
     // Mouse API
@@ -65,6 +65,10 @@ namespace hidpg
     static void radialControllerButtonPress();
     static void radialControllerButtonRelease();
     static void radialControllerDialRotate(int16_t deci_degree);
+
+    // System Control API
+    static void systemControlKeyPress(SystemControlCode usage_code);
+    static void systemControlKeyRelease();
 
   private:
     static void sendMouseButtonReport();

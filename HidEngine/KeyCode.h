@@ -201,8 +201,8 @@ namespace hidpg
     return static_cast<MouseButton>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
   }
 
-  // Consumer Controll
-  enum class UsageCode : uint16_t
+  // Consumer Control
+  enum class ConsumerControlCode : uint16_t
   {
     PlayPause   = 205,
     FastForward = 179,
@@ -212,6 +212,14 @@ namespace hidpg
     Mute        = 226,
     VolumeUp    = 233,
     VolumeDown  = 234,
+  };
+
+  // System Control
+  enum class SystemControlCode : uint8_t
+  {
+    SystemPowerDown = 2,
+    SystemSleep     = 1,
+    SystemWakeUp    = 3,
   };
 
 } // namespace hidpg

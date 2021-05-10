@@ -413,22 +413,40 @@ namespace hidpg
   static inline Command *ToH(Command *tap_command, unsigned int ms, Command *hold_command) { return (new TapOrHold(tap_command, ms, hold_command)); }
 
   //------------------------------------------------------------------+
-  // ConsumerControll
+  // ConsumerControl
   //------------------------------------------------------------------+
-  class ConsumerControll : public Command
+  class ConsumerControl : public Command
   {
   public:
-    ConsumerControll(UsageCode usage_code);
+    ConsumerControl(ConsumerControlCode usage_code);
 
   protected:
     void onPress(uint8_t n_times) override;
     uint8_t onRelease() override;
 
   private:
-    const UsageCode _usage_code;
+    const ConsumerControlCode _usage_code;
   };
 
-  static inline Command *CC(UsageCode usage_code) { return (new ConsumerControll(usage_code)); }
+  static inline Command *CC(ConsumerControlCode usage_code) { return (new ConsumerControl(usage_code)); }
+
+  //------------------------------------------------------------------+
+  // SystemControl
+  //------------------------------------------------------------------+
+  class SystemControl : public Command
+  {
+  public:
+    SystemControl(SystemControlCode usage_code);
+
+  protected:
+    void onPress(uint8_t n_times) override;
+    uint8_t onRelease() override;
+
+  private:
+    const SystemControlCode _usage_code;
+  };
+
+  static inline Command *SC(SystemControlCode usage_code) { return (new SystemControl(usage_code)); }
 
   //------------------------------------------------------------------+
   // MouseMove

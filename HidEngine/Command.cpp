@@ -518,19 +518,36 @@ namespace hidpg
   }
 
   //------------------------------------------------------------------+
-  // ConsumerControll
+  // ConsumerControl
   //------------------------------------------------------------------+
-  ConsumerControll::ConsumerControll(UsageCode usage_code) : _usage_code(usage_code)
+  ConsumerControl::ConsumerControl(ConsumerControlCode usage_code) : _usage_code(usage_code)
   {
   }
 
-  void ConsumerControll::onPress(uint8_t n_times)
+  void ConsumerControl::onPress(uint8_t n_times)
   {
     Hid.consumerKeyPress(_usage_code);
   }
-  uint8_t ConsumerControll::onRelease()
+  uint8_t ConsumerControl::onRelease()
   {
     Hid.consumerKeyRelease();
+    return 1;
+  }
+
+  //------------------------------------------------------------------+
+  // SystemControl
+  //------------------------------------------------------------------+
+  SystemControl::SystemControl(SystemControlCode usage_code) : _usage_code(usage_code)
+  {
+  }
+
+  void SystemControl::onPress(uint8_t n_times)
+  {
+    Hid.systemControlKeyPress(_usage_code);
+  }
+  uint8_t SystemControl::onRelease()
+  {
+    Hid.systemControlKeyRelease();
     return 1;
   }
 

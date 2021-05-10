@@ -91,6 +91,15 @@ namespace hidpg
     return false;
   }
 
+  bool UsbHidClass::UsbHidReporter::systemControlReport(uint8_t usage_code)
+  {
+    if (waitReady())
+    {
+      return _usb_hid.sendReport(REPORT_ID_SYSTEM_CONTROL, &usage_code, sizeof(usage_code));
+    }
+    return false;
+  }
+
   bool UsbHidClass::UsbHidReporter::waitReady()
   {
     int count = 0;

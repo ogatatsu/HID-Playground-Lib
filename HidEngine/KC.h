@@ -188,13 +188,17 @@ namespace hidpg
   static constexpr MouseButton BackwardButton = MouseButton::Backward;
   static constexpr MouseButton ForwardButton  = MouseButton::Forward;
 
-  static constexpr UsageCode PlayPause       = UsageCode::PlayPause;
-  static constexpr UsageCode FastForward     = UsageCode::FastForward;
-  static constexpr UsageCode Rewind          = UsageCode::Rewind;
-  static constexpr UsageCode Next            = UsageCode::Next;
-  static constexpr UsageCode Prev            = UsageCode::Prev;
-  static constexpr UsageCode Mute            = UsageCode::Mute;
-  static constexpr UsageCode VolumeUp        = UsageCode::VolumeUp;
-  static constexpr UsageCode VolumeDown      = UsageCode::VolumeDown;
+  static constexpr ConsumerControlCode PlayPause       = ConsumerControlCode::PlayPause;
+  static constexpr ConsumerControlCode FastForward     = ConsumerControlCode::FastForward;
+  static constexpr ConsumerControlCode Rewind          = ConsumerControlCode::Rewind;
+  static constexpr ConsumerControlCode Next            = ConsumerControlCode::Next;
+  static constexpr ConsumerControlCode Prev            = ConsumerControlCode::Prev;
+  static constexpr ConsumerControlCode Mute            = ConsumerControlCode::Mute;
+  static constexpr ConsumerControlCode VolumeUp        = ConsumerControlCode::VolumeUp;
+  static constexpr ConsumerControlCode VolumeDown      = ConsumerControlCode::VolumeDown;
+
+  static constexpr SystemControlCode SystemPowerDown   = SystemControlCode::SystemPowerDown;
+  static constexpr SystemControlCode SystemSleep       = SystemControlCode::SystemSleep;
+  static constexpr SystemControlCode SystemWakeUp      = SystemControlCode::SystemWakeUp;
 
 } // namespace hidpg
