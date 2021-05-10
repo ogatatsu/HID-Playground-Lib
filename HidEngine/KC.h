@@ -191,8 +191,8 @@ namespace hidpg
   static constexpr ConsumerControlCode PlayPause       = ConsumerControlCode::PlayPause;
   static constexpr ConsumerControlCode FastForward     = ConsumerControlCode::FastForward;
   static constexpr ConsumerControlCode Rewind          = ConsumerControlCode::Rewind;
-  static constexpr ConsumerControlCode Next            = ConsumerControlCode::Next;
-  static constexpr ConsumerControlCode Prev            = ConsumerControlCode::Prev;
+  static constexpr ConsumerControlCode NextTrack       = ConsumerControlCode::NextTrack;
+  static constexpr ConsumerControlCode PrevTrack       = ConsumerControlCode::PrevTrack;
   static constexpr ConsumerControlCode Mute            = ConsumerControlCode::Mute;
   static constexpr ConsumerControlCode VolumeUp        = ConsumerControlCode::VolumeUp;
   static constexpr ConsumerControlCode VolumeDown      = ConsumerControlCode::VolumeDown;

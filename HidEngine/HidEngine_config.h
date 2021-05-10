@@ -29,9 +29,9 @@
 #define HID_ENGINE_LAYER_SIZE 4
 #endif
 
-// タップの間隔
-#ifndef HID_ENGINE_TAP_INTERVAL_MS
-#define HID_ENGINE_TAP_INTERVAL_MS 10
+// タップのスピード
+#ifndef HID_ENGINE_TAP_SPEED_MS
+#define HID_ENGINE_TAP_SPEED_MS 5
 #endif
 
 // CommandTapper内部で使われているキューの最大サイズ
