@@ -234,8 +234,8 @@ namespace hidpg
   void Layering::onPress(uint8_t n_times)
   {
     // 現在のレイヤーの状態を取得
-    bool layer_state[HID_ENGINE_LAYER_SIZE];
-    _layer->takeState(layer_state);
+    layer_bitmap_t layer_state = _layer->getState();
+    _layer->clearOneShot();
 
     _running_command = nullptr;
 
@@ -243,7 +243,7 @@ namespace hidpg
     int i = HID_ENGINE_LAYER_SIZE - 1;
     for (; i >= 0; i--)
     {
-      if (layer_state[i] == true)
+      if (bitRead(layer_state, i) == 1)
       {
         break;
       }
@@ -341,10 +341,11 @@ namespace hidpg
   void OneShotLayer::onPress(uint8_t n_times)
   {
     _layer->setOneShot(_layer_number);
-    _layer->peekOneShot(_chained_osl);
+    _chained_osl = _layer->getOneShotState();
+
     for (int i = 0; i < HID_ENGINE_LAYER_SIZE; i++)
     {
-      if (_chained_osl[i])
+      if (bitRead(_chained_osl, i))
       {
         _layer->on(i);
       }
@@ -355,7 +356,7 @@ namespace hidpg
   {
     for (int i = 0; i < HID_ENGINE_LAYER_SIZE; i++)
     {
-      if (_chained_osl[i])
+      if (bitRead(_chained_osl, i))
       {
         _layer->off(i);
       }

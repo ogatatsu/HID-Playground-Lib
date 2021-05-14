@@ -23,21 +23,14 @@
 */
 
 #include "Layer.h"
+#include "Arduino.h"
+#include <string.h>
 
 namespace hidpg
 {
 
-  LayerClass::LayerClass() : _toggle(), _on_counters(), _one_shot()
+  LayerClass::LayerClass() : _on_counters(), _toggle(0), _one_shot(0), _callback(nullptr)
   {
-  }
-
-  void LayerClass::toggle(uint8_t number)
-  {
-    if (number >= HID_ENGINE_LAYER_SIZE)
-    {
-      return;
-    }
-    _toggle[number] = !_toggle[number];
   }
 
   void LayerClass::on(uint8_t number)
@@ -46,7 +39,22 @@ namespace hidpg
     {
       return;
     }
-    _on_counters[number]++;
+
+    if (_callback != nullptr && _on_counters[number] == 0)
+    {
+      layer_bitmap_t prev_state = getState();
+      _on_counters[number]++;
+      layer_bitmap_t state = getState();
+
+      if (prev_state != state)
+      {
+        _callback(prev_state, state);
+      }
+    }
+    else
+    {
+      _on_counters[number]++;
+    }
   }
 
   void LayerClass::off(uint8_t number)
@@ -55,7 +63,46 @@ namespace hidpg
     {
       return;
     }
-    _on_counters[number]--;
+
+    if (_callback != nullptr && _on_counters[number] == 1)
+    {
+      layer_bitmap_t prev_state = getState();
+      _on_counters[number]--;
+      layer_bitmap_t state = getState();
+
+      if (prev_state != state)
+      {
+        _callback(prev_state, state);
+      }
+    }
+    else
+    {
+      _on_counters[number]--;
+    }
+  }
+
+  void LayerClass::toggle(uint8_t number)
+  {
+    if (number >= HID_ENGINE_LAYER_SIZE)
+    {
+      return;
+    }
+
+    if (_callback != nullptr)
+    {
+      layer_bitmap_t prev_state = getState();
+      _toggle ^= 1UL << number;
+      layer_bitmap_t state = getState();
+
+      if (prev_state != state)
+      {
+        _callback(prev_state, state);
+      }
+    }
+    else
+    {
+      _toggle ^= 1UL << number;
+    }
   }
 
   void LayerClass::setOneShot(uint8_t number)
@@ -64,42 +111,71 @@ namespace hidpg
     {
       return;
     }
-    _one_shot[number] = true;
-  }
 
-  void LayerClass::peekOneShot(bool (&layer)[HID_ENGINE_LAYER_SIZE])
-  {
-    for (int i = 0; i < HID_ENGINE_LAYER_SIZE; i++)
+    if (_callback != nullptr && bitRead(_one_shot, number) == 0)
     {
-      layer[i] = _one_shot[i];
+      layer_bitmap_t prev_state = getState();
+      bitSet(_one_shot, number);
+      layer_bitmap_t state = getState();
+
+      if (prev_state != state)
+      {
+        _callback(prev_state, state);
+      }
+    }
+    else
+    {
+      bitSet(_one_shot, number);
     }
   }
 
-  void LayerClass::takeState(bool (&layer)[HID_ENGINE_LAYER_SIZE])
+  layer_bitmap_t LayerClass::getOneShotState()
   {
+    return _one_shot;
+  }
+
+  void LayerClass::clearOneShot()
+  {
+    if (_callback != nullptr)
+    {
+      layer_bitmap_t prev_state = getState();
+      _one_shot = 0;
+      layer_bitmap_t state = getState();
+
+      if (prev_state != state)
+      {
+        _callback(prev_state, state);
+      }
+    }
+    else
+    {
+      _one_shot = 0;
+    }
+  }
+
+  layer_bitmap_t LayerClass::getState()
+  {
+    // layer 0 is always true
+    layer_bitmap_t result = 1 | _toggle | _one_shot;
+
     for (int i = 0; i < HID_ENGINE_LAYER_SIZE; i++)
     {
-      if (_one_shot[i] == true)
-      {
-        layer[i] = true;
-        _one_shot[i] = false;
-        continue;
-      }
-
       if (_on_counters[i] != 0)
       {
-        layer[i] = true;
-        continue;
+        bitSet(result, i);
       }
-
-      layer[i] = _toggle[i];
     }
-    // layer 0 is always true
-    layer[0] = true;
+
+    return result;
   }
 
+  void LayerClass::setCallback(callback_t callback)
+  {
+    _callback = callback;
+  }
+
+  LayerClass Layer;
   LayerClass Layer1;
   LayerClass Layer2;
-  LayerClass Layer3;
 
 } // namespace hidpg

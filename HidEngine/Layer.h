@@ -29,34 +29,37 @@
 
 namespace hidpg
 {
+  typedef uint32_t layer_bitmap_t;
 
   class LayerClass
   {
   public:
+    using callback_t = void (*)(layer_bitmap_t prev_state, layer_bitmap_t state);
+
     LayerClass();
 
-    // 恒久的な操作
-    void toggle(uint8_t number);
-
-    // 一時的な操作
     void on(uint8_t number);
     void off(uint8_t number);
+    void toggle(uint8_t number);
 
     // OneShot
     void setOneShot(uint8_t number);
-    void peekOneShot(bool (&layer)[HID_ENGINE_LAYER_SIZE]);
+    layer_bitmap_t getOneShotState();
+    void clearOneShot();
 
-    // 現在の状態を取得
-    void takeState(bool (&layer)[HID_ENGINE_LAYER_SIZE]);
+    // 状態を取得
+    layer_bitmap_t getState();
+    void setCallback(callback_t callback);
 
   private:
-    bool _toggle[HID_ENGINE_LAYER_SIZE];
     uint8_t _on_counters[HID_ENGINE_LAYER_SIZE];
-    bool _one_shot[HID_ENGINE_LAYER_SIZE];
+    layer_bitmap_t _toggle;
+    layer_bitmap_t _one_shot;
+    callback_t _callback;
   };
 
+  extern LayerClass Layer;
   extern LayerClass Layer1;
   extern LayerClass Layer2;
-  extern LayerClass Layer3;
 
 } // namespace hidpg
