@@ -49,7 +49,10 @@ namespace hidpg
 
   void HidCore::waitReady()
   {
-    _hid_reporter->waitReady();
+    if (_hid_reporter != nullptr)
+    {
+      _hid_reporter->waitReady();
+    }
   }
 
   void HidCore::setKey(KeyCode key_code)
