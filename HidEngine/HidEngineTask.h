@@ -93,10 +93,10 @@ namespace hidpg
     static void task(void *pvParameters);
 
     static TaskHandle_t _task_handle;
-    static StackType_t _task_stack[];
+    static StackType_t _task_stack[HID_ENGINE_TASK_STACK_SIZE];
     static StaticTask_t _task_tcb;
     static QueueHandle_t _event_queue;
-    static uint8_t _event_queue_storage[];
+    static uint8_t _event_queue_storage[HID_ENGINE_EVENT_QUEUE_SIZE * sizeof(EventData)];
     static StaticQueue_t _event_queue_struct;
   };
 

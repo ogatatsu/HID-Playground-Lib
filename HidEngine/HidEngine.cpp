@@ -31,9 +31,6 @@
 namespace hidpg
 {
 
-  //------------------------------------------------------------------+
-  // HidEngine
-  //------------------------------------------------------------------+
   Key *HidEngineClass::_keymap = nullptr;
   SimulKey *HidEngineClass::_simul_keymap = nullptr;
   SeqKey *HidEngineClass::_seq_keymap = nullptr;
@@ -53,6 +50,8 @@ namespace hidpg
   LinkedList<HidEngineClass::Tracking *> HidEngineClass::_tracking_list;
   int32_t HidEngineClass::_distance_x = 0;
   int32_t HidEngineClass::_distance_y = 0;
+
+  HidEngineClass HidEngine;
 
   void HidEngineClass::setHidReporter(HidReporter *hid_reporter)
   {
@@ -109,6 +108,16 @@ namespace hidpg
       }
     }
     return i;
+  }
+
+  //------------------------------------------------------------------+
+  // ApplyToKeymap
+  //------------------------------------------------------------------+
+  void HidEngineClass::applyToKeymap_impl(Set &key_ids)
+  {
+    processSeqKeymap(key_ids);
+    processSimulKeymap(key_ids);
+    processKeymap(key_ids);
   }
 
   void HidEngineClass::processSeqKeymap(Set &key_ids)
@@ -188,49 +197,6 @@ namespace hidpg
     }
   }
 
-  void HidEngineClass::processKeymap(Set &key_ids)
-  {
-    // process keymap
-    for (size_t i = 0; i < _keymap_len; i++)
-    {
-      // idが押されているかを取得
-      bool pressed = key_ids.contains(_keymap[i].key_id);
-
-      // コマンドに現在の状態を適用する
-      if (pressed)
-      {
-        _keymap[i].command->press();
-      }
-      else
-      {
-        _keymap[i].command->release();
-      }
-    }
-
-    // process simul_keymap
-    for (size_t i = 0; i < _simul_keymap_len; i++)
-    {
-      // 全てのidが押されているかを取得
-      bool pressed = key_ids.containsAll(_simul_keymap[i].key_ids, _simul_keymap[i].key_ids_len);
-
-      // コマンドに現在の状態を適用する
-      if (pressed)
-      {
-        _simul_keymap[i].command->press();
-      }
-      else
-      {
-        _simul_keymap[i].command->release();
-      }
-    }
-  }
-
-  void HidEngineClass::applyToKeymap_impl(Set &key_ids)
-  {
-    processSeqKeymap(key_ids);
-    processKeymap(key_ids);
-  }
-
   // 引数のid_seqがseq_keymapの定義とマッチするか調べる
   // 戻り値が
   // 0: マッチしない
@@ -254,6 +220,47 @@ namespace hidpg
     return 0;
   }
 
+  void HidEngineClass::processSimulKeymap(Set &key_ids)
+  {
+    for (size_t i = 0; i < _simul_keymap_len; i++)
+    {
+      // 全てのidが押されているかを取得
+      bool pressed = key_ids.containsAll(_simul_keymap[i].key_ids, _simul_keymap[i].key_ids_len);
+
+      // コマンドに現在の状態を適用する
+      if (pressed)
+      {
+        _simul_keymap[i].command->press();
+      }
+      else
+      {
+        _simul_keymap[i].command->release();
+      }
+    }
+  }
+
+  void HidEngineClass::processKeymap(Set &key_ids)
+  {
+    for (size_t i = 0; i < _keymap_len; i++)
+    {
+      // idが押されているかを取得
+      bool pressed = key_ids.contains(_keymap[i].key_id);
+
+      // コマンドに現在の状態を適用する
+      if (pressed)
+      {
+        _keymap[i].command->press();
+      }
+      else
+      {
+        _keymap[i].command->release();
+      }
+    }
+  }
+
+  //------------------------------------------------------------------+
+  // MouseMove
+  //------------------------------------------------------------------+
   void HidEngineClass::mouseMove_impl()
   {
     static uint8_t prev_track_id;
@@ -379,6 +386,9 @@ namespace hidpg
     }
   }
 
+  //------------------------------------------------------------------+
+  // RotateEncoder
+  //------------------------------------------------------------------+
   void HidEngineClass::rotateEncoder_impl(uint8_t encoder_id)
   {
     // encoderMapから一致するencoder_idのインデックスを検索
@@ -417,6 +427,9 @@ namespace hidpg
     }
   }
 
+  //------------------------------------------------------------------+
+  // HidEngine inner command
+  //------------------------------------------------------------------+
   void HidEngineClass::switchSequenceMode()
   {
     if (_seq_mode_state == SeqModeState::Disable)
@@ -445,8 +458,6 @@ namespace hidpg
       }
     }
   }
-
-  HidEngineClass HidEngine;
 
   //------------------------------------------------------------------+
   // SequenceMode

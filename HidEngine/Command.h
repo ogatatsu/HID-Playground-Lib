@@ -650,7 +650,7 @@ namespace hidpg
   // Other Command
   //------------------------------------------------------------------+
 
-  // Transparent (_ * 7)
+  // nullptr alias (_ * 7)
   #define _______ (static_cast<Command *>(nullptr))
 
 } // namespace hidpg

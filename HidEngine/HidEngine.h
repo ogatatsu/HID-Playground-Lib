@@ -139,6 +139,7 @@ namespace hidpg
   private:
     static void applyToKeymap_impl(Set &key_ids);
     static void processSeqKeymap(Set &key_ids);
+    static void processSimulKeymap(Set &key_ids);
     static void processKeymap(Set &key_ids);
     static void mouseMove_impl();
     static void processTrackX(size_t track_map_idx);
