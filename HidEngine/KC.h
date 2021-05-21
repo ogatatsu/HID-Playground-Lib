@@ -196,6 +196,10 @@ namespace hidpg
   static constexpr ConsumerControlCode Mute            = ConsumerControlCode::Mute;
   static constexpr ConsumerControlCode VolumeUp        = ConsumerControlCode::VolumeUp;
   static constexpr ConsumerControlCode VolumeDown      = ConsumerControlCode::VolumeDown;
+  static constexpr ConsumerControlCode LaunchMedia     = ConsumerControlCode::LaunchMedia;
+  static constexpr ConsumerControlCode LaunchMail      = ConsumerControlCode::LaunchMail;
+  static constexpr ConsumerControlCode LaunchApp1      = ConsumerControlCode::LaunchApp1;
+  static constexpr ConsumerControlCode LaunchApp2      = ConsumerControlCode::LaunchApp2;
 
   static constexpr SystemControlCode SystemPowerDown   = SystemControlCode::SystemPowerDown;
   static constexpr SystemControlCode SystemSleep       = SystemControlCode::SystemSleep;

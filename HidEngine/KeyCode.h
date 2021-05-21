@@ -212,6 +212,11 @@ namespace hidpg
     Mute        = 226,
     VolumeUp    = 233,
     VolumeDown  = 234,
+
+    LaunchMedia = 387,
+    LaunchMail  = 394,
+    LaunchApp1  = 404,
+    LaunchApp2  = 402,
   };
 
   // System Control
