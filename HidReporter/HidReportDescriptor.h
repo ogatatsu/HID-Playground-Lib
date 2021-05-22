@@ -174,6 +174,28 @@ namespace hidpg
     0xc0,                            /*   END_COLLECTION                      */ \
     0xc0                             /* END_COLLECTION                        */ \
 
+  // System Control Report Descriptor
+  #define TUD_HID_REPORT_DESC_SYSTEM_CONTROL_FIX(...) \
+    HID_USAGE_PAGE ( HID_USAGE_PAGE_DESKTOP           )        ,\
+    HID_USAGE      ( HID_USAGE_DESKTOP_SYSTEM_CONTROL )        ,\
+    HID_COLLECTION ( HID_COLLECTION_APPLICATION       )        ,\
+      /* Report ID if any */\
+      __VA_ARGS__ \
+      /* 2 bit system power control */ \
+      HID_LOGICAL_MIN  ( 1                                   ) ,\
+      HID_LOGICAL_MAX  ( 3                                   ) ,\
+      HID_REPORT_COUNT ( 1                                   ) ,\
+      HID_REPORT_SIZE  ( 2                                   ) ,\
+      HID_USAGE        ( HID_USAGE_DESKTOP_SYSTEM_POWER_DOWN ) ,\
+      HID_USAGE        ( HID_USAGE_DESKTOP_SYSTEM_SLEEP      ) ,\
+      HID_USAGE        ( HID_USAGE_DESKTOP_SYSTEM_WAKE_UP    ) ,\
+      HID_INPUT        ( HID_DATA | HID_ARRAY | HID_ABSOLUTE ) ,\
+      /* 6 bit padding */ \
+      HID_REPORT_COUNT ( 1                                   ) ,\
+      HID_REPORT_SIZE  ( 6                                   ) ,\
+      HID_INPUT        ( HID_CONSTANT                        ) ,\
+    HID_COLLECTION_END \
+
   enum
   {
     REPORT_ID_KEYBOARD = 1,

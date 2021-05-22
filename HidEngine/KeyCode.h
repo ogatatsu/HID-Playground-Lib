@@ -222,8 +222,8 @@ namespace hidpg
   // System Control
   enum class SystemControlCode : uint8_t
   {
-    SystemPowerDown = 2,
-    SystemSleep     = 1,
+    SystemPowerDown = 1,
+    SystemSleep     = 2,
     SystemWakeUp    = 3,
   };
 
