@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "PMW3360DM_config.h"
 #include "ThreadSafeSPI.h"
 #include "timers.h"
 
@@ -75,11 +76,17 @@ namespace hidpg
     static PMW3360DM &create(ThreadSafeSPIClass &spi, uint8_t ncs_pin, uint8_t interrupt_pin)
     {
       static_assert(ID < 2, "Two or more PMW3360DM can not be created.");
+
+      // テンプレート関数内のstatic変数はテンプレートインスタンス毎に確保される
+      static StackType_t task_stack[PMW3360DM_TASK_STACK_SIZE];
+      static StaticTask_t task_tcb;
+      static PMW3360DM result(spi, ncs_pin, interrupt_pin, ID, task_stack, &task_tcb);
+
       if (instances[ID] == nullptr)
       {
-        instances[ID] = new PMW3360DM(spi, ncs_pin, interrupt_pin, ID);
+        instances[ID] = &result;
       }
-      return *instances[ID];
+      return result;
     }
 
     template <uint8_t ID>
@@ -122,7 +129,12 @@ namespace hidpg
       };
     };
 
-    PMW3360DM(ThreadSafeSPIClass &spi, uint8_t ncs_pin, uint8_t interrupt_pin, uint8_t id);
+    PMW3360DM(ThreadSafeSPIClass &spi,
+              uint8_t ncs_pin,
+              uint8_t interrupt_pin,
+              uint8_t id,
+              StackType_t *task_stack,
+              StaticTask_t *task_tcb);
 
     static void task(void *pvParameters);
     static void interrupt_callback_0();
@@ -141,6 +153,8 @@ namespace hidpg
     const uint8_t _ncs_pin;
     const uint8_t _interrupt_pin;
     const uint8_t _id;
+    StackType_t *_task_stack;
+    StaticTask_t *_task_tcb;
     callback_t _callback;
   };
 

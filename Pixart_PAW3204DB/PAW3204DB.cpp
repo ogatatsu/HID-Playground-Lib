@@ -25,7 +25,6 @@
 #include "Arduino.h"
 
 #include "PAW3204DB.h"
-#include "PAW3204DB_config.h"
 
 namespace hidpg
 {
@@ -89,8 +88,17 @@ namespace hidpg
   //------------------------------------------------------------------+
   // instance member
   //------------------------------------------------------------------+
-  PAW3204DB::PAW3204DB(PAW3204DB_RegOperator *reg, uint8_t motswk_pin, uint8_t id)
-      : _reg(reg), _motswk_pin(motswk_pin), _id(id), _callback(nullptr)
+  PAW3204DB::PAW3204DB(PAW3204DB_RegOperator *reg,
+                       uint8_t motswk_pin,
+                       uint8_t id,
+                       StackType_t *task_stack,
+                       StaticTask_t *task_tcb)
+      : _reg(reg),
+        _motswk_pin(motswk_pin),
+        _id(id),
+        _task_stack(task_stack),
+        _task_tcb(task_tcb),
+        _callback(nullptr)
   {
   }
 
@@ -101,7 +109,7 @@ namespace hidpg
 
   void PAW3204DB::begin()
   {
-    _mutex = xSemaphoreCreateMutex();
+    _mutex = xSemaphoreCreateMutexStatic(&_mutex_buffer);
 
     _reg->begin();
 
@@ -114,7 +122,7 @@ namespace hidpg
 
     char name[] = "3204_0";
     name[5] += _id;
-    xTaskCreate(task, name, PAW3204DB_TASK_STACK_SIZE, this, PAW3204DB_TASK_PRIO, &_task_handles[_id]);
+    _task_handles[_id] = xTaskCreateStatic(task, name, PAW3204DB_TASK_STACK_SIZE, this, PAW3204DB_TASK_PRIO, _task_stack, _task_tcb);
   }
 
   void PAW3204DB::initRegisters()

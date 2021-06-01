@@ -25,6 +25,7 @@
 #pragma once
 
 #include "FreeRTOS.h"
+#include "PAW3204DB_config.h"
 
 #ifdef ARDUINO_ARCH_NRF52
 #include "PAW3204DB_RegOperator_nRF52.h"
@@ -59,23 +60,33 @@ namespace hidpg
     using callback_t = void (*)(void);
 
     template <uint8_t ID>
-    static PAW3204DB &create(uint8_t sclk_pin, uint8_t sdio_pin, uint8_t motswk_pin)
+    static PAW3204DB &create(
+#ifdef ARDUINO_ARCH_NRF52
+        NRF_SPI_Type *SPI,
+#endif
+        uint8_t sclk_pin,
+        uint8_t sdio_pin,
+        uint8_t motswk_pin)
     {
       static_assert(ID < 2, "Two or more PAW3204DB can not be created.");
+
+      // テンプレート関数内のstatic変数はテンプレートインスタンス毎に確保される
+      static StackType_t task_stack[PAW3204DB_TASK_STACK_SIZE];
+      static StaticTask_t task_tcb;
+
+#ifdef ARDUINO_ARCH_NRF52
+      static PAW3204DB_RegOperator_nRF52 reg(SPI, sclk_pin, sdio_pin);
+#else
+      static PAW3204DB_RegOperator_GPIO reg(sclk_pin, sdio_pin);
+#endif
+
+      static PAW3204DB result(&reg, motswk_pin, ID, task_stack, &task_tcb);
+
       if (instances[ID] == nullptr)
       {
-        PAW3204DB_RegOperator *reg;
-#ifdef ARDUINO_ARCH_NRF52
-        if (ID == 0)
-          reg = new PAW3204DB_RegOperator_nRF52(NRF_SPI2, sclk_pin, sdio_pin);
-        else
-          reg = new PAW3204DB_RegOperator_nRF52(NRF_SPI1, sclk_pin, sdio_pin);
-#else
-        reg = new PAW3204DB_RegOperator_GPIO(sclk_pin, sdio_pin);
-#endif
-        instances[ID] = new PAW3204DB(reg, motswk_pin, ID);
+        instances[ID] = &result;
       }
-      return *instances[ID];
+      return result;
     }
 
     template <uint8_t ID>
@@ -96,7 +107,11 @@ namespace hidpg
 #endif
 
   private:
-    PAW3204DB(PAW3204DB_RegOperator *reg, uint8_t motswk_pin, uint8_t id);
+    PAW3204DB(PAW3204DB_RegOperator *reg,
+              uint8_t motswk_pin,
+              uint8_t id,
+              StackType_t *task_stack,
+              StaticTask_t *task_tcb);
 
     static void task(void *pvParameters);
     static void timer_callback(TimerHandle_t timer_handle);
@@ -107,11 +122,14 @@ namespace hidpg
 
     void initRegisters();
 
-    SemaphoreHandle_t _mutex;
     PAW3204DB_RegOperator *_reg;
     const uint8_t _motswk_pin;
     const uint8_t _id;
+    StackType_t *_task_stack;
+    StaticTask_t *_task_tcb;
     callback_t _callback;
+    SemaphoreHandle_t _mutex;
+    StaticSemaphore_t _mutex_buffer;
   };
 
 } // namespace hidpg

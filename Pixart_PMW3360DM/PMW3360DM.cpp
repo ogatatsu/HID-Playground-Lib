@@ -24,7 +24,6 @@
 
 #include "PMW3360DM.h"
 #include "PMW3360DM_Firmware.h"
-#include "PMW3360DM_config.h"
 
 namespace hidpg
 {
@@ -121,8 +120,19 @@ namespace hidpg
   //------------------------------------------------------------------+
   // instance member
   //------------------------------------------------------------------+
-  PMW3360DM::PMW3360DM(ThreadSafeSPIClass &spi, uint8_t ncs_pin, uint8_t interrupt_pin, uint8_t id)
-      : _spi(spi), _ncs_pin(ncs_pin), _interrupt_pin(interrupt_pin), _id(id), _callback(nullptr)
+  PMW3360DM::PMW3360DM(ThreadSafeSPIClass &spi,
+                       uint8_t ncs_pin,
+                       uint8_t interrupt_pin,
+                       uint8_t id,
+                       StackType_t *task_stack,
+                       StaticTask_t *task_tcb)
+      : _spi(spi),
+        _ncs_pin(ncs_pin),
+        _interrupt_pin(interrupt_pin),
+        _id(id),
+        _task_stack(task_stack),
+        _task_tcb(task_tcb),
+        _callback(nullptr)
   {
   }
 
@@ -144,7 +154,7 @@ namespace hidpg
 
     char name[] = "3360_0";
     name[5] += _id;
-    xTaskCreate(task, name, PMW3360DM_TASK_STACK_SIZE, this, PMW3360DM_TASK_PRIO, &_task_handles[_id]);
+    _task_handles[_id] = xTaskCreateStatic(task, name, PMW3360DM_TASK_STACK_SIZE, this, PMW3360DM_TASK_PRIO, _task_stack, _task_tcb);
 
     powerUp();
   }
