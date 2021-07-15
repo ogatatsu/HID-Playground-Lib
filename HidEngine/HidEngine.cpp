@@ -34,14 +34,14 @@ namespace hidpg
   Key *HidEngineClass::_keymap = nullptr;
   SimulKey *HidEngineClass::_simul_keymap = nullptr;
   SeqKey *HidEngineClass::_seq_keymap = nullptr;
-  Track *HidEngineClass::_trackMap = nullptr;
-  Encoder *HidEngineClass::_encoderMap = nullptr;
+  Track *HidEngineClass::_track_map = nullptr;
+  Encoder *HidEngineClass::_encoder_map = nullptr;
 
   uint8_t HidEngineClass::_keymap_len = 0;
   uint8_t HidEngineClass::_simul_keymap_len = 0;
   uint8_t HidEngineClass::_seq_keymap_len = 0;
-  uint8_t HidEngineClass::_trackMap_len = 0;
-  uint8_t HidEngineClass::_encoderMap_len = 0;
+  uint8_t HidEngineClass::_track_map_len = 0;
+  uint8_t HidEngineClass::_encoder_map_len = 0;
 
   HidEngineClass::read_mouse_delta_callback_t HidEngineClass::_read_mouse_delta_cb = nullptr;
   HidEngineClass::read_encoder_step_callback_t HidEngineClass::_read_encoder_step_cb = nullptr;
@@ -290,9 +290,9 @@ namespace hidpg
 
       // trackMapから一致するtrack_idのインデックスを検索
       int match_idx = -1;
-      for (int i = 0; i < _trackMap_len; i++)
+      for (int i = 0; i < _track_map_len; i++)
       {
-        if (_trackMap[i].track_id == track_id)
+        if (_track_map[i].track_id == track_id)
         {
           match_idx = i;
           break;
@@ -336,14 +336,14 @@ namespace hidpg
 
   void HidEngineClass::processTrackY(size_t track_map_idx)
   {
-    int16_t threshold = _trackMap[track_map_idx].threshold_distance;
+    int16_t threshold = _track_map[track_map_idx].threshold_distance;
 
     if (_distance_y <= -threshold) // 上
     {
       uint8_t n_times = min(abs(_distance_y / threshold), UINT8_MAX);
       _distance_y %= threshold;
-      CommandTapper.tap(_trackMap[track_map_idx].up_command, n_times);
-      if (_trackMap[track_map_idx].angle_snap == AngleSnap::Enable)
+      CommandTapper.tap(_track_map[track_map_idx].up_command, n_times);
+      if (_track_map[track_map_idx].angle_snap == AngleSnap::Enable)
       {
         _distance_x = 0;
       }
@@ -352,8 +352,8 @@ namespace hidpg
     {
       uint8_t n_times = min(_distance_y / threshold, UINT8_MAX);
       _distance_y %= threshold;
-      CommandTapper.tap(_trackMap[track_map_idx].down_command, n_times);
-      if (_trackMap[track_map_idx].angle_snap == AngleSnap::Enable)
+      CommandTapper.tap(_track_map[track_map_idx].down_command, n_times);
+      if (_track_map[track_map_idx].angle_snap == AngleSnap::Enable)
       {
         _distance_x = 0;
       }
@@ -362,14 +362,14 @@ namespace hidpg
 
   void HidEngineClass::processTrackX(size_t track_map_idx)
   {
-    int16_t threshold = _trackMap[track_map_idx].threshold_distance;
+    int16_t threshold = _track_map[track_map_idx].threshold_distance;
 
     if (_distance_x <= -threshold) // 左
     {
       uint8_t n_times = min(abs(_distance_x / threshold), UINT8_MAX);
       _distance_x %= threshold;
-      CommandTapper.tap(_trackMap[track_map_idx].left_command, n_times);
-      if (_trackMap[track_map_idx].angle_snap == AngleSnap::Enable)
+      CommandTapper.tap(_track_map[track_map_idx].left_command, n_times);
+      if (_track_map[track_map_idx].angle_snap == AngleSnap::Enable)
       {
         _distance_y = 0;
       }
@@ -378,8 +378,8 @@ namespace hidpg
     {
       uint8_t n_times = min(_distance_x / threshold, UINT8_MAX);
       _distance_x %= threshold;
-      CommandTapper.tap(_trackMap[track_map_idx].right_command, n_times);
-      if (_trackMap[track_map_idx].angle_snap == AngleSnap::Enable)
+      CommandTapper.tap(_track_map[track_map_idx].right_command, n_times);
+      if (_track_map[track_map_idx].angle_snap == AngleSnap::Enable)
       {
         _distance_y = 0;
       }
@@ -393,9 +393,9 @@ namespace hidpg
   {
     // encoderMapから一致するencoder_idのインデックスを検索
     int idx = -1;
-    for (int i = 0; i < _encoderMap_len; i++)
+    for (int i = 0; i < _encoder_map_len; i++)
     {
-      if (_encoderMap[i].encoder_id == encoder_id)
+      if (_encoder_map[i].encoder_id == encoder_id)
       {
         idx = i;
         break;
@@ -418,11 +418,11 @@ namespace hidpg
 
       if (step >= 0)
       {
-        CommandTapper.tap(_encoderMap[idx].clockwise_command, step_u8);
+        CommandTapper.tap(_encoder_map[idx].clockwise_command, step_u8);
       }
       else
       {
-        CommandTapper.tap(_encoderMap[idx].counterclockwise_command, step_u8);
+        CommandTapper.tap(_encoder_map[idx].counterclockwise_command, step_u8);
       }
     }
   }

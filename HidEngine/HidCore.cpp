@@ -92,6 +92,7 @@ namespace hidpg
     if (_key_counters[kc] == 0)
     {
       int i = 0;
+      // 探して削除
       for (; i < 6; i++)
       {
         if (_pressed_keys[i] == kc)
@@ -110,11 +111,11 @@ namespace hidpg
   }
 
   template <typename T, size_t SIZE>
-  static void countUp(T (&counters)[SIZE], uint8_t bit8)
+  static void countUp(T (&counters)[SIZE], uint8_t bitmap)
   {
     for (size_t i = 0; i < SIZE; i++)
     {
-      if (bitRead(bit8, i))
+      if (bitRead(bitmap, i))
       {
         counters[i]++;
       }
@@ -122,11 +123,11 @@ namespace hidpg
   }
 
   template <typename T, size_t SIZE>
-  static void countDown(T (&counters)[SIZE], uint8_t bit8)
+  static void countDown(T (&counters)[SIZE], uint8_t bitmap)
   {
     for (size_t i = 0; i < SIZE; i++)
     {
-      if (bitRead(bit8, i))
+      if (bitRead(bitmap, i))
       {
         counters[i]--;
       }
@@ -135,26 +136,22 @@ namespace hidpg
 
   void HidCore::setModifier(Modifier modifier)
   {
-    uint8_t mod = static_cast<uint8_t>(modifier);
-    countUp(_modifier_counters, mod);
+    countUp(_modifier_counters, static_cast<uint8_t>(modifier));
   }
 
   void HidCore::unsetModifier(Modifier modifier)
   {
-    uint8_t mod = static_cast<uint8_t>(modifier);
-    countDown(_modifier_counters, mod);
+    countDown(_modifier_counters, static_cast<uint8_t>(modifier));
   }
 
   void HidCore::holdOneShotModifier(Modifier modifier)
   {
-    uint8_t mod = static_cast<uint8_t>(modifier);
-    countUp(_one_shot_modifier_counters, mod);
+    countUp(_one_shot_modifier_counters, static_cast<uint8_t>(modifier));
   }
 
   void HidCore::releaseOneShotModifier(Modifier modifier)
   {
-    uint8_t mod = static_cast<uint8_t>(modifier);
-    countDown(_triggered_one_shot_modifier_counters, mod);
+    countDown(_triggered_one_shot_modifier_counters, static_cast<uint8_t>(modifier));
     sendKeyReport(false);
   }
 
@@ -187,9 +184,6 @@ namespace hidpg
       }
     }
 
-    // 非one_shotなmodifierが新しく追加されたかどうか計算
-    is_modifier_adding = ((modifier & ~_prev_sent_modifier) != 0);
-
     // one_shotは発動した後も押され続けている場合は機能し続ける、有るならばmodifierに追加
     for (int i = 0; i < 8; i++)
     {
@@ -217,7 +211,7 @@ namespace hidpg
     if (modifier != _prev_sent_modifier)
     {
       is_changed = true;
-      // one_shotも考慮してmodifierが新しく追加されたかどうかを再計算
+      // modifierが新しく追加されたかどうかを計算
       is_modifier_adding = ((modifier & ~_prev_sent_modifier) != 0);
     }
 
@@ -299,16 +293,14 @@ namespace hidpg
 
   void HidCore::mouseButtonPress(MouseButton button)
   {
-    uint8_t btn = static_cast<uint8_t>(button);
-    countUp(_mouse_button_counters, btn);
+    countUp(_mouse_button_counters, static_cast<uint8_t>(button));
     sendKeyReport(true);
     sendMouseButtonReport();
   }
 
   void HidCore::mouseButtonRelease(MouseButton button)
   {
-    uint8_t btn = static_cast<uint8_t>(button);
-    countDown(_mouse_button_counters, btn);
+    countDown(_mouse_button_counters, static_cast<uint8_t>(button));
     sendKeyReport(false);
     sendMouseButtonReport();
   }
