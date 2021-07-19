@@ -46,7 +46,7 @@ namespace hidpg
 
   err_t BLEHid::begin()
   {
-    uint16_t input_len[] = {sizeof(hid_keyboard_report_t), sizeof(hid_consumer_control_report_t), sizeof(hid_mouse_report_ex_t), sizeof(uint16_t), sizeof(uint8_t)};
+    uint16_t input_len[] = {sizeof(hid_keyboard_report_t), sizeof(uint16_t), sizeof(hid_mouse_report_ex_t), sizeof(uint16_t), sizeof(uint8_t)};
     uint16_t output_len[] = {1};
 
     setReportLen(input_len, output_len, NULL);
