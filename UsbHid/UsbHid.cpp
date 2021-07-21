@@ -34,9 +34,28 @@ namespace hidpg
   bool UsbHidClass::begin()
   {
     _usb_hid.setPollInterval(2);
-    _usb_hid.enableOutEndpoint(true);
     _usb_hid.setReportDescriptor(hid_report_descriptor, sizeof(hid_report_descriptor));
+    _usb_hid.setReportCallback(NULL, UsbHidClass::hid_report_callback);
+
     return _usb_hid.begin();
+  }
+
+  void UsbHidClass::hid_report_callback(uint8_t report_id, hid_report_type_t report_type, uint8_t const *buffer, uint16_t bufsize)
+  {
+    if (!(report_id == REPORT_ID_KEYBOARD && report_type == HID_REPORT_TYPE_OUTPUT))
+    {
+      return;
+    }
+
+    if (_reporter._kbd_led_cb != nullptr && bufsize == 2)
+    {
+      // bufferの１バイト目はReportID
+      _reporter._kbd_led_cb(buffer[1]);
+    }
+  }
+
+  UsbHidClass::UsbHidReporter::UsbHidReporter() : _kbd_led_cb(nullptr)
+  {
   }
 
   HidReporter *UsbHidClass::getHidReporter()
@@ -112,6 +131,11 @@ namespace hidpg
     }
 
     return true;
+  }
+
+  void UsbHidClass::UsbHidReporter::setKeyboardLedCallback(kbd_led_cb_t cb)
+  {
+    _kbd_led_cb = cb;
   }
 
   UsbHidClass UsbHid;

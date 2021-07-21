@@ -45,8 +45,7 @@ namespace hidpg
   class BLEHid : public BLEHidGeneric, public HidReporter
   {
   public:
-    using kbd_led_cb1_t = void (*)(uint8_t leds_bitmap);
-    using kbd_led_cb2_t = void (*)(uint16_t conn_hdl, uint8_t leds_bitmap);
+    using kbd_led_cb_hdl_t = void (*)(uint16_t conn_hdl, uint8_t leds_bitmap);
 
     BLEHid();
     err_t begin();
@@ -56,20 +55,20 @@ namespace hidpg
     bool radialControllerReport(uint16_t conn_hdl, bool button, int16_t dial);
     bool mouseReport(uint16_t conn_hdl, uint8_t buttons, int16_t x, int16_t y, int8_t wheel, int8_t horiz);
     bool systemControlReport(uint16_t conn_hdl, uint8_t usage_code);
-    void setKeyboardLedCallback(kbd_led_cb2_t cb);
     bool waitReady(uint16_t conn_hdl);
+    void setKeyboardLedCallback(kbd_led_cb_hdl_t cb);
 
     bool keyboardReport(uint8_t modifier, uint8_t key_codes[6]) override;
     bool consumerReport(uint16_t usage_code) override;
     bool mouseReport(uint8_t buttons, int16_t x, int16_t y, int8_t wheel, int8_t horiz) override;
     bool radialControllerReport(bool button, int16_t dial) override;
     bool systemControlReport(uint8_t usage_code) override;
-    void setKeyboardLedCallback(kbd_led_cb1_t cb);
-    bool waitReady();
+    bool waitReady() override;
+    void setKeyboardLedCallback(kbd_led_cb_t cb) override;
 
   private:
-    kbd_led_cb1_t _kbd_led_cb1;
-    kbd_led_cb2_t _kbd_led_cb2;
+    kbd_led_cb_t _kbd_led_cb;
+    kbd_led_cb_hdl_t _kbd_led_hdl_cb;
 
     static void keyboard_output_cb(uint16_t conn_hdl, BLECharacteristic *chr, uint8_t *data, uint16_t len);
   };

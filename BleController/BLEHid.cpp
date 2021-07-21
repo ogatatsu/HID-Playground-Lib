@@ -40,7 +40,7 @@
 namespace hidpg
 {
 
-  BLEHid::BLEHid() : BLEHidGeneric(5, 1, 0), _kbd_led_cb1(nullptr), _kbd_led_cb2(nullptr)
+  BLEHid::BLEHid() : BLEHidGeneric(5, 1, 0), _kbd_led_cb(nullptr), _kbd_led_hdl_cb(nullptr)
   {
   }
 
@@ -63,16 +63,16 @@ namespace hidpg
   {
     BLEHid &svc = (BLEHid &)chr->parentService();
 
-    if (svc._kbd_led_cb1 != nullptr)
-      svc._kbd_led_cb1(data[0]);
+    if (svc._kbd_led_cb != nullptr)
+      svc._kbd_led_cb(data[0]);
 
-    if (svc._kbd_led_cb2 != nullptr)
-      svc._kbd_led_cb2(conn_hdl, data[0]);
+    if (svc._kbd_led_hdl_cb != nullptr)
+      svc._kbd_led_hdl_cb(conn_hdl, data[0]);
   }
 
-  void BLEHid::setKeyboardLedCallback(kbd_led_cb1_t cb)
+  void BLEHid::setKeyboardLedCallback(kbd_led_cb_t cb)
   {
-    _kbd_led_cb1 = cb;
+    _kbd_led_cb = cb;
 
     // Report mode
     this->setOutputReportCallback(REPORT_ID_KEYBOARD, cb ? keyboard_output_cb : NULL);
@@ -80,9 +80,9 @@ namespace hidpg
     _chr_boot_keyboard_output->setWriteCallback(cb ? keyboard_output_cb : NULL);
   }
 
-  void BLEHid::setKeyboardLedCallback(kbd_led_cb2_t cb)
+  void BLEHid::setKeyboardLedCallback(kbd_led_cb_hdl_t cb)
   {
-    _kbd_led_cb2 = cb;
+    _kbd_led_hdl_cb = cb;
 
     this->setOutputReportCallback(REPORT_ID_KEYBOARD, cb ? keyboard_output_cb : NULL);
 
