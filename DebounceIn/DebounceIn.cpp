@@ -39,7 +39,7 @@ namespace hidpg
   StackType_t DebounceInClass::_task_stack[DEBOUNCE_IN_TASK_STACK_SIZE];
   StaticTask_t DebounceInClass::_task_tcb;
 
-  void DebounceInClass::begin()
+  void DebounceInClass::start()
   {
     for (int i = 0; i < _pin_info_list.size(); i++)
     {

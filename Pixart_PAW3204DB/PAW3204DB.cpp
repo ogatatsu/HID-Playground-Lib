@@ -99,7 +99,7 @@ namespace hidpg
     _callback = callback;
   }
 
-  void PAW3204DB::begin()
+  void PAW3204DB::start()
   {
     _mutex = xSemaphoreCreateMutex();
 

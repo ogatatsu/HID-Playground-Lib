@@ -58,10 +58,10 @@ namespace hidpg
     Hid.setReporter(hid_reporter);
   }
 
-  void HidEngineClass::begin()
+  void HidEngineClass::start()
   {
-    HidEngineTask.begin();
     CommandTapper.begin();
+    HidEngineTask.start();
   }
 
   void HidEngineClass::applyToKeymap(const Set &key_ids)

@@ -64,7 +64,7 @@ namespace hidpg
 #endif
 
   // ピンの初期化など
-  void MatrixScanClass::begin()
+  void MatrixScanClass::start()
   {
     // 出力ピンの設定
     for (int i = 0; i < _out_pins_len; i++)

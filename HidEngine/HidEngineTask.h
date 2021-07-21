@@ -86,7 +86,7 @@ namespace hidpg
   class HidEngineTaskClass
   {
   public:
-    static void begin();
+    static void start();
     static void enqueEvent(const EventData &evt);
 
   private:

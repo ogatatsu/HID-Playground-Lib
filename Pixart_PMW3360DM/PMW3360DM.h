@@ -90,7 +90,7 @@ namespace hidpg
     }
 
     void setCallback(callback_t callback);
-    void begin();
+    void start();
     void readDelta(int16_t *delta_x, int16_t *delta_y);
     void changeMode(Mode mode);
     void changeCpi(Cpi cpi);

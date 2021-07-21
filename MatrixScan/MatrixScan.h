@@ -46,7 +46,7 @@ namespace hidpg
       _out_pins = out_pins;
       _matrix = reinterpret_cast<Switch **>(matrix);
     }
-    static void begin();
+    static void start();
     static void setCallback(callback_t callback);
 
 #ifdef ARDUINO_ARCH_NRF52

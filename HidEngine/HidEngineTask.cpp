@@ -37,7 +37,7 @@ namespace hidpg
   uint8_t HidEngineTaskClass::_event_queue_storage[HID_ENGINE_EVENT_QUEUE_SIZE * sizeof(EventData)];
   StaticQueue_t HidEngineTaskClass::_event_queue_struct;
 
-  void HidEngineTaskClass::begin()
+  void HidEngineTaskClass::start()
   {
     _event_queue = xQueueCreateStatic(HID_ENGINE_EVENT_QUEUE_SIZE, sizeof(EventData), _event_queue_storage, &_event_queue_struct);
     _task_handle = xTaskCreateStatic(task, "HidEngine", HID_ENGINE_TASK_STACK_SIZE, nullptr, HID_ENGINE_TASK_PRIO, _task_stack, &_task_tcb);

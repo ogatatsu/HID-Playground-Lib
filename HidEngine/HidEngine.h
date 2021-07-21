@@ -129,7 +129,7 @@ namespace hidpg
     using read_encoder_step_callback_t = void (*)(uint8_t encoder_id, int32_t *step);
 
     static void setHidReporter(HidReporter *hid_reporter);
-    static void begin();
+    static void start();
     static void applyToKeymap(const Set &key_ids);
     static void mouseMove();
     static void rotateEncoder(uint8_t encoder_id);
