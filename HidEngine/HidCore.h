@@ -43,10 +43,10 @@ namespace hidpg
     // これにより別のスイッチに同じキーコードを割り当てたとしても正しく動作する。
     static void setKey(KeyCode key_code);
     static void unsetKey(KeyCode key_code);
-    static void setModifier(Modifier modifier);
-    static void unsetModifier(Modifier modifier);
-    static void holdOneShotModifier(Modifier modifier);
-    static void releaseOneShotModifier(Modifier modifier);
+    static void setModifiers(Modifiers modifiers);
+    static void unsetModifiers(Modifiers modifiers);
+    static void holdOneShotModifiers(Modifiers modifiers);
+    static void releaseOneShotModifiers(Modifiers modifiers);
     static void sendKeyReport(bool trigger_one_shot);
 
     // Consumer API
@@ -54,11 +54,11 @@ namespace hidpg
     static void consumerKeyRelease();
 
     // Mouse API
-    // mouseButtonPress,Releaseは複数スイッチでの同時押しに対応
+    // mouseButtonsPress,Releaseは複数スイッチでの同時押しに対応
     static void mouseMove(int16_t x, int16_t y);
     static void mouseScroll(int8_t scroll, int8_t horiz);
-    static void mouseButtonPress(MouseButton button);
-    static void mouseButtonRelease(MouseButton button);
+    static void mouseButtonsPress(MouseButtons buttons);
+    static void mouseButtonsRelease(MouseButtons buttons);
 
     // Radial Controller API
     // radialControllerButtonPress,Releaseは複数スイッチでの同時押しに対応
@@ -71,7 +71,7 @@ namespace hidpg
     static void systemControlKeyRelease();
 
   private:
-    static void sendMouseButtonReport();
+    static void sendMouseButtonsReport();
     static void sendRadialControllerButtonReport();
 
     static HidReporter *_hid_reporter;
@@ -84,9 +84,9 @@ namespace hidpg
     static int32_t _one_shot_modifier_counters[8];
     static int32_t _triggered_one_shot_modifier_counters[8];
 
-    static uint8_t _prev_sent_modifier;
+    static uint8_t _prev_sent_modifiers;
 
-    static uint8_t _prev_sent_mouse_button;
+    static uint8_t _prev_sent_mouse_buttons;
     static uint8_t _mouse_button_counters[5];
 
     static bool _prev_sent_radial_button;

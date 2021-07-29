@@ -63,11 +63,11 @@ namespace hidpg
     return &_reporter;
   }
 
-  bool UsbHidClass::UsbHidReporter::keyboardReport(uint8_t modifier, uint8_t key_codes[6])
+  bool UsbHidClass::UsbHidReporter::keyboardReport(uint8_t modifiers, uint8_t key_codes[6])
   {
     if (waitReady())
     {
-      return _usb_hid.keyboardReport(REPORT_ID_KEYBOARD, modifier, key_codes);
+      return _usb_hid.keyboardReport(REPORT_ID_KEYBOARD, modifiers, key_codes);
     }
     return false;
   }

@@ -103,17 +103,17 @@ namespace hidpg
   class ModifierKey : public Command
   {
   public:
-    ModifierKey(Modifier modifier);
+    ModifierKey(Modifiers modifiers);
 
   protected:
     void onPress(uint8_t n_times) override;
     uint8_t onRelease() override;
 
   private:
-    const Modifier _modifier;
+    const Modifiers _modifiers;
   };
 
-  static inline Command *MO(Modifier modifier) { return (new ModifierKey(modifier)); }
+  static inline Command *MO(Modifiers modifiers) { return (new ModifierKey(modifiers)); }
 
   //------------------------------------------------------------------+
   // CombinationKey
@@ -121,18 +121,18 @@ namespace hidpg
   class CombinationKey : public Command
   {
   public:
-    CombinationKey(Modifier modifier, KeyCode key_code);
+    CombinationKey(Modifiers modifiers, KeyCode key_code);
 
   protected:
     void onPress(uint8_t n_times) override;
     uint8_t onRelease() override;
 
   private:
-    const Modifier _modifier;
+    const Modifiers _modifiers;
     const KeyCode _key_code;
   };
 
-  static inline Command *CK(Modifier modifier, KeyCode key_code) { return (new CombinationKey(modifier, key_code)); }
+  static inline Command *CK(Modifiers modifiers, KeyCode key_code) { return (new CombinationKey(modifiers, key_code)); }
 
   //------------------------------------------------------------------+
   // ModifierTap
@@ -140,18 +140,18 @@ namespace hidpg
   class ModifierTap : public Command
   {
   public:
-    ModifierTap(Modifier modifier, Command *command);
+    ModifierTap(Modifiers modifiers, Command *command);
 
   protected:
     void onPress(uint8_t n_times) override;
     uint8_t onRelease() override;
 
   private:
-    const Modifier _modifier;
+    const Modifiers _modifiers;
     Command *_command;
   };
 
-  static inline Command *MT(Modifier modifier, Command *command) { return (new ModifierTap(modifier, command)); }
+  static inline Command *MT(Modifiers modifiers, Command *command) { return (new ModifierTap(modifiers, command)); }
 
   //------------------------------------------------------------------+
   // OneShotModifier
@@ -159,17 +159,17 @@ namespace hidpg
   class OneShotModifier : public Command
   {
   public:
-    OneShotModifier(Modifier modifier);
+    OneShotModifier(Modifiers modifiers);
 
   protected:
     void onPress(uint8_t n_times) override;
     uint8_t onRelease() override;
 
   private:
-    const Modifier _modifier;
+    const Modifiers _modifiers;
   };
 
-  static inline Command *OSM(Modifier modifier) { return (new OneShotModifier(modifier)); }
+  static inline Command *OSM(Modifiers modifiers) { return (new OneShotModifier(modifiers)); }
 
   //------------------------------------------------------------------+
   // Layering
@@ -532,17 +532,17 @@ namespace hidpg
   class MouseClick : public Command
   {
   public:
-    MouseClick(MouseButton button);
+    MouseClick(MouseButtons buttons);
 
   protected:
     void onPress(uint8_t n_times) override;
     uint8_t onRelease() override;
 
   private:
-    const MouseButton _button;
+    const MouseButtons _buttons;
   };
 
-  static inline Command *MS_CLK(MouseButton button) { return (new MouseClick(button)); }
+  static inline Command *MS_CLK(MouseButtons buttons) { return (new MouseClick(buttons)); }
 
   //------------------------------------------------------------------+
   // RadialClick

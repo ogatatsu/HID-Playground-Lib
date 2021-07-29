@@ -89,10 +89,10 @@ namespace hidpg
     _chr_boot_keyboard_output->setWriteCallback(cb ? keyboard_output_cb : NULL);
   }
 
-  bool BLEHid::keyboardReport(uint16_t conn_hdl, uint8_t modifier, uint8_t key_codes[6])
+  bool BLEHid::keyboardReport(uint16_t conn_hdl, uint8_t modifiers, uint8_t key_codes[6])
   {
     hid_keyboard_report_t report;
-    report.modifier = modifier;
+    report.modifier = modifiers;
     memcpy(report.keycode, key_codes, 6);
 
     if (isBootMode())
@@ -105,9 +105,9 @@ namespace hidpg
     }
   }
 
-  bool BLEHid::keyboardReport(uint8_t modifier, uint8_t key_codes[6])
+  bool BLEHid::keyboardReport(uint8_t modifiers, uint8_t key_codes[6])
   {
-    return keyboardReport(BLE_CONN_HANDLE_INVALID, modifier, key_codes);
+    return keyboardReport(BLE_CONN_HANDLE_INVALID, modifiers, key_codes);
   }
 
   bool BLEHid::consumerReport(uint16_t conn_hdl, uint16_t usage_code)

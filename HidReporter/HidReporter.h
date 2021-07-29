@@ -34,13 +34,13 @@ namespace hidpg
   public:
     using kbd_led_cb_t = void (*)(uint8_t leds_bitmap);
 
-    virtual bool keyboardReport(uint8_t modifier, uint8_t key_codes[6]) = 0;
+    virtual bool keyboardReport(uint8_t modifiers, uint8_t key_codes[6]) = 0;
     virtual bool consumerReport(uint16_t usage_code) = 0;
     virtual bool mouseReport(uint8_t buttons, int16_t x, int16_t y, int8_t wheel, int8_t horiz) = 0;
     virtual bool radialControllerReport(bool button, int16_t dial) = 0;
-    virtual bool systemControlReport(uint8_t usage_code);
-    virtual bool waitReady();
-    virtual void setKeyboardLedCallback(kbd_led_cb_t cb);
+    virtual bool systemControlReport(uint8_t usage_code) = 0;
+    virtual bool waitReady() = 0;
+    virtual void setKeyboardLedCallback(kbd_led_cb_t cb) = 0;
   };
 
 } // namespace hidpg

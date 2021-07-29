@@ -169,7 +169,7 @@ namespace hidpg
   };
 
   // ModifierKeys
-  enum class Modifier : uint8_t
+  enum class Modifiers : uint8_t
   {
     LeftCtrl   = 1,
     LeftShift  = 2,
@@ -181,13 +181,13 @@ namespace hidpg
     RightGui   = 128,
   };
 
-  constexpr Modifier operator+(const Modifier &a, const Modifier &b)
+  constexpr Modifiers operator+(const Modifiers &a, const Modifiers &b)
   {
-    return static_cast<Modifier>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
+    return static_cast<Modifiers>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
   }
 
   // Mouse
-  enum class MouseButton : uint8_t
+  enum class MouseButtons : uint8_t
   {
     Left     = 1,
     Right    = 2,
@@ -196,9 +196,9 @@ namespace hidpg
     Forward  = 16,
   };
 
-  constexpr MouseButton operator+(const MouseButton &a, const MouseButton &b)
+  constexpr MouseButtons operator+(const MouseButtons &a, const MouseButtons &b)
   {
-    return static_cast<MouseButton>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
+    return static_cast<MouseButtons>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
   }
 
   // Consumer Control

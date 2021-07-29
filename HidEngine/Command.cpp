@@ -132,19 +132,19 @@ namespace hidpg
   //------------------------------------------------------------------+
   // ModifierKey
   //------------------------------------------------------------------+
-  ModifierKey::ModifierKey(Modifier modifier) : _modifier(modifier)
+  ModifierKey::ModifierKey(Modifiers modifiers) : _modifiers(modifiers)
   {
   }
 
   void ModifierKey::onPress(uint8_t n_times)
   {
-    Hid.setModifier(_modifier);
+    Hid.setModifiers(_modifiers);
     Hid.sendKeyReport(true);
   }
 
   uint8_t ModifierKey::onRelease()
   {
-    Hid.unsetModifier(_modifier);
+    Hid.unsetModifiers(_modifiers);
     Hid.sendKeyReport(false);
     return 1;
   }
@@ -152,21 +152,21 @@ namespace hidpg
   //------------------------------------------------------------------+
   // CombinationKey
   //------------------------------------------------------------------+
-  CombinationKey::CombinationKey(Modifier modifier, KeyCode key_code) : _modifier(modifier), _key_code(key_code)
+  CombinationKey::CombinationKey(Modifiers modifiers, KeyCode key_code) : _modifiers(modifiers), _key_code(key_code)
   {
   }
 
   void CombinationKey::onPress(uint8_t n_times)
   {
     Hid.setKey(_key_code);
-    Hid.setModifier(_modifier);
+    Hid.setModifiers(_modifiers);
     Hid.sendKeyReport(true);
   }
 
   uint8_t CombinationKey::onRelease()
   {
     Hid.unsetKey(_key_code);
-    Hid.unsetModifier(_modifier);
+    Hid.unsetModifiers(_modifiers);
     Hid.sendKeyReport(false);
     return 1;
   }
@@ -174,20 +174,20 @@ namespace hidpg
   //------------------------------------------------------------------+
   // ModifierTap
   //------------------------------------------------------------------+
-  ModifierTap::ModifierTap(Modifier modifier, Command *command)
-      : _modifier(modifier), _command(command)
+  ModifierTap::ModifierTap(Modifiers modifiers, Command *command)
+      : _modifiers(modifiers), _command(command)
   {
     _command->setParent(this);
   }
 
   void ModifierTap::onPress(uint8_t n_times)
   {
-    Hid.setModifier(_modifier);
+    Hid.setModifiers(_modifiers);
   }
 
   uint8_t ModifierTap::onRelease()
   {
-    Hid.unsetModifier(_modifier);
+    Hid.unsetModifiers(_modifiers);
     if (this->isLastPressed())
     {
       CommandTapper.tap(_command);
@@ -202,18 +202,18 @@ namespace hidpg
   //------------------------------------------------------------------+
   // OneShotModifier
   //------------------------------------------------------------------+
-  OneShotModifier::OneShotModifier(Modifier modifier) : _modifier(modifier)
+  OneShotModifier::OneShotModifier(Modifiers modifiers) : _modifiers(modifiers)
   {
   }
 
   void OneShotModifier::onPress(uint8_t n_times)
   {
-    Hid.holdOneShotModifier(_modifier);
+    Hid.holdOneShotModifiers(_modifiers);
   }
 
   uint8_t OneShotModifier::onRelease()
   {
-    Hid.releaseOneShotModifier(_modifier);
+    Hid.releaseOneShotModifiers(_modifiers);
     return 1;
   }
 
@@ -676,18 +676,18 @@ namespace hidpg
   //------------------------------------------------------------------+
   // MouseClick
   //------------------------------------------------------------------+
-  MouseClick::MouseClick(MouseButton button) : _button(button)
+  MouseClick::MouseClick(MouseButtons buttons) : _buttons(buttons)
   {
   }
 
   void MouseClick::onPress(uint8_t n_times)
   {
-    Hid.mouseButtonPress(_button);
+    Hid.mouseButtonsPress(_buttons);
   }
 
   uint8_t MouseClick::onRelease()
   {
-    Hid.mouseButtonRelease(_button);
+    Hid.mouseButtonsRelease(_buttons);
     return 1;
   }
 

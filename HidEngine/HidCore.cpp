@@ -36,8 +36,8 @@ namespace hidpg
   uint8_t HidCore::_modifier_counters[8] = {};
   int32_t HidCore::_one_shot_modifier_counters[8] = {};
   int32_t HidCore::_triggered_one_shot_modifier_counters[8] = {};
-  uint8_t HidCore::_prev_sent_modifier = 0;
-  uint8_t HidCore::_prev_sent_mouse_button = 0;
+  uint8_t HidCore::_prev_sent_modifiers = 0;
+  uint8_t HidCore::_prev_sent_mouse_buttons = 0;
   uint8_t HidCore::_mouse_button_counters[5] = {};
   bool HidCore::_prev_sent_radial_button = false;
   uint8_t HidCore::_radial_button_counter = 0;
@@ -134,24 +134,24 @@ namespace hidpg
     }
   }
 
-  void HidCore::setModifier(Modifier modifier)
+  void HidCore::setModifiers(Modifiers modifiers)
   {
-    countUp(_modifier_counters, static_cast<uint8_t>(modifier));
+    countUp(_modifier_counters, static_cast<uint8_t>(modifiers));
   }
 
-  void HidCore::unsetModifier(Modifier modifier)
+  void HidCore::unsetModifiers(Modifiers modifiers)
   {
-    countDown(_modifier_counters, static_cast<uint8_t>(modifier));
+    countDown(_modifier_counters, static_cast<uint8_t>(modifiers));
   }
 
-  void HidCore::holdOneShotModifier(Modifier modifier)
+  void HidCore::holdOneShotModifiers(Modifiers modifiers)
   {
-    countUp(_one_shot_modifier_counters, static_cast<uint8_t>(modifier));
+    countUp(_one_shot_modifier_counters, static_cast<uint8_t>(modifiers));
   }
 
-  void HidCore::releaseOneShotModifier(Modifier modifier)
+  void HidCore::releaseOneShotModifiers(Modifiers modifiers)
   {
-    countDown(_triggered_one_shot_modifier_counters, static_cast<uint8_t>(modifier));
+    countDown(_triggered_one_shot_modifier_counters, static_cast<uint8_t>(modifiers));
     sendKeyReport(false);
   }
 
@@ -175,12 +175,12 @@ namespace hidpg
     }
 
     // 現在押されているmodifierを追加
-    uint8_t modifier = 0;
+    uint8_t modifiers = 0;
     for (int i = 0; i < 8; i++)
     {
       if (_modifier_counters[i] > 0)
       {
-        modifier |= bit(i);
+        modifiers |= bit(i);
       }
     }
 
@@ -189,7 +189,7 @@ namespace hidpg
     {
       if (_triggered_one_shot_modifier_counters[i] > 0)
       {
-        modifier |= bit(i);
+        modifiers |= bit(i);
       }
     }
 
@@ -200,7 +200,7 @@ namespace hidpg
       {
         if (_one_shot_modifier_counters[i] > 0)
         {
-          modifier |= bit(i);
+          modifiers |= bit(i);
           _triggered_one_shot_modifier_counters[i] += _one_shot_modifier_counters[i];
           _one_shot_modifier_counters[i] = 0;
         }
@@ -208,11 +208,11 @@ namespace hidpg
     }
 
     // 前回のmodifierとの比較
-    if (modifier != _prev_sent_modifier)
+    if (modifiers != _prev_sent_modifiers)
     {
       is_changed = true;
       // modifierが新しく追加されたかどうかを計算
-      is_modifier_adding = ((modifier & ~_prev_sent_modifier) != 0);
+      is_modifier_adding = ((modifiers & ~_prev_sent_modifiers) != 0);
     }
 
     if (is_key_adding && is_modifier_adding)
@@ -221,15 +221,15 @@ namespace hidpg
       // 全く同じタイミングで送ると一部の環境で意図しない動きになる（windowsキーを使ったショートカットなど）
       if (_hid_reporter != nullptr)
       {
-        _hid_reporter->keyboardReport(modifier, _prev_sent_keys);
-        _hid_reporter->keyboardReport(modifier, _pressed_keys);
+        _hid_reporter->keyboardReport(modifiers, _prev_sent_keys);
+        _hid_reporter->keyboardReport(modifiers, _pressed_keys);
       }
     }
     else if (is_changed)
     {
       if (_hid_reporter != nullptr)
       {
-        _hid_reporter->keyboardReport(modifier, _pressed_keys);
+        _hid_reporter->keyboardReport(modifiers, _pressed_keys);
       }
     }
 
@@ -237,7 +237,7 @@ namespace hidpg
     if (is_changed)
     {
       memcpy(_prev_sent_keys, _pressed_keys, sizeof(_prev_sent_keys));
-      _prev_sent_modifier = modifier;
+      _prev_sent_modifiers = modifiers;
     }
   }
 
@@ -277,7 +277,7 @@ namespace hidpg
   {
     if (_hid_reporter != nullptr)
     {
-      _hid_reporter->mouseReport(_prev_sent_mouse_button, x, y, 0, 0);
+      _hid_reporter->mouseReport(_prev_sent_mouse_buttons, x, y, 0, 0);
     }
   }
 
@@ -286,42 +286,42 @@ namespace hidpg
     sendKeyReport(true);
     if (_hid_reporter != nullptr)
     {
-      _hid_reporter->mouseReport(_prev_sent_mouse_button, 0, 0, scroll, horiz);
+      _hid_reporter->mouseReport(_prev_sent_mouse_buttons, 0, 0, scroll, horiz);
     }
     sendKeyReport(false);
   }
 
-  void HidCore::mouseButtonPress(MouseButton button)
+  void HidCore::mouseButtonsPress(MouseButtons buttons)
   {
-    countUp(_mouse_button_counters, static_cast<uint8_t>(button));
+    countUp(_mouse_button_counters, static_cast<uint8_t>(buttons));
     sendKeyReport(true);
-    sendMouseButtonReport();
+    sendMouseButtonsReport();
   }
 
-  void HidCore::mouseButtonRelease(MouseButton button)
+  void HidCore::mouseButtonsRelease(MouseButtons buttons)
   {
-    countDown(_mouse_button_counters, static_cast<uint8_t>(button));
+    countDown(_mouse_button_counters, static_cast<uint8_t>(buttons));
     sendKeyReport(false);
-    sendMouseButtonReport();
+    sendMouseButtonsReport();
   }
 
-  void HidCore::sendMouseButtonReport()
+  void HidCore::sendMouseButtonsReport()
   {
-    uint8_t button = 0;
+    uint8_t buttons = 0;
 
     for (int i = 0; i < 5; i++)
     {
       if (_mouse_button_counters[i] > 0)
       {
-        button |= bit(i);
+        buttons |= bit(i);
       }
     }
-    if (button != _prev_sent_mouse_button)
+    if (buttons != _prev_sent_mouse_buttons)
     {
-      _prev_sent_mouse_button = button;
+      _prev_sent_mouse_buttons = buttons;
       if (_hid_reporter != nullptr)
       {
-        _hid_reporter->mouseReport(button, 0, 0, 0, 0);
+        _hid_reporter->mouseReport(buttons, 0, 0, 0, 0);
       }
     }
   }

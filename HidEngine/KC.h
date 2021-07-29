@@ -169,24 +169,24 @@ namespace hidpg
   static constexpr KeyCode Lang8           = KeyCode::Lang8;
   static constexpr KeyCode Lang9           = KeyCode::Lang9;
 
-  static constexpr Modifier Ctrl              = Modifier::LeftCtrl;
-  static constexpr Modifier Shift             = Modifier::LeftShift;
-  static constexpr Modifier Alt               = Modifier::LeftAlt;
-  static constexpr Modifier Gui               = Modifier::LeftGui;
-  static constexpr Modifier LeftCtrl          = Modifier::LeftCtrl;
-  static constexpr Modifier LeftShift         = Modifier::LeftShift;
-  static constexpr Modifier LeftAlt           = Modifier::LeftAlt;
-  static constexpr Modifier LeftGui           = Modifier::LeftGui;
-  static constexpr Modifier RightCtrl         = Modifier::RightCtrl;
-  static constexpr Modifier RightShift        = Modifier::RightShift;
-  static constexpr Modifier RightAlt          = Modifier::RightAlt;
-  static constexpr Modifier RightGui          = Modifier::RightGui;
+  static constexpr Modifiers Ctrl              = Modifiers::LeftCtrl;
+  static constexpr Modifiers Shift             = Modifiers::LeftShift;
+  static constexpr Modifiers Alt               = Modifiers::LeftAlt;
+  static constexpr Modifiers Gui               = Modifiers::LeftGui;
+  static constexpr Modifiers LeftCtrl          = Modifiers::LeftCtrl;
+  static constexpr Modifiers LeftShift         = Modifiers::LeftShift;
+  static constexpr Modifiers LeftAlt           = Modifiers::LeftAlt;
+  static constexpr Modifiers LeftGui           = Modifiers::LeftGui;
+  static constexpr Modifiers RightCtrl         = Modifiers::RightCtrl;
+  static constexpr Modifiers RightShift        = Modifiers::RightShift;
+  static constexpr Modifiers RightAlt          = Modifiers::RightAlt;
+  static constexpr Modifiers RightGui          = Modifiers::RightGui;
 
-  static constexpr MouseButton LeftButton     = MouseButton::Left;
-  static constexpr MouseButton RightButton    = MouseButton::Right;
-  static constexpr MouseButton MiddleButton   = MouseButton::Middle;
-  static constexpr MouseButton BackwardButton = MouseButton::Backward;
-  static constexpr MouseButton ForwardButton  = MouseButton::Forward;
+  static constexpr MouseButtons LeftButton     = MouseButtons::Left;
+  static constexpr MouseButtons RightButton    = MouseButtons::Right;
+  static constexpr MouseButtons MiddleButton   = MouseButtons::Middle;
+  static constexpr MouseButtons BackwardButton = MouseButtons::Backward;
+  static constexpr MouseButtons ForwardButton  = MouseButtons::Forward;
 
   static constexpr ConsumerControlCode PlayPause       = ConsumerControlCode::PlayPause;
   static constexpr ConsumerControlCode FastForward     = ConsumerControlCode::FastForward;
