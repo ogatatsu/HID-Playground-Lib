@@ -321,7 +321,7 @@ namespace hidpg
   class Tap : public Command
   {
   public:
-    Tap(Command *command, uint8_t n_times);
+    Tap(Command *command, uint8_t n_times, uint16_t tap_speed_ms);
 
   protected:
     void onPress(uint8_t n_times) override;
@@ -329,9 +329,10 @@ namespace hidpg
   private:
     Command *_command;
     const uint8_t _n_times;
+    const uint16_t _tap_speed_ms;
   };
 
-  static inline Command *TAP(Command *command, uint8_t n_times) { return (new Tap(command, n_times)); }
+  static inline Command *TAP(Command *command, uint8_t n_times, uint16_t tap_speed_ms = HID_ENGINE_TAP_SPEED_MS) { return (new Tap(command, n_times, tap_speed_ms)); }
 
   //------------------------------------------------------------------+
   // TapDance

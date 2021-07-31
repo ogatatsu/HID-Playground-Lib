@@ -367,14 +367,15 @@ namespace hidpg
   //------------------------------------------------------------------+
   // Tap
   //------------------------------------------------------------------+
-  Tap::Tap(Command *command, uint8_t n_times) : _command(command), _n_times(n_times)
+  Tap::Tap(Command *command, uint8_t n_times, uint16_t tap_speed_ms)
+      : _command(command), _n_times(n_times), _tap_speed_ms(tap_speed_ms)
   {
     _command->setParent(this);
   }
 
   void Tap::onPress(uint8_t n_times)
   {
-    CommandTapper.tap(_command, _n_times);
+    CommandTapper.tap(_command, _n_times, _tap_speed_ms);
   }
 
   //------------------------------------------------------------------+

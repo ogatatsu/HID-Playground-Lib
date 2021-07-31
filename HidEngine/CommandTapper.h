@@ -32,29 +32,33 @@ namespace hidpg
     friend class HidEngineTaskClass;
 
   public:
-    static bool tap(Command *command, uint8_t n_times = 1);
     static void begin();
+    static bool tap(Command *command, uint8_t n_times = 1, uint16_t tap_speed_ms = HID_ENGINE_TAP_SPEED_MS);
 
   private:
-    static void timer_callback(TimerHandle_t timer_handle);
     static void onTimer();
+    static void timer_callback(TimerHandle_t timer_handle);
 
-    struct Pair
+    struct Info
     {
       Command *command;
       uint8_t num_of_taps;
+      uint16_t tap_speed_ms;
     };
 
     enum class State
     {
-      press,
-      release,
+      NotRunning,
+      Press,
+      Release,
+      ChangeCommandInTheNext,
     };
 
-    static LinkedList<Pair> _list;
-    static Pair _running;
-    static State _next_state;
+    static LinkedList<Info> _list;
+    static Info _running;
+    static State _state;
     static TimerHandle_t _timer_handle;
+    static StaticTimer_t _timer_buffer;
   };
 
   extern CommandTapperClass CommandTapper;

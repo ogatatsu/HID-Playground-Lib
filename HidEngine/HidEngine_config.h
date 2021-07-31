@@ -31,7 +31,7 @@
 
 // タップのスピード
 #ifndef HID_ENGINE_TAP_SPEED_MS
-#define HID_ENGINE_TAP_SPEED_MS 5
+#define HID_ENGINE_TAP_SPEED_MS 1
 #endif
 
 // CommandTapper内部で使われているキューの最大サイズ

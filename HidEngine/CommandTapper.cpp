@@ -30,40 +30,60 @@
 namespace hidpg
 {
 
-  LinkedList<CommandTapperClass::Pair> CommandTapperClass::_list;
-  CommandTapperClass::Pair CommandTapperClass::_running{.command = nullptr, .num_of_taps = 0};
-  CommandTapperClass::State CommandTapperClass::_next_state = CommandTapperClass::State::press;
+  LinkedList<CommandTapperClass::Info> CommandTapperClass::_list;
+  CommandTapperClass::Info CommandTapperClass::_running = {.command = nullptr, .num_of_taps = 0, .tap_speed_ms = 0};
+  CommandTapperClass::State CommandTapperClass::_state = CommandTapperClass::State::NotRunning;
   TimerHandle_t CommandTapperClass::_timer_handle = nullptr;
+  StaticTimer_t CommandTapperClass::_timer_buffer;
 
   void CommandTapperClass::begin()
   {
-    _timer_handle = xTimerCreate(nullptr, pdMS_TO_TICKS(HID_ENGINE_TAP_SPEED_MS), false, nullptr, timer_callback);
+    _timer_handle = xTimerCreateStatic("CommandTapper", 0, false, nullptr, timer_callback, &_timer_buffer);
   }
 
-  bool CommandTapperClass::tap(Command *command, uint8_t n_times)
+  bool CommandTapperClass::tap(Command *command, uint8_t n_times, uint16_t tap_speed_ms)
   {
     if (n_times == 0 || command == nullptr)
     {
       return true;
     }
 
-    if (_list.size() == 0 && _running.command == nullptr)
+    if (_state == State::NotRunning)
     {
+      _state = State::Press;
+
       _running.command = command;
       _running.num_of_taps = n_times;
+      _running.tap_speed_ms = tap_speed_ms;
 
+      if (pdMS_TO_TICKS(tap_speed_ms) != xTimerGetPeriod(_timer_handle))
+      {
+        xTimerChangePeriod(_timer_handle, pdMS_TO_TICKS(tap_speed_ms), portMAX_DELAY);
+      }
       _running.command->press(_running.num_of_taps);
-      _next_state = State::release;
       xTimerStart(_timer_handle, portMAX_DELAY);
+
       return true;
     }
 
-    Pair last = _list.get(_list.size() - 1);
-    if (last.command == command)
+    if (_running.command == command && _running.tap_speed_ms == tap_speed_ms)
     {
-      last.num_of_taps = constrain(last.num_of_taps + n_times, 0, UINT8_MAX);
-      _list.set(_list.size() - 1, last);
+      _running.num_of_taps = constrain(_running.num_of_taps + n_times, 0, UINT8_MAX);
+
       return true;
+    }
+
+    if (_list.size() > 0)
+    {
+      Info last = _list.get(_list.size() - 1);
+
+      if (last.command == command && last.tap_speed_ms == tap_speed_ms)
+      {
+        last.num_of_taps = constrain(last.num_of_taps + n_times, 0, UINT8_MAX);
+        _list.set(_list.size() - 1, last);
+
+        return true;
+      }
     }
 
     if (_list.size() > HID_ENGINE_COMMAND_TAPPER_QUEUE_SIZE)
@@ -71,39 +91,50 @@ namespace hidpg
       return false;
     }
 
-    last.command = command;
-    last.num_of_taps = n_times;
-    _list.add(last);
+    Info info = {
+        .command = command,
+        .num_of_taps = n_times,
+        .tap_speed_ms = tap_speed_ms,
+    };
+    _list.add(info);
+
     return true;
   }
 
   void CommandTapperClass::onTimer()
   {
-    if (_next_state == State::release)
+    if (_state == State::Press)
     {
       _running.num_of_taps -= _running.command->release();
-      _next_state = State::press;
+
       if (_running.num_of_taps > 0)
       {
+        _state = State::Release;
+        xTimerStart(_timer_handle, portMAX_DELAY);
+      }
+      else if (_list.size() > 0)
+      {
+        _state = State::ChangeCommandInTheNext;
         xTimerStart(_timer_handle, portMAX_DELAY);
       }
       else
       {
-        _running.command = nullptr;
-        if (_list.size() > 0)
-        {
-          xTimerStart(_timer_handle, portMAX_DELAY);
-        }
+        _state = State::NotRunning;
       }
     }
     else
     {
-      if (_running.command == nullptr)
+      if (_state == State::ChangeCommandInTheNext)
       {
         _running = _list.shift();
+        if (pdMS_TO_TICKS(_running.tap_speed_ms) != xTimerGetPeriod(_timer_handle))
+        {
+          xTimerChangePeriod(_timer_handle, pdMS_TO_TICKS(_running.tap_speed_ms), portMAX_DELAY);
+        }
       }
+
+      _state = State::Press;
       _running.command->press(_running.num_of_taps);
-      _next_state = State::release;
       xTimerStart(_timer_handle, portMAX_DELAY);
     }
   }
