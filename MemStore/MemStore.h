@@ -27,8 +27,6 @@
 #include <Adafruit_LittleFS.h>
 #include <InternalFileSystem.h>
 
-using namespace Adafruit_LittleFS_Namespace;
-
 namespace hidpg
 {
 
@@ -44,7 +42,7 @@ namespace hidpg
 
   private:
     String _directory;
-    File _file;
+    Adafruit_LittleFS_Namespace::File _file;
   };
 
 } // namespace hidpg

@@ -46,7 +46,7 @@ namespace hidpg
 
     String path = _directory + '/' + name;
 
-    _file.open(path.c_str(), FILE_O_READ);
+    _file.open(path.c_str(), Adafruit_LittleFS_Namespace::FILE_O_READ);
 
     if (_file)
     {
@@ -70,7 +70,7 @@ namespace hidpg
       InternalFS.remove(path.c_str());
     }
 
-    _file.open(path.c_str(), FILE_O_WRITE);
+    _file.open(path.c_str(), Adafruit_LittleFS_Namespace::FILE_O_WRITE);
     _file.write(static_cast<const uint8_t *>(buf), size);
     _file.close();
   }
