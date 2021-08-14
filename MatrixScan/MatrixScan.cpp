@@ -25,6 +25,8 @@
 #include "MatrixScan.h"
 #include "SenseInterrupt.h"
 
+#define pdMS_TO_TICKS_DOUBLE(xTimeInMs) ((double)(((double)(xTimeInMs) * (double)configTICK_RATE_HZ) / (double)1000))
+
 namespace hidpg
 {
 
@@ -124,9 +126,10 @@ namespace hidpg
     }
     // debounce_delayの最小値の間隔でポーリングする
     _polling_interval_ms = min_debounce_delay_ms;
-    // ポーリング回数は最低でもdebounce_delayの最大値を超える値に設定
-    _max_polling_count = (max_debounce_delay_ms + (_polling_interval_ms - 1)) / _polling_interval_ms; // ceil(max_debounce_delay_ms / _polling_interval_ms) 相当
-    _max_polling_count += 2;
+
+    // _polling_interval_ms * _max_polling_countは最低でもdebounce_delayの最大値を超える値に設定
+    // delay関数で切り捨てられるtick回数も考慮して計算
+    _max_polling_count = ceil(pdMS_TO_TICKS_DOUBLE(max_debounce_delay_ms) / pdMS_TO_TICKS(_polling_interval_ms)) + 3;
 
     _task_handle = xTaskCreateStatic(task, "MatrixScan", MATRIX_SCAN_TASK_STACK_SIZE, nullptr, MATRIX_SCAN_TASK_PRIO, _task_stack, &_task_tcb);
   }
