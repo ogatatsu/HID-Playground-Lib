@@ -24,6 +24,10 @@
 
 #pragma once
 
+#ifndef DEBOUNCE_IN_MAX_PIN_COUNT
+#define DEBOUNCE_IN_MAX_PIN_COUNT 8
+#endif
+
 // タスクのスタックサイズ
 #ifndef DEBOUNCE_IN_TASK_STACK_SIZE
 #define DEBOUNCE_IN_TASK_STACK_SIZE 128

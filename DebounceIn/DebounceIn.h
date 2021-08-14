@@ -25,7 +25,6 @@
 #pragma once
 
 #include "Bounce2.h"
-#include "LinkedList.h"
 #include "FreeRTOS.h"
 #include <stdint.h>
 
@@ -38,24 +37,20 @@ namespace hidpg
     using callback_t = void (*)(uint8_t pin, bool state);
 
     static void start();
-    static void addPin(uint8_t pin, int mode, uint16_t debounce_delay_ms = 10);
+    static bool addPin(uint8_t pin, int mode, uint16_t debounce_delay_ms = 10);
     static void setCallback(callback_t callback);
     static void stopTask();
 
   private:
-    struct PinInfo
-    {
-      uint8_t pin;
-      int mode;
-      Bounce bounce;
-    };
-
     static void task(void *pvParameters);
     static bool needsUpdate();
     static void interrupt_callback();
 
     static callback_t _callback;
-    static LinkedList<PinInfo *> _pin_info_list;
+
+    static Bounce _bounce_list[];
+    static uint8_t _bounce_list_len;
+
     static uint16_t _max_debounce_delay_ms;
     static uint16_t _polling_interval_ms;
     static uint16_t _max_polling_count;

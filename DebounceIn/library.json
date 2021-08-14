@@ -4,9 +4,6 @@
   "dependencies": [
     {
       "name": "Bounce2"
-    },
-    {
-      "name": "LinkedList"
     }
   ]
 }

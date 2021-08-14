@@ -26,11 +26,16 @@
 #include "Arduino.h"
 #include "DebounceIn_config.h"
 
+#define pdMS_TO_TICKS_DOUBLE(xTimeInMs) ((double)(((double)(xTimeInMs) * (double)configTICK_RATE_HZ) / (double)1000))
+
 namespace hidpg
 {
 
   DebounceInClass::callback_t DebounceInClass::_callback = nullptr;
-  LinkedList<DebounceInClass::PinInfo *> DebounceInClass::_pin_info_list;
+
+  Bounce DebounceInClass::_bounce_list[DEBOUNCE_IN_MAX_PIN_COUNT];
+  uint8_t DebounceInClass::_bounce_list_len = 0;
+
   uint16_t DebounceInClass::_max_debounce_delay_ms = 0;
   uint16_t DebounceInClass::_polling_interval_ms = UINT16_MAX;
   uint16_t DebounceInClass::_max_polling_count = 0;
@@ -41,31 +46,31 @@ namespace hidpg
 
   void DebounceInClass::start()
   {
-    for (int i = 0; i < _pin_info_list.size(); i++)
-    {
-      PinInfo *info = _pin_info_list.get(i);
-      info->bounce.attach(info->pin, info->mode);
-      attachInterrupt(info->pin, interrupt_callback, CHANGE);
-    }
-    // ポーリング回数は最低でもdebounce_delayの最大値を超える値に設定
-    _max_polling_count = (_max_debounce_delay_ms + (_polling_interval_ms - 1)) / _polling_interval_ms; // ceil(_max_debounce_delay_ms / _polling_interval_ms) 相当
-    _max_polling_count += 3;
+    // _polling_interval_ms * _max_polling_countは最低でもdebounce_delayの最大値を超える値に設定
+    // delay関数で切り捨てられるtick回数も考慮して計算
+    _max_polling_count = ceil(pdMS_TO_TICKS_DOUBLE(_max_debounce_delay_ms) / pdMS_TO_TICKS(_polling_interval_ms)) + 3;
 
     _task_handle = xTaskCreateStatic(task, "DebounceIn", DEBOUNCE_IN_TASK_STACK_SIZE, nullptr, DEBOUNCE_IN_TASK_PRIO, _task_stack, &_task_tcb);
   }
 
-  void DebounceInClass::addPin(uint8_t pin, int mode, uint16_t debounce_delay_ms)
+  bool DebounceInClass::addPin(uint8_t pin, int mode, uint16_t debounce_delay_ms)
   {
-    PinInfo *info = new PinInfo;
-    info->pin = pin;
-    info->mode = mode;
-    info->bounce.interval(debounce_delay_ms);
-    _pin_info_list.add(info);
+    if (_bounce_list_len >= DEBOUNCE_IN_MAX_PIN_COUNT)
+    {
+      return false;
+    }
+
+    _bounce_list[_bounce_list_len].attach(pin, mode);
+    _bounce_list[_bounce_list_len].interval(debounce_delay_ms);
+    attachInterrupt(pin, interrupt_callback, CHANGE);
+    _bounce_list_len++;
 
     // 後でポーリング回数を決めるためにdebounce_delayの最大値を保存しておく
     _max_debounce_delay_ms = max(debounce_delay_ms, _max_debounce_delay_ms);
     // debounce_delayの最小値の間隔でポーリングする
     _polling_interval_ms = min(debounce_delay_ms, _polling_interval_ms);
+
+    return true;
   }
 
   void DebounceInClass::stopTask()
@@ -109,14 +114,13 @@ namespace hidpg
       if (needsUpdate())
       {
         // update
-        for (int i = 0; i < _pin_info_list.size(); i++)
+        for (int i = 0; i < _bounce_list_len; i++)
         {
-          PinInfo *info = _pin_info_list.get(i);
-          if (info->bounce.update())
+          if (_bounce_list[i].update())
           {
             if (_callback != nullptr)
             {
-              _callback(info->pin, info->bounce.read());
+              _callback(_bounce_list[i].getPin(), _bounce_list[i].read());
             }
           }
         }
