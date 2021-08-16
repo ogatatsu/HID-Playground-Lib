@@ -38,7 +38,7 @@
 #include "bluefruit.h"
 #include "utility/TimeoutTimer.h"
 
-namespace hidpg
+namespace hidpg::Internal
 {
 
   // Constructor
@@ -144,4 +144,4 @@ namespace hidpg
     return _txd.notify(conn_hdl, content, len) ? len : 0;
   }
 
-} // namespace hidpg
+} // namespace hidpg::Internal

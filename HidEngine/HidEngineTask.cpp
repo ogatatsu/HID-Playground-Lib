@@ -29,64 +29,68 @@
 
 namespace hidpg
 {
-
-  TaskHandle_t HidEngineTaskClass::_task_handle = nullptr;
-  StackType_t HidEngineTaskClass::_task_stack[HID_ENGINE_TASK_STACK_SIZE];
-  StaticTask_t HidEngineTaskClass::_task_tcb;
-  QueueHandle_t HidEngineTaskClass::_event_queue = nullptr;
-  uint8_t HidEngineTaskClass::_event_queue_storage[HID_ENGINE_EVENT_QUEUE_SIZE * sizeof(EventData)];
-  StaticQueue_t HidEngineTaskClass::_event_queue_struct;
-
-  void HidEngineTaskClass::start()
+  namespace Internal
   {
-    _event_queue = xQueueCreateStatic(HID_ENGINE_EVENT_QUEUE_SIZE, sizeof(EventData), _event_queue_storage, &_event_queue_struct);
-    _task_handle = xTaskCreateStatic(task, "HidEngine", HID_ENGINE_TASK_STACK_SIZE, nullptr, HID_ENGINE_TASK_PRIO, _task_stack, &_task_tcb);
-  }
 
-  void HidEngineTaskClass::enqueEvent(const EventData &evt)
-  {
-    xQueueSend(_event_queue, &evt, portMAX_DELAY);
-  }
+    TaskHandle_t HidEngineTaskClass::_task_handle = nullptr;
+    StackType_t HidEngineTaskClass::_task_stack[HID_ENGINE_TASK_STACK_SIZE];
+    StaticTask_t HidEngineTaskClass::_task_tcb;
+    QueueHandle_t HidEngineTaskClass::_event_queue = nullptr;
+    uint8_t HidEngineTaskClass::_event_queue_storage[HID_ENGINE_EVENT_QUEUE_SIZE * sizeof(EventData)];
+    StaticQueue_t HidEngineTaskClass::_event_queue_struct;
 
-  void HidEngineTaskClass::task(void *pvParameters)
-  {
-    while (true)
+    void HidEngineTaskClass::start()
     {
-      EventData evt;
-      xQueueReceive(_event_queue, &evt, portMAX_DELAY);
+      _event_queue = xQueueCreateStatic(HID_ENGINE_EVENT_QUEUE_SIZE, sizeof(EventData), _event_queue_storage, &_event_queue_struct);
+      _task_handle = xTaskCreateStatic(task, "HidEngine", HID_ENGINE_TASK_STACK_SIZE, nullptr, HID_ENGINE_TASK_PRIO, _task_stack, &_task_tcb);
+    }
 
-      switch (evt.event_type)
+    void HidEngineTaskClass::enqueEvent(const EventData &evt)
+    {
+      xQueueSend(_event_queue, &evt, portMAX_DELAY);
+    }
+
+    void HidEngineTaskClass::task(void *pvParameters)
+    {
+      while (true)
       {
-      case EventType::ApplyToKeymap:
-      {
-        HidEngine.applyToKeymap_impl(evt.apply_to_keymap.key_ids);
-        break;
-      }
-      case EventType::MouseMove:
-      {
-        HidEngine.mouseMove_impl();
-        break;
-      }
-      case EventType::RotateEncoder:
-      {
-        HidEngine.rotateEncoder_impl(evt.rotate_encoder.encoder_id);
-        break;
-      }
-      case EventType::Timer:
-      {
-        evt.timer->cls->trigger(evt.timer->timer_number);
-        delete evt.timer;
-        break;
-      }
-      case EventType::CommandTapper:
-      {
-        CommandTapper.onTimer();
-        break;
-      }
+        EventData evt;
+        xQueueReceive(_event_queue, &evt, portMAX_DELAY);
+
+        switch (evt.event_type)
+        {
+        case EventType::ApplyToKeymap:
+        {
+          HidEngine.applyToKeymap_impl(evt.apply_to_keymap.key_ids);
+          break;
+        }
+        case EventType::MouseMove:
+        {
+          HidEngine.mouseMove_impl();
+          break;
+        }
+        case EventType::RotateEncoder:
+        {
+          HidEngine.rotateEncoder_impl(evt.rotate_encoder.encoder_id);
+          break;
+        }
+        case EventType::Timer:
+        {
+          evt.timer->cls->trigger(evt.timer->timer_number);
+          delete evt.timer;
+          break;
+        }
+        case EventType::CommandTapper:
+        {
+          CommandTapper.onTimer();
+          break;
+        }
+        }
       }
     }
-  }
 
-  HidEngineTaskClass HidEngineTask;
+    HidEngineTaskClass HidEngineTask;
+
+  } // namespace Internal
 
 } // namespace hidpg

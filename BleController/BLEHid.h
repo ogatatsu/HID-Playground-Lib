@@ -39,7 +39,7 @@
 #include "HidReporter.h"
 #include "bluefruit.h"
 
-namespace hidpg
+namespace hidpg::Internal
 {
 
   class BLEHid : public BLEHidGeneric, public HidReporter
@@ -73,4 +73,4 @@ namespace hidpg
     static void keyboard_output_cb(uint16_t conn_hdl, BLECharacteristic *chr, uint8_t *data, uint16_t len);
   };
 
-} // namespace hidpg
+} // namespace hidpg::Internal

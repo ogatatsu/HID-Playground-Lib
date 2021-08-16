@@ -39,7 +39,7 @@
 #include "BLEClientCharacteristic.h"
 #include "BLEClientService.h"
 
-namespace hidpg
+namespace hidpg::Internal
 {
 
   // BLEClientUartの非ストリーム版軽量バージョン
@@ -73,4 +73,4 @@ namespace hidpg
     friend void bleuart_central_notify_cb(BLEClientCharacteristic *chr, uint8_t *data, uint16_t len);
   };
 
-} // namespace hidpg
+} // namespace hidpg::Internal

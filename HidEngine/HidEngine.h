@@ -75,159 +75,164 @@ namespace hidpg
     Command *clockwise_command;
   };
 
-  class HidEngineClass
+  namespace Internal
   {
-    friend class HidEngineTaskClass;
 
-  public:
-    template <uint8_t keymap_len>
-    static void setKeymap(Key (&keymap)[keymap_len])
+    class HidEngineClass
     {
-      _keymap = keymap;
-      _keymap_len = keymap_len;
-    }
+      friend class HidEngineTaskClass;
 
-    template <uint8_t simul_keymap_len>
-    static void setSimulKeymap(SimulKey (&simul_keymap)[simul_keymap_len])
-    {
-      _simul_keymap = simul_keymap;
-      _simul_keymap_len = simul_keymap_len;
-
-      for (int i = 0; i < _simul_keymap_len; i++)
-      {
-        _simul_keymap[i].key_ids_len = getValidLength(_simul_keymap[i].key_ids, HID_ENGINE_MAX_SIMUL_PRESS_COUNT);
-      }
-    }
-
-    template <uint8_t seq_keymap_len>
-    static void setSeqKeymap(SeqKey (&seq_keymap)[seq_keymap_len])
-    {
-      _seq_keymap = seq_keymap;
-      _seq_keymap_len = seq_keymap_len;
-
-      for (int i = 0; i < _seq_keymap_len; i++)
-      {
-        _seq_keymap[i].key_ids_len = getValidLength(_seq_keymap[i].key_ids, HID_ENGINE_MAX_SEQ_COUNT);
-      }
-    }
-
-    template <uint8_t track_map_len>
-    static void setTrackMap(Track (&track_map)[track_map_len])
-    {
-      _track_map = track_map;
-      _track_map_len = track_map_len;
-    }
-
-    template <uint8_t encoder_map_len>
-    static void setEncoderMap(Encoder (&encoder_map)[encoder_map_len])
-    {
-      _encoder_map = encoder_map;
-      _encoder_map_len = encoder_map_len;
-    }
-
-    using read_mouse_delta_callback_t = void (*)(int16_t *delta_x, int16_t *delta_y);
-    using read_encoder_step_callback_t = void (*)(uint8_t encoder_id, int32_t *step);
-
-    static void setHidReporter(HidReporter *hid_reporter);
-    static void start();
-    static void applyToKeymap(const Set &key_ids);
-    static void mouseMove();
-    static void rotateEncoder(uint8_t encoder_id);
-    static void setReadMouseDeltaCallback(read_mouse_delta_callback_t cb);
-    static void setReadEncoderStepCallback(read_encoder_step_callback_t cb);
-
-  private:
-    static void applyToKeymap_impl(Set &key_ids);
-    static void processSeqKeymap(Set &key_ids);
-    static void processSimulKeymap(Set &key_ids);
-    static void processKeymap(Set &key_ids);
-    static void mouseMove_impl();
-    static void processTrackX(size_t track_map_idx);
-    static void processTrackY(size_t track_map_idx);
-    static void rotateEncoder_impl(uint8_t encoder_id);
-    static int match_with_seqKeymap(const uint8_t id_seq[], size_t len, SeqKey **matched);
-    static size_t getValidLength(const uint8_t key_ids[], size_t max_len);
-
-    static Key *_keymap;
-    static SimulKey *_simul_keymap;
-    static SeqKey *_seq_keymap;
-    static Track *_track_map;
-    static Encoder *_encoder_map;
-
-    static uint8_t _keymap_len;
-    static uint8_t _simul_keymap_len;
-    static uint8_t _seq_keymap_len;
-    static uint8_t _track_map_len;
-    static uint8_t _encoder_map_len;
-
-    static read_mouse_delta_callback_t _read_mouse_delta_cb;
-    static read_encoder_step_callback_t _read_encoder_step_cb;
-
-    //------------------------------------------------------------------+
-    // HidEngine inner command
-    //------------------------------------------------------------------+
-  public:
-    class SequenceMode : public Command
-    {
-    protected:
-      void onPress(uint8_t n_times) override;
-    };
-
-    class Tracking : public Command
-    {
     public:
-      Tracking(uint8_t track_id);
-      uint8_t getID();
+      template <uint8_t keymap_len>
+      static void setKeymap(Key (&keymap)[keymap_len])
+      {
+        _keymap = keymap;
+        _keymap_len = keymap_len;
+      }
 
-    protected:
-      void onPress(uint8_t n_times) override;
-      uint8_t onRelease() override;
+      template <uint8_t simul_keymap_len>
+      static void setSimulKeymap(SimulKey (&simul_keymap)[simul_keymap_len])
+      {
+        _simul_keymap = simul_keymap;
+        _simul_keymap_len = simul_keymap_len;
+
+        for (int i = 0; i < _simul_keymap_len; i++)
+        {
+          _simul_keymap[i].key_ids_len = getValidLength(_simul_keymap[i].key_ids, HID_ENGINE_MAX_SIMUL_PRESS_COUNT);
+        }
+      }
+
+      template <uint8_t seq_keymap_len>
+      static void setSeqKeymap(SeqKey (&seq_keymap)[seq_keymap_len])
+      {
+        _seq_keymap = seq_keymap;
+        _seq_keymap_len = seq_keymap_len;
+
+        for (int i = 0; i < _seq_keymap_len; i++)
+        {
+          _seq_keymap[i].key_ids_len = getValidLength(_seq_keymap[i].key_ids, HID_ENGINE_MAX_SEQ_COUNT);
+        }
+      }
+
+      template <uint8_t track_map_len>
+      static void setTrackMap(Track (&track_map)[track_map_len])
+      {
+        _track_map = track_map;
+        _track_map_len = track_map_len;
+      }
+
+      template <uint8_t encoder_map_len>
+      static void setEncoderMap(Encoder (&encoder_map)[encoder_map_len])
+      {
+        _encoder_map = encoder_map;
+        _encoder_map_len = encoder_map_len;
+      }
+
+      using read_mouse_delta_callback_t = void (*)(int16_t *delta_x, int16_t *delta_y);
+      using read_encoder_step_callback_t = void (*)(uint8_t encoder_id, int32_t *step);
+
+      static void setHidReporter(HidReporter *hid_reporter);
+      static void start();
+      static void applyToKeymap(const Set &key_ids);
+      static void mouseMove();
+      static void rotateEncoder(uint8_t encoder_id);
+      static void setReadMouseDeltaCallback(read_mouse_delta_callback_t cb);
+      static void setReadEncoderStepCallback(read_encoder_step_callback_t cb);
 
     private:
-      uint8_t _track_id;
-    };
+      static void applyToKeymap_impl(Set &key_ids);
+      static void processSeqKeymap(Set &key_ids);
+      static void processSimulKeymap(Set &key_ids);
+      static void processKeymap(Set &key_ids);
+      static void mouseMove_impl();
+      static void processTrackX(size_t track_map_idx);
+      static void processTrackY(size_t track_map_idx);
+      static void rotateEncoder_impl(uint8_t encoder_id);
+      static int match_with_seqKeymap(const uint8_t id_seq[], size_t len, SeqKey **matched);
+      static size_t getValidLength(const uint8_t key_ids[], size_t max_len);
 
-    class TrackTap : public Tracking
-    {
+      static Key *_keymap;
+      static SimulKey *_simul_keymap;
+      static SeqKey *_seq_keymap;
+      static Track *_track_map;
+      static Encoder *_encoder_map;
+
+      static uint8_t _keymap_len;
+      static uint8_t _simul_keymap_len;
+      static uint8_t _seq_keymap_len;
+      static uint8_t _track_map_len;
+      static uint8_t _encoder_map_len;
+
+      static read_mouse_delta_callback_t _read_mouse_delta_cb;
+      static read_encoder_step_callback_t _read_encoder_step_cb;
+
+      //------------------------------------------------------------------+
+      // HidEngine inner command
+      //------------------------------------------------------------------+
     public:
-      TrackTap(uint8_t track_id, Command *command);
+      class SequenceMode : public Command
+      {
+      protected:
+        void onPress(uint8_t n_times) override;
+      };
 
-    protected:
-      uint8_t onRelease() override;
+      class Tracking : public Command
+      {
+      public:
+        Tracking(uint8_t track_id);
+        uint8_t getID();
+
+      protected:
+        void onPress(uint8_t n_times) override;
+        uint8_t onRelease() override;
+
+      private:
+        uint8_t _track_id;
+      };
+
+      class TrackTap : public Tracking
+      {
+      public:
+        TrackTap(uint8_t track_id, Command *command);
+
+      protected:
+        uint8_t onRelease() override;
+
+      private:
+        Command *_command;
+      };
 
     private:
-      Command *_command;
+      enum class SeqModeState
+      {
+        Disable,
+        Running,
+        WaitRelease,
+      };
+
+      static void switchSequenceMode();
+      static SeqModeState _seq_mode_state;
+
+      static void startTracking(HidEngineClass::Tracking *tracking);
+      static void stopTracking(HidEngineClass::Tracking *tracking);
+      static LinkedList<Tracking *> _tracking_list;
+      static int32_t _distance_x;
+      static int32_t _distance_y;
     };
 
-  private:
-    enum class SeqModeState
-    {
-      Disable,
-      Running,
-      WaitRelease,
-    };
+  } // namespace Internal
 
-    static void switchSequenceMode();
-    static SeqModeState _seq_mode_state;
-
-    static void startTracking(HidEngineClass::Tracking *tracking);
-    static void stopTracking(HidEngineClass::Tracking *tracking);
-    static LinkedList<Tracking *> _tracking_list;
-    static int32_t _distance_x;
-    static int32_t _distance_y;
-  };
-
-  extern HidEngineClass HidEngine;
+  extern Internal::HidEngineClass HidEngine;
 
   //------------------------------------------------------------------+
   // short name inner command
   //------------------------------------------------------------------+
 
   // Sequence Mode
-  static inline Command *SEQ_MODE() { return (new HidEngineClass::SequenceMode); }
+  static inline Command *SEQ_MODE() { return (new Internal::HidEngineClass::SequenceMode); }
   // Track
-  static inline Command *TRC(uint8_t track_id) { return (new HidEngineClass::Tracking(track_id)); }
+  static inline Command *TRC(uint8_t track_id) { return (new Internal::HidEngineClass::Tracking(track_id)); }
   // Track or Tap
-  static inline Command *TRT(uint8_t track_id, Command *command) { return (new HidEngineClass::TrackTap(track_id, command)); }
+  static inline Command *TRT(uint8_t track_id, Command *command) { return (new Internal::HidEngineClass::TrackTap(track_id, command)); }
 
 } // namespace hidpg

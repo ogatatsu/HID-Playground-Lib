@@ -29,71 +29,74 @@
 
 namespace hidpg
 {
-
-  // HidReporterをラップしたクラス
-  class HidCore
+  namespace Internal
   {
-  public:
-    static void setReporter(HidReporter *hid_reporter);
-    static void waitReady();
 
-    // Keyboard API
-    // setKeyをした後でsendKeyReportを呼び出すことでキーを送る。
-    // 何回キーをsetしたかを覚えてるので複数回同じキーコードでsetKeyを呼び出したら同じ回数unsetKeyを呼び出すまではそのキーコードは入力され続ける。
-    // これにより別のスイッチに同じキーコードを割り当てたとしても正しく動作する。
-    static void setKey(KeyCode key_code);
-    static void unsetKey(KeyCode key_code);
-    static void setModifiers(Modifiers modifiers);
-    static void unsetModifiers(Modifiers modifiers);
-    static void holdOneShotModifiers(Modifiers modifiers);
-    static void releaseOneShotModifiers(Modifiers modifiers);
-    static void sendKeyReport(bool trigger_one_shot);
+    // HidReporterをラップしたクラス
+    class HidCore
+    {
+    public:
+      static void setReporter(HidReporter *hid_reporter);
+      static void waitReady();
 
-    // Consumer API
-    static void consumerKeyPress(ConsumerControlCode usage_code);
-    static void consumerKeyRelease();
+      // Keyboard API
+      // setKeyをした後でsendKeyReportを呼び出すことでキーを送る。
+      // 何回キーをsetしたかを覚えてるので複数回同じキーコードでsetKeyを呼び出したら同じ回数unsetKeyを呼び出すまではそのキーコードは入力され続ける。
+      // これにより別のスイッチに同じキーコードを割り当てたとしても正しく動作する。
+      static void setKey(KeyCode key_code);
+      static void unsetKey(KeyCode key_code);
+      static void setModifiers(Modifiers modifiers);
+      static void unsetModifiers(Modifiers modifiers);
+      static void holdOneShotModifiers(Modifiers modifiers);
+      static void releaseOneShotModifiers(Modifiers modifiers);
+      static void sendKeyReport(bool trigger_one_shot);
 
-    // Mouse API
-    // mouseButtonsPress,Releaseは複数スイッチでの同時押しに対応
-    static void mouseMove(int16_t x, int16_t y);
-    static void mouseScroll(int8_t scroll, int8_t horiz);
-    static void mouseButtonsPress(MouseButtons buttons);
-    static void mouseButtonsRelease(MouseButtons buttons);
+      // Consumer API
+      static void consumerKeyPress(ConsumerControlCode usage_code);
+      static void consumerKeyRelease();
 
-    // Radial Controller API
-    // radialControllerButtonPress,Releaseは複数スイッチでの同時押しに対応
-    static void radialControllerButtonPress();
-    static void radialControllerButtonRelease();
-    static void radialControllerDialRotate(int16_t deci_degree);
+      // Mouse API
+      // mouseButtonsPress,Releaseは複数スイッチでの同時押しに対応
+      static void mouseMove(int16_t x, int16_t y);
+      static void mouseScroll(int8_t scroll, int8_t horiz);
+      static void mouseButtonsPress(MouseButtons buttons);
+      static void mouseButtonsRelease(MouseButtons buttons);
 
-    // System Control API
-    static void systemControlKeyPress(SystemControlCode usage_code);
-    static void systemControlKeyRelease();
+      // Radial Controller API
+      // radialControllerButtonPress,Releaseは複数スイッチでの同時押しに対応
+      static void radialControllerButtonPress();
+      static void radialControllerButtonRelease();
+      static void radialControllerDialRotate(int16_t deci_degree);
 
-  private:
-    static void sendMouseButtonsReport();
-    static void sendRadialControllerButtonReport();
+      // System Control API
+      static void systemControlKeyPress(SystemControlCode usage_code);
+      static void systemControlKeyRelease();
 
-    static HidReporter *_hid_reporter;
+    private:
+      static void sendMouseButtonsReport();
+      static void sendRadialControllerButtonReport();
 
-    static uint8_t _pressed_keys[7];
-    static uint8_t _prev_sent_keys[6];
-    static uint8_t _key_counters[256];
+      static HidReporter *_hid_reporter;
 
-    static uint8_t _modifier_counters[8];
-    static int32_t _one_shot_modifier_counters[8];
-    static int32_t _triggered_one_shot_modifier_counters[8];
+      static uint8_t _pressed_keys[7];
+      static uint8_t _prev_sent_keys[6];
+      static uint8_t _key_counters[256];
 
-    static uint8_t _prev_sent_modifiers;
+      static uint8_t _modifier_counters[8];
+      static int32_t _one_shot_modifier_counters[8];
+      static int32_t _triggered_one_shot_modifier_counters[8];
 
-    static uint8_t _prev_sent_mouse_buttons;
-    static uint8_t _mouse_button_counters[5];
+      static uint8_t _prev_sent_modifiers;
 
-    static bool _prev_sent_radial_button;
-    static uint8_t _radial_button_counter;
+      static uint8_t _prev_sent_mouse_buttons;
+      static uint8_t _mouse_button_counters[5];
 
-  };
+      static bool _prev_sent_radial_button;
+      static uint8_t _radial_button_counter;
+    };
 
-  extern HidCore Hid;
+  } // namespace Internal
+
+  extern Internal::HidCore Hid;
 
 } // namespace hidpg

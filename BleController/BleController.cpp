@@ -26,23 +26,27 @@
 
 namespace hidpg
 {
-
-  void BleControllerClass::begin()
+  namespace Internal
   {
-    Bluefruit.configPrphConn(BLE_GATT_ATT_MTU_DEFAULT,
-                             BLE_GAP_EVENT_LENGTH_DEFAULT,
-                             BLE_HVN_TX_QUEUE_SIZE,
-                             BLE_GATTC_WRITE_CMD_TX_QUEUE_SIZE_DEFAULT);
 
-    Bluefruit.begin(1, sizeof((uint8_t[][6])BLE_SLAVE_ADDR_LIST) / 6);
-    Bluefruit.setTxPower(BLE_TX_POWER);
-    Bluefruit.setName(BLE_DEVICE_NAME);
-    Bluefruit.autoConnLed(false);
+    void BleControllerClass::begin()
+    {
+      Bluefruit.configPrphConn(BLE_GATT_ATT_MTU_DEFAULT,
+                               BLE_GAP_EVENT_LENGTH_DEFAULT,
+                               BLE_HVN_TX_QUEUE_SIZE,
+                               BLE_GATTC_WRITE_CMD_TX_QUEUE_SIZE_DEFAULT);
 
-    Periph.begin();
-    Central.begin();
-  }
+      Bluefruit.begin(1, sizeof((uint8_t[][6])BLE_SLAVE_ADDR_LIST) / 6);
+      Bluefruit.setTxPower(BLE_TX_POWER);
+      Bluefruit.setName(BLE_DEVICE_NAME);
+      Bluefruit.autoConnLed(false);
 
-  BleControllerClass BleController;
+      Periph.begin();
+      Central.begin();
+    }
+
+  } // namespace Internal
+
+  Internal::BleControllerClass BleController;
 
 } // namespace hidpg

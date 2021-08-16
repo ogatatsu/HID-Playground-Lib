@@ -30,7 +30,7 @@
 
 #include "Arduino.h"
 
-namespace hidpg
+namespace hidpg::Internal
 {
 
   void attachSenseInterrupt(voidFuncPtr callback);
@@ -39,6 +39,6 @@ namespace hidpg
   void clearLatch(uint32_t pin);
   bool readLatch(uint32_t pin);
 
-} // namespace hidpg
+} // namespace hidpg::Internal
 
 #endif

@@ -25,6 +25,8 @@
 #include "TimerMixin.h"
 #include "HidEngineTask.h"
 
+using namespace hidpg::Internal;
+
 namespace hidpg
 {
 

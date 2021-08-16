@@ -32,74 +32,78 @@
 
 namespace hidpg
 {
-
-  enum class EventType
+  namespace Internal
   {
-    ApplyToKeymap,
-    MouseMove,
-    RotateEncoder,
-    Timer,
-    CommandTapper,
-  };
 
-  struct ApplyToKeymapEventData
-  {
-    Set key_ids;
-  };
-
-  struct MouseMoveEventData
-  {
-    //empty
-  };
-
-  struct RotateEncoderEventData
-  {
-    uint8_t encoder_id;
-  };
-
-  struct TimerEventData
-  {
-    TimerMixin *cls;
-    unsigned int timer_number;
-  };
-
-  struct CommandTapperEventData
-  {
-    //empty
-  };
-
-  struct EventData
-  {
-    EventData(){};
-
-    EventType event_type;
-    union
+    enum class EventType
     {
-      ApplyToKeymapEventData apply_to_keymap;
-      MouseMoveEventData mouse_move;
-      RotateEncoderEventData rotate_encoder;
-      TimerEventData *timer;
-      CommandTapperEventData command_tapper;
+      ApplyToKeymap,
+      MouseMove,
+      RotateEncoder,
+      Timer,
+      CommandTapper,
     };
-  };
 
-  class HidEngineTaskClass
-  {
-  public:
-    static void start();
-    static void enqueEvent(const EventData &evt);
+    struct ApplyToKeymapEventData
+    {
+      Set key_ids;
+    };
 
-  private:
-    static void task(void *pvParameters);
+    struct MouseMoveEventData
+    {
+      //empty
+    };
 
-    static TaskHandle_t _task_handle;
-    static StackType_t _task_stack[HID_ENGINE_TASK_STACK_SIZE];
-    static StaticTask_t _task_tcb;
-    static QueueHandle_t _event_queue;
-    static uint8_t _event_queue_storage[HID_ENGINE_EVENT_QUEUE_SIZE * sizeof(EventData)];
-    static StaticQueue_t _event_queue_struct;
-  };
+    struct RotateEncoderEventData
+    {
+      uint8_t encoder_id;
+    };
 
-  extern HidEngineTaskClass HidEngineTask;
+    struct TimerEventData
+    {
+      TimerMixin *cls;
+      unsigned int timer_number;
+    };
+
+    struct CommandTapperEventData
+    {
+      //empty
+    };
+
+    struct EventData
+    {
+      EventData(){};
+
+      EventType event_type;
+      union
+      {
+        ApplyToKeymapEventData apply_to_keymap;
+        MouseMoveEventData mouse_move;
+        RotateEncoderEventData rotate_encoder;
+        TimerEventData *timer;
+        CommandTapperEventData command_tapper;
+      };
+    };
+
+    class HidEngineTaskClass
+    {
+    public:
+      static void start();
+      static void enqueEvent(const EventData &evt);
+
+    private:
+      static void task(void *pvParameters);
+
+      static TaskHandle_t _task_handle;
+      static StackType_t _task_stack[HID_ENGINE_TASK_STACK_SIZE];
+      static StaticTask_t _task_tcb;
+      static QueueHandle_t _event_queue;
+      static uint8_t _event_queue_storage[HID_ENGINE_EVENT_QUEUE_SIZE * sizeof(EventData)];
+      static StaticQueue_t _event_queue_struct;
+    };
+
+    extern HidEngineTaskClass HidEngineTask;
+
+  } // namespace Internal
 
 } // namespace hidpg

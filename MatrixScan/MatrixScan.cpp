@@ -29,190 +29,194 @@
 
 namespace hidpg
 {
-
-  MatrixScanClass::callback_t MatrixScanClass::_callback = nullptr;
-  uint16_t MatrixScanClass::_polling_interval_ms = 0;
-  uint16_t MatrixScanClass::_max_polling_count = 0;
-  Switch **MatrixScanClass::_matrix = nullptr;
-  const uint8_t *MatrixScanClass::_in_pins = nullptr;
-  const uint8_t *MatrixScanClass::_out_pins = nullptr;
-  uint8_t MatrixScanClass::_in_pins_len = 0;
-  uint8_t MatrixScanClass::_out_pins_len = 0;
-
-  TaskHandle_t MatrixScanClass::_task_handle = nullptr;
-  StackType_t MatrixScanClass::_task_stack[MATRIX_SCAN_TASK_STACK_SIZE];
-  StaticTask_t MatrixScanClass::_task_tcb;
-
-  void MatrixScanClass::setCallback(callback_t callback)
+  namespace Internal
   {
-    _callback = callback;
-  }
+
+    MatrixScanClass::callback_t MatrixScanClass::_callback = nullptr;
+    uint16_t MatrixScanClass::_polling_interval_ms = 0;
+    uint16_t MatrixScanClass::_max_polling_count = 0;
+    Switch **MatrixScanClass::_matrix = nullptr;
+    const uint8_t *MatrixScanClass::_in_pins = nullptr;
+    const uint8_t *MatrixScanClass::_out_pins = nullptr;
+    uint8_t MatrixScanClass::_in_pins_len = 0;
+    uint8_t MatrixScanClass::_out_pins_len = 0;
+
+    TaskHandle_t MatrixScanClass::_task_handle = nullptr;
+    StackType_t MatrixScanClass::_task_stack[MATRIX_SCAN_TASK_STACK_SIZE];
+    StaticTask_t MatrixScanClass::_task_tcb;
+
+    void MatrixScanClass::setCallback(callback_t callback)
+    {
+      _callback = callback;
+    }
 
 #ifdef ARDUINO_ARCH_NRF52
-  void MatrixScanClass::stopTask_and_setWakeUpInterrupt()
-  {
-    if (_task_handle != nullptr)
+    void MatrixScanClass::stopTask_and_setWakeUpInterrupt()
     {
-      vTaskSuspend(_task_handle);
-    }
+      if (_task_handle != nullptr)
+      {
+        vTaskSuspend(_task_handle);
+      }
 
-    outPinsSet(MATRIX_SCAN_ACTIVE_STATE);
+      outPinsSet(MATRIX_SCAN_ACTIVE_STATE);
 
-    for (int i = 0; i < _in_pins_len; i++)
-    {
-      NRF_GPIO->PIN_CNF[_in_pins[i]] |= ((uint32_t)(MATRIX_SCAN_ACTIVE_STATE ? GPIO_PIN_CNF_SENSE_High : GPIO_PIN_CNF_SENSE_Low) << GPIO_PIN_CNF_SENSE_Pos);
+      for (int i = 0; i < _in_pins_len; i++)
+      {
+        NRF_GPIO->PIN_CNF[_in_pins[i]] |= ((uint32_t)(MATRIX_SCAN_ACTIVE_STATE ? GPIO_PIN_CNF_SENSE_High : GPIO_PIN_CNF_SENSE_Low) << GPIO_PIN_CNF_SENSE_Pos);
+      }
     }
-  }
 #endif
 
-  // ピンの初期化など
-  void MatrixScanClass::start()
-  {
-    // 出力ピンの設定
-    for (int i = 0; i < _out_pins_len; i++)
+    // ピンの初期化など
+    void MatrixScanClass::start()
     {
-      pinMode(_out_pins[i], OUTPUT);
-      digitalWrite(_out_pins[i], MATRIX_SCAN_ACTIVE_STATE);
-    }
+      // 出力ピンの設定
+      for (int i = 0; i < _out_pins_len; i++)
+      {
+        pinMode(_out_pins[i], OUTPUT);
+        digitalWrite(_out_pins[i], MATRIX_SCAN_ACTIVE_STATE);
+      }
 
-    // 入力ピンの設定
-    for (int i = 0; i < _in_pins_len; i++)
-    {
+      // 入力ピンの設定
+      for (int i = 0; i < _in_pins_len; i++)
+      {
 #if (MATRIX_SCAN_ACTIVE_STATE == LOW) && (MATRIX_SCAN_USE_EXTERNAL_PULL_RESISTOR == false) && (MATRIX_SCAN_USE_SENSE_INTERRUPT == false)
-      pinMode(_in_pins[i], INPUT_PULLUP);
-      attachInterrupt(digitalPinToInterrupt(_in_pins[i]), interrupt_callback, FALLING);
+        pinMode(_in_pins[i], INPUT_PULLUP);
+        attachInterrupt(digitalPinToInterrupt(_in_pins[i]), interrupt_callback, FALLING);
 #elif (MATRIX_SCAN_ACTIVE_STATE == HIGH) && (MATRIX_SCAN_USE_EXTERNAL_PULL_RESISTOR == false) && (MATRIX_SCAN_USE_SENSE_INTERRUPT == false)
-      pinMode(_in_pins[i], INPUT_PULLDOWN);
-      attachInterrupt(digitalPinToInterrupt(_in_pins[i]), interrupt_callback, RISING);
+        pinMode(_in_pins[i], INPUT_PULLDOWN);
+        attachInterrupt(digitalPinToInterrupt(_in_pins[i]), interrupt_callback, RISING);
 #elif (MATRIX_SCAN_ACTIVE_STATE == LOW) && (MATRIX_SCAN_USE_EXTERNAL_PULL_RESISTOR == true) && (MATRIX_SCAN_USE_SENSE_INTERRUPT == false)
-      pinMode(_in_pins[i], INPUT);
-      attachInterrupt(digitalPinToInterrupt(_in_pins[i]), interrupt_callback, FALLING);
+        pinMode(_in_pins[i], INPUT);
+        attachInterrupt(digitalPinToInterrupt(_in_pins[i]), interrupt_callback, FALLING);
 #elif (MATRIX_SCAN_ACTIVE_STATE == HIGH) && (MATRIX_SCAN_USE_EXTERNAL_PULL_RESISTOR == true) && (MATRIX_SCAN_USE_SENSE_INTERRUPT == false)
-      pinMode(_in_pins[i], INPUT);
-      attachInterrupt(digitalPinToInterrupt(_in_pins[i]), interrupt_callback, RISING);
+        pinMode(_in_pins[i], INPUT);
+        attachInterrupt(digitalPinToInterrupt(_in_pins[i]), interrupt_callback, RISING);
 #elif (MATRIX_SCAN_ACTIVE_STATE == LOW) && (MATRIX_SCAN_USE_EXTERNAL_PULL_RESISTOR == false) && (MATRIX_SCAN_USE_SENSE_INTERRUPT == true)
-      pinMode(_in_pins[i], INPUT_PULLUP_SENSE);
+        pinMode(_in_pins[i], INPUT_PULLUP_SENSE);
 #elif (MATRIX_SCAN_ACTIVE_STATE == HIGH) && (MATRIX_SCAN_USE_EXTERNAL_PULL_RESISTOR == false) && (MATRIX_SCAN_USE_SENSE_INTERRUPT == true)
-      pinMode(_in_pins[i], INPUT_PULLDOWN_SENSE);
+        pinMode(_in_pins[i], INPUT_PULLDOWN_SENSE);
 #elif (MATRIX_SCAN_ACTIVE_STATE == LOW) && (MATRIX_SCAN_USE_EXTERNAL_PULL_RESISTOR == true) && (MATRIX_SCAN_USE_SENSE_INTERRUPT == true)
-      pinMode(_in_pins[i], INPUT_SENSE_LOW);
+        pinMode(_in_pins[i], INPUT_SENSE_LOW);
 #elif (MATRIX_SCAN_ACTIVE_STATE == HIGH) && (MATRIX_SCAN_USE_EXTERNAL_PULL_RESISTOR == true) && (MATRIX_SCAN_USE_SENSE_INTERRUPT == true)
-      pinMode(_in_pins[i], INPUT_SENSE_HIGH);
+        pinMode(_in_pins[i], INPUT_SENSE_HIGH);
 #endif
-    }
+      }
 
 #if (MATRIX_SCAN_USE_SENSE_INTERRUPT == true)
-    attachSenseInterrupt(interrupt_callback);
+      attachSenseInterrupt(interrupt_callback);
 #endif
 
-    uint16_t max_debounce_delay_ms = 0;
-    uint16_t min_debounce_delay_ms = UINT16_MAX;
+      uint16_t max_debounce_delay_ms = 0;
+      uint16_t min_debounce_delay_ms = UINT16_MAX;
 
-    // スイッチオブジェクトの初期化
-    for (int oi = 0; oi < _out_pins_len; oi++)
-    {
-      for (int ii = 0; ii < _in_pins_len; ii++)
+      // スイッチオブジェクトの初期化
+      for (int oi = 0; oi < _out_pins_len; oi++)
       {
-        int idx = oi * _in_pins_len + ii;
-        if (_matrix[idx] == nullptr)
+        for (int ii = 0; ii < _in_pins_len; ii++)
         {
-          continue;
+          int idx = oi * _in_pins_len + ii;
+          if (_matrix[idx] == nullptr)
+          {
+            continue;
+          }
+          _matrix[idx]->attach(_in_pins[ii]);
+          uint16_t d = _matrix[idx]->getDebounceDelay();
+          max_debounce_delay_ms = max(d, max_debounce_delay_ms);
+          min_debounce_delay_ms = min(d, min_debounce_delay_ms);
         }
-        _matrix[idx]->attach(_in_pins[ii]);
-        uint16_t d = _matrix[idx]->getDebounceDelay();
-        max_debounce_delay_ms = max(d, max_debounce_delay_ms);
-        min_debounce_delay_ms = min(d, min_debounce_delay_ms);
+      }
+      // debounce_delayの最小値の間隔でポーリングする
+      _polling_interval_ms = min_debounce_delay_ms;
+
+      // _polling_interval_ms * _max_polling_countは最低でもdebounce_delayの最大値を超える値に設定
+      // delay関数で切り捨てられるtick回数も考慮して計算
+      _max_polling_count = ceil(pdMS_TO_TICKS_DOUBLE(max_debounce_delay_ms) / pdMS_TO_TICKS(_polling_interval_ms)) + 3;
+
+      _task_handle = xTaskCreateStatic(task, "MatrixScan", MATRIX_SCAN_TASK_STACK_SIZE, nullptr, MATRIX_SCAN_TASK_PRIO, _task_stack, &_task_tcb);
+    }
+
+    // 起きる
+    void MatrixScanClass::interrupt_callback()
+    {
+      if (_task_handle != nullptr)
+      {
+        // 通知値を_max_polling_countに設定して通知
+        xTaskNotifyFromISR(_task_handle, _max_polling_count, eSetValueWithOverwrite, nullptr);
       }
     }
-    // debounce_delayの最小値の間隔でポーリングする
-    _polling_interval_ms = min_debounce_delay_ms;
 
-    // _polling_interval_ms * _max_polling_countは最低でもdebounce_delayの最大値を超える値に設定
-    // delay関数で切り捨てられるtick回数も考慮して計算
-    _max_polling_count = ceil(pdMS_TO_TICKS_DOUBLE(max_debounce_delay_ms) / pdMS_TO_TICKS(_polling_interval_ms)) + 3;
-
-    _task_handle = xTaskCreateStatic(task, "MatrixScan", MATRIX_SCAN_TASK_STACK_SIZE, nullptr, MATRIX_SCAN_TASK_PRIO, _task_stack, &_task_tcb);
-  }
-
-  // 起きる
-  void MatrixScanClass::interrupt_callback()
-  {
-    if (_task_handle != nullptr)
+    // 出力ピンを一括設定
+    void MatrixScanClass::outPinsSet(int val)
     {
-      // 通知値を_max_polling_countに設定して通知
-      xTaskNotifyFromISR(_task_handle, _max_polling_count, eSetValueWithOverwrite, nullptr);
-    }
-  }
-
-  // 出力ピンを一括設定
-  void MatrixScanClass::outPinsSet(int val)
-  {
-    for (int i = 0; i < _out_pins_len; i++)
-    {
-      digitalWrite(_out_pins[i], val);
-    }
-  }
-
-  bool MatrixScanClass::needsKeyScan()
-  {
-    // - 消費電流を減らすため常にスキャンをせずに割り込みが発生したら起きて一定時間スキャン（ポーリング）をする
-    // - FreeRTOSのtask通知を利用して残りのポーリング回数を設定する
-    // - キー押し時はスキャン中に入力ピンの電圧が変わるので押されてる限り割り込みが発生し続ける
-    // - 割り込みが発生し続けてる間（キーが押され続けている間）はtaskの通知値は_max_polling_countに設定され続ける
-    // - キーが離されたら割り込みが発生しなくなりそこから_max_polling_count回ポーリングされ0になったらスキャンを終了
-    if (ulTaskNotifyTake(pdFALSE, 0) > 0)
-    {
-      return true;
-    }
-    return false;
-  }
-
-  void MatrixScanClass::task(void *pvParameters)
-  {
-    Set ids, prev_ids;
-
-    while (true)
-    {
-      if (needsKeyScan())
+      for (int i = 0; i < _out_pins_len; i++)
       {
-        // スキャン
-        outPinsSet(!MATRIX_SCAN_ACTIVE_STATE);
-        for (int oi = 0; oi < _out_pins_len; oi++)
+        digitalWrite(_out_pins[i], val);
+      }
+    }
+
+    bool MatrixScanClass::needsKeyScan()
+    {
+      // - 消費電流を減らすため常にスキャンをせずに割り込みが発生したら起きて一定時間スキャン（ポーリング）をする
+      // - FreeRTOSのtask通知を利用して残りのポーリング回数を設定する
+      // - キー押し時はスキャン中に入力ピンの電圧が変わるので押されてる限り割り込みが発生し続ける
+      // - 割り込みが発生し続けてる間（キーが押され続けている間）はtaskの通知値は_max_polling_countに設定され続ける
+      // - キーが離されたら割り込みが発生しなくなりそこから_max_polling_count回ポーリングされ0になったらスキャンを終了
+      if (ulTaskNotifyTake(pdFALSE, 0) > 0)
+      {
+        return true;
+      }
+      return false;
+    }
+
+    void MatrixScanClass::task(void *pvParameters)
+    {
+      Set ids, prev_ids;
+
+      while (true)
+      {
+        if (needsKeyScan())
         {
-          digitalWrite(_out_pins[oi], MATRIX_SCAN_ACTIVE_STATE);
-          for (int ii = 0; ii < _in_pins_len; ii++)
+          // スキャン
+          outPinsSet(!MATRIX_SCAN_ACTIVE_STATE);
+          for (int oi = 0; oi < _out_pins_len; oi++)
           {
-            int idx = oi * _in_pins_len + ii;
-            if (_matrix[idx] == nullptr)
+            digitalWrite(_out_pins[oi], MATRIX_SCAN_ACTIVE_STATE);
+            for (int ii = 0; ii < _in_pins_len; ii++)
             {
-              continue;
+              int idx = oi * _in_pins_len + ii;
+              if (_matrix[idx] == nullptr)
+              {
+                continue;
+              }
+              _matrix[idx]->updateState(ids);
             }
-            _matrix[idx]->updateState(ids);
+            digitalWrite(_out_pins[oi], !MATRIX_SCAN_ACTIVE_STATE);
           }
-          digitalWrite(_out_pins[oi], !MATRIX_SCAN_ACTIVE_STATE);
-        }
-        // 割り込みのためにスキャンが終わったら出力をアクティブ側に設定
-        outPinsSet(MATRIX_SCAN_ACTIVE_STATE);
+          // 割り込みのためにスキャンが終わったら出力をアクティブ側に設定
+          outPinsSet(MATRIX_SCAN_ACTIVE_STATE);
 
-        // 更新してたらコールバック関数を発火
-        if (ids != prev_ids)
-        {
-          if (_callback != nullptr)
+          // 更新してたらコールバック関数を発火
+          if (ids != prev_ids)
           {
-            _callback(ids);
+            if (_callback != nullptr)
+            {
+              _callback(ids);
+            }
+            prev_ids = ids;
           }
-          prev_ids = ids;
+          delay(_polling_interval_ms);
         }
-        delay(_polling_interval_ms);
-      }
-      else
-      {
-        // 割り込みが発生するまで寝る
-        ulTaskNotifyTake(pdFALSE, portMAX_DELAY);
+        else
+        {
+          // 割り込みが発生するまで寝る
+          ulTaskNotifyTake(pdFALSE, portMAX_DELAY);
+        }
       }
     }
-  }
 
-  MatrixScanClass MatrixScan;
+  } // namespace Internal
+
+  Internal::MatrixScanClass MatrixScan;
 
 } // namespace hidpg

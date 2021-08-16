@@ -30,36 +30,40 @@
 
 namespace hidpg
 {
-
-  class DebounceInClass
+  namespace Internal
   {
-  public:
-    using callback_t = void (*)(uint8_t pin, bool state);
 
-    static void start();
-    static bool addPin(uint8_t pin, int mode, uint16_t debounce_delay_ms = 10);
-    static void setCallback(callback_t callback);
-    static void stopTask();
+    class DebounceInClass
+    {
+    public:
+      using callback_t = void (*)(uint8_t pin, bool state);
 
-  private:
-    static void task(void *pvParameters);
-    static bool needsUpdate();
-    static void interrupt_callback();
+      static void start();
+      static bool addPin(uint8_t pin, int mode, uint16_t debounce_delay_ms = 10);
+      static void setCallback(callback_t callback);
+      static void stopTask();
 
-    static callback_t _callback;
+    private:
+      static void task(void *pvParameters);
+      static bool needsUpdate();
+      static void interrupt_callback();
 
-    static Bounce _bounce_list[];
-    static uint8_t _bounce_list_len;
+      static callback_t _callback;
 
-    static uint16_t _max_debounce_delay_ms;
-    static uint16_t _polling_interval_ms;
-    static uint16_t _max_polling_count;
+      static Bounce _bounce_list[];
+      static uint8_t _bounce_list_len;
 
-    static TaskHandle_t _task_handle;
-    static StackType_t _task_stack[];
-    static StaticTask_t _task_tcb;
-  };
+      static uint16_t _max_debounce_delay_ms;
+      static uint16_t _polling_interval_ms;
+      static uint16_t _max_polling_count;
 
-  extern DebounceInClass DebounceIn;
+      static TaskHandle_t _task_handle;
+      static StackType_t _task_stack[];
+      static StaticTask_t _task_tcb;
+    };
+
+  } // namespace Internal
+
+  extern Internal::DebounceInClass DebounceIn;
 
 } // namespace hidpg

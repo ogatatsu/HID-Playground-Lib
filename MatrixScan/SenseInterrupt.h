@@ -30,12 +30,12 @@
 
 #include "Arduino.h"
 
-namespace hidpg
+namespace hidpg::Internal
 {
 
   void attachSenseInterrupt(voidFuncPtr callback);
   void detachSenseInterrupt();
 
-} // namespace hidpg
+} // namespace hidpg::Internal
 
 #endif

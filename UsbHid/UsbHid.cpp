@@ -28,116 +28,129 @@
 
 namespace hidpg
 {
-  Adafruit_USBD_HID UsbHidClass::_usb_hid;
-  UsbHidClass::UsbHidReporter UsbHidClass::_reporter;
-
-  bool UsbHidClass::begin()
+  namespace Internal
   {
-    _usb_hid.setPollInterval(2);
-    _usb_hid.setReportDescriptor(hid_report_descriptor, sizeof(hid_report_descriptor));
-    _usb_hid.setReportCallback(NULL, UsbHidClass::hid_report_callback);
 
-    return _usb_hid.begin();
-  }
+    Adafruit_USBD_HID UsbHidClass::_usb_hid;
+    UsbHidReporter UsbHidClass::_reporter;
 
-  void UsbHidClass::hid_report_callback(uint8_t report_id, hid_report_type_t report_type, uint8_t const *buffer, uint16_t bufsize)
-  {
-    if (!(report_id == REPORT_ID_KEYBOARD && report_type == HID_REPORT_TYPE_OUTPUT))
+    UsbHidReporter::UsbHidReporter() : _usb_hid(nullptr), _kbd_led_cb(nullptr)
     {
-      return;
     }
 
-    if (_reporter._kbd_led_cb != nullptr && bufsize == 2)
+    void UsbHidReporter::setUsbHid(Adafruit_USBD_HID *usb_hid)
     {
-      // bufferの１バイト目はReportID
-      _reporter._kbd_led_cb(buffer[1]);
-    }
-  }
-
-  UsbHidClass::UsbHidReporter::UsbHidReporter() : _kbd_led_cb(nullptr)
-  {
-  }
-
-  HidReporter *UsbHidClass::getHidReporter()
-  {
-    return &_reporter;
-  }
-
-  bool UsbHidClass::UsbHidReporter::keyboardReport(uint8_t modifiers, uint8_t key_codes[6])
-  {
-    if (waitReady())
-    {
-      return _usb_hid.keyboardReport(REPORT_ID_KEYBOARD, modifiers, key_codes);
-    }
-    return false;
-  }
-
-  bool UsbHidClass::UsbHidReporter::consumerReport(uint16_t usage_code)
-  {
-    if (waitReady())
-    {
-      return _usb_hid.sendReport(REPORT_ID_CONSUMER_CONTROL, &usage_code, sizeof(usage_code));
-    }
-    return false;
-  }
-
-  bool UsbHidClass::UsbHidReporter::mouseReport(uint8_t buttons, int16_t x, int16_t y, int8_t wheel, int8_t horiz)
-  {
-    hid_mouse_report_ex_t report;
-    report.buttons = buttons;
-    report.x = x;
-    report.y = y;
-    report.wheel = wheel;
-    report.pan = horiz;
-
-    if (waitReady())
-    {
-      return _usb_hid.sendReport(REPORT_ID_MOUSE, &report, sizeof(hid_mouse_report_ex_t));
-    }
-    return false;
-  }
-
-  bool UsbHidClass::UsbHidReporter::radialControllerReport(bool button, int16_t dial)
-  {
-    hid_radial_controller_report_t report;
-    report.button = button;
-    report.dial = dial;
-
-    if (waitReady())
-    {
-      return _usb_hid.sendReport(REPORT_ID_RADIAL_CONTROLLER, &report, sizeof(hid_radial_controller_report_t));
-    }
-    return false;
-  }
-
-  bool UsbHidClass::UsbHidReporter::systemControlReport(uint8_t usage_code)
-  {
-    if (waitReady())
-    {
-      return _usb_hid.sendReport(REPORT_ID_SYSTEM_CONTROL, &usage_code, sizeof(usage_code));
-    }
-    return false;
-  }
-
-  bool UsbHidClass::UsbHidReporter::waitReady()
-  {
-    int count = 0;
-    while (_usb_hid.ready() == false)
-    {
-      count++;
-      if (count > 10)
-        return false;
-      delay(1);
+      _usb_hid = usb_hid;
     }
 
-    return true;
-  }
+    bool UsbHidReporter::keyboardReport(uint8_t modifiers, uint8_t key_codes[6])
+    {
+      if (waitReady())
+      {
+        return _usb_hid->keyboardReport(REPORT_ID_KEYBOARD, modifiers, key_codes);
+      }
+      return false;
+    }
 
-  void UsbHidClass::UsbHidReporter::setKeyboardLedCallback(kbd_led_cb_t cb)
-  {
-    _kbd_led_cb = cb;
-  }
+    bool UsbHidReporter::consumerReport(uint16_t usage_code)
+    {
+      if (waitReady())
+      {
+        return _usb_hid->sendReport(REPORT_ID_CONSUMER_CONTROL, &usage_code, sizeof(usage_code));
+      }
+      return false;
+    }
 
-  UsbHidClass UsbHid;
+    bool UsbHidReporter::mouseReport(uint8_t buttons, int16_t x, int16_t y, int8_t wheel, int8_t horiz)
+    {
+      hid_mouse_report_ex_t report;
+      report.buttons = buttons;
+      report.x = x;
+      report.y = y;
+      report.wheel = wheel;
+      report.pan = horiz;
+
+      if (waitReady())
+      {
+        return _usb_hid->sendReport(REPORT_ID_MOUSE, &report, sizeof(hid_mouse_report_ex_t));
+      }
+      return false;
+    }
+
+    bool UsbHidReporter::radialControllerReport(bool button, int16_t dial)
+    {
+      hid_radial_controller_report_t report;
+      report.button = button;
+      report.dial = dial;
+
+      if (waitReady())
+      {
+        return _usb_hid->sendReport(REPORT_ID_RADIAL_CONTROLLER, &report, sizeof(hid_radial_controller_report_t));
+      }
+      return false;
+    }
+
+    bool UsbHidReporter::systemControlReport(uint8_t usage_code)
+    {
+      if (waitReady())
+      {
+        return _usb_hid->sendReport(REPORT_ID_SYSTEM_CONTROL, &usage_code, sizeof(usage_code));
+      }
+      return false;
+    }
+
+    bool UsbHidReporter::waitReady()
+    {
+      int count = 0;
+      while (_usb_hid->ready() == false)
+      {
+        count++;
+        if (count > 10)
+          return false;
+        delay(1);
+      }
+
+      return true;
+    }
+
+    void UsbHidReporter::setKeyboardLedCallback(kbd_led_cb_t cb)
+    {
+      _kbd_led_cb = cb;
+    }
+
+    bool UsbHidClass::begin()
+    {
+      _usb_hid.setPollInterval(2);
+      _usb_hid.setReportDescriptor(hid_report_descriptor, sizeof(hid_report_descriptor));
+      _usb_hid.setReportCallback(NULL, UsbHidClass::hid_report_callback);
+      bool result = _usb_hid.begin();
+
+      _reporter.setUsbHid(&_usb_hid);
+
+      return result;
+    }
+
+    void UsbHidClass::hid_report_callback(uint8_t report_id, hid_report_type_t report_type, uint8_t const *buffer, uint16_t bufsize)
+    {
+      if (!(report_id == REPORT_ID_KEYBOARD && report_type == HID_REPORT_TYPE_OUTPUT))
+      {
+        return;
+      }
+
+      if (_reporter._kbd_led_cb != nullptr && bufsize == 2)
+      {
+        // bufferの１バイト目はReportID
+        _reporter._kbd_led_cb(buffer[1]);
+      }
+    }
+
+    HidReporter *UsbHidClass::getHidReporter()
+    {
+      return &_reporter;
+    }
+
+  } // namespace Internal
+
+  Internal::UsbHidClass UsbHid;
 
 } // namespace hidpg

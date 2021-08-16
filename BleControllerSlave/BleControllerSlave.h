@@ -31,38 +31,42 @@
 
 namespace hidpg
 {
-
-  class BleControllerSlaveClass
+  namespace Internal
   {
-  public:
-    using cannotConnectCallback_t = void (*)(void);
-    using receiveDataCallback_t = void (*)(uint8_t *data, uint16_t len);
 
-    static void begin();
-    static void startConnection();
-    static void stopConnection();
-    static bool isRunning();
-    static uint16_t sendData(const uint8_t *data, uint16_t len);
-    static void clearBonds();
-    static void setBatteryLevel(uint8_t level);
-    static bool waitReady();
-    static void setCannnotConnectCallback(cannotConnectCallback_t callback);
-    static void setReceiveDataCallback(receiveDataCallback_t callback);
+    class BleControllerSlaveClass
+    {
+    public:
+      using cannotConnectCallback_t = void (*)(void);
+      using receiveDataCallback_t = void (*)(uint8_t *data, uint16_t len);
 
-  private:
-    static void startAdv();
-    static void adv_stop_callback();
-    static void connect_callback(uint16_t conn_handle);
-    static void disconnect_callback(uint16_t conn_handle, uint8_t reason);
-    static void bleuart_rx_callback(uint16_t conn_handle, uint8_t *data, uint16_t len);
+      static void begin();
+      static void startConnection();
+      static void stopConnection();
+      static bool isRunning();
+      static uint16_t sendData(const uint8_t *data, uint16_t len);
+      static void clearBonds();
+      static void setBatteryLevel(uint8_t level);
+      static bool waitReady();
+      static void setCannnotConnectCallback(cannotConnectCallback_t callback);
+      static void setReceiveDataCallback(receiveDataCallback_t callback);
 
-    static BLEUartLight _ble_uart;
-    static BLEBas _ble_bas;
-    static BlinkLed _adv_led;
-    static cannotConnectCallback_t _cannot_connect_cb;
-    static receiveDataCallback_t _receive_data_cb;
-  };
+    private:
+      static void startAdv();
+      static void adv_stop_callback();
+      static void connect_callback(uint16_t conn_handle);
+      static void disconnect_callback(uint16_t conn_handle, uint8_t reason);
+      static void bleuart_rx_callback(uint16_t conn_handle, uint8_t *data, uint16_t len);
 
-  extern BleControllerSlaveClass BleControllerSlave;
+      static BLEUartLight _ble_uart;
+      static BLEBas _ble_bas;
+      static BlinkLed _adv_led;
+      static cannotConnectCallback_t _cannot_connect_cb;
+      static receiveDataCallback_t _receive_data_cb;
+    };
+
+  } // namespace Internal
+
+  extern Internal::BleControllerSlaveClass BleControllerSlave;
 
 } // namespace hidpg

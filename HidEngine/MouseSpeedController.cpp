@@ -27,104 +27,108 @@
 
 namespace hidpg
 {
-
-  //------------------------------------------------------------------+
-  // Rational
-  //------------------------------------------------------------------+
-  Rational::Rational(int number, int denom) : _number(number), _denom(denom)
+  namespace Internal
   {
-    normalize();
-  }
 
-  int Rational::number() const
-  {
-    return _number;
-  }
-
-  int Rational::denom() const
-  {
-    return _denom;
-  }
-
-  Rational &Rational::operator*=(const Rational &rhs)
-  {
-    _denom *= rhs.denom();
-    _number *= rhs.number();
-    normalize();
-    return *this;
-  }
-
-  Rational &Rational::operator/=(const Rational &rhs)
-  {
-    _denom *= rhs.number();
-    _number *= rhs.denom();
-    normalize();
-    return *this;
-  }
-
-  static int gcd(int a, int b)
-  {
-    if (b == 0)
+    //------------------------------------------------------------------+
+    // Rational
+    //------------------------------------------------------------------+
+    Rational::Rational(int number, int denom) : _number(number), _denom(denom)
     {
-      return a;
+      normalize();
     }
-    else
+
+    int Rational::number() const
     {
-      return gcd(b, a % b);
+      return _number;
     }
-  }
 
-  void Rational::normalize()
-  {
-    int g = gcd(abs(_number), abs(_denom));
-    _number = _number / g;
-    _denom = _denom / g;
-
-    if (_denom < 0)
+    int Rational::denom() const
     {
-      _denom = -_denom;
-      _number = -_number;
+      return _denom;
     }
-  }
 
-  //------------------------------------------------------------------+
-  // MouseSpeedController
-  //------------------------------------------------------------------+
-  Rational MouseSpeedControllerClass::_rational(1, 1);
-  uint8_t MouseSpeedControllerClass::_zero_counter = 0;
-
-  void MouseSpeedControllerClass::accel(int16_t percent)
-  {
-    _rational *= Rational(percent, 100);
-  }
-
-  void MouseSpeedControllerClass::decel(int16_t percent)
-  {
-    _rational /= Rational(percent, 100);
-  }
-
-  void MouseSpeedControllerClass::setZero()
-  {
-    _zero_counter++;
-  }
-
-  void MouseSpeedControllerClass::unsetZero()
-  {
-    _zero_counter--;
-  }
-
-  double MouseSpeedControllerClass::getfactor()
-  {
-    if (_zero_counter == 0)
+    Rational &Rational::operator*=(const Rational &rhs)
     {
-      return static_cast<double>(_rational.number() / _rational.denom());
+      _denom *= rhs.denom();
+      _number *= rhs.number();
+      normalize();
+      return *this;
     }
-    else
-    {
-      return 0;
-    }
-  }
 
-  MouseSpeedControllerClass MouseSpeedController;
+    Rational &Rational::operator/=(const Rational &rhs)
+    {
+      _denom *= rhs.number();
+      _number *= rhs.denom();
+      normalize();
+      return *this;
+    }
+
+    static int gcd(int a, int b)
+    {
+      if (b == 0)
+      {
+        return a;
+      }
+      else
+      {
+        return gcd(b, a % b);
+      }
+    }
+
+    void Rational::normalize()
+    {
+      int g = gcd(abs(_number), abs(_denom));
+      _number = _number / g;
+      _denom = _denom / g;
+
+      if (_denom < 0)
+      {
+        _denom = -_denom;
+        _number = -_number;
+      }
+    }
+
+    //------------------------------------------------------------------+
+    // MouseSpeedController
+    //------------------------------------------------------------------+
+    Rational MouseSpeedControllerClass::_rational(1, 1);
+    uint8_t MouseSpeedControllerClass::_zero_counter = 0;
+
+    void MouseSpeedControllerClass::accel(int16_t percent)
+    {
+      _rational *= Rational(percent, 100);
+    }
+
+    void MouseSpeedControllerClass::decel(int16_t percent)
+    {
+      _rational /= Rational(percent, 100);
+    }
+
+    void MouseSpeedControllerClass::setZero()
+    {
+      _zero_counter++;
+    }
+
+    void MouseSpeedControllerClass::unsetZero()
+    {
+      _zero_counter--;
+    }
+
+    double MouseSpeedControllerClass::getfactor()
+    {
+      if (_zero_counter == 0)
+      {
+        return static_cast<double>(_rational.number() / _rational.denom());
+      }
+      else
+      {
+        return 0;
+      }
+    }
+
+  } // namespace Internal
+
+  Internal::MouseSpeedControllerClass MouseSpeedController;
 
 } // namespace hidpg

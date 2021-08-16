@@ -37,7 +37,7 @@
 #include "BLEHid.h"
 #include "HidReportDescriptor.h"
 
-namespace hidpg
+namespace hidpg::Internal
 {
 
   BLEHid::BLEHid() : BLEHidGeneric(5, 1, 0), _kbd_led_cb(nullptr), _kbd_led_hdl_cb(nullptr)
@@ -192,4 +192,4 @@ namespace hidpg
     return waitReady(conn_hdl);
   }
 
-} // namespace hidpg
+} // namespace hidpg::Internal

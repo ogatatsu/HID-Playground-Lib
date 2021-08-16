@@ -30,10 +30,14 @@
 
 namespace hidpg
 {
+  namespace Internal
+  {
+    class HidEngineTaskClass;
+  }
 
   class TimerMixin
   {
-    friend class HidEngineTaskClass;
+    friend class Internal::HidEngineTaskClass;
 
   protected:
     TimerMixin();

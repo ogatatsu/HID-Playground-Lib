@@ -27,201 +27,205 @@
 
 namespace hidpg
 {
-
-  BLEUartLight BleControllerSlaveClass::_ble_uart;
-  BLEBas BleControllerSlaveClass::_ble_bas;
-  BlinkLed BleControllerSlaveClass::_adv_led(BLE_ADV_LED_PIN, BLE_ADV_LED_ACTIVE_STATE);
-  BleControllerSlaveClass::cannotConnectCallback_t BleControllerSlaveClass::_cannot_connect_cb = nullptr;
-  BleControllerSlaveClass::receiveDataCallback_t BleControllerSlaveClass::_receive_data_cb = nullptr;
-
-  //------------------------------------------------------------------+
-  // public
-  //------------------------------------------------------------------+
-  void BleControllerSlaveClass::begin()
+  namespace Internal
   {
-    Bluefruit.configPrphConn(BLE_GATT_ATT_MTU_DEFAULT, BLE_GAP_EVENT_LENGTH_DEFAULT, BLE_HVN_TX_QUEUE_SIZE, BLE_GATTC_WRITE_CMD_TX_QUEUE_SIZE_DEFAULT);
-    Bluefruit.begin();
-    Bluefruit.setTxPower(BLE_TX_POWER);
-    Bluefruit.setName(BLE_DEVICE_NAME);
-    Bluefruit.autoConnLed(false);
 
-    Bluefruit.Periph.setConnectCallback(connect_callback);
-    Bluefruit.Periph.setDisconnectCallback(disconnect_callback);
+    BLEUartLight BleControllerSlaveClass::_ble_uart;
+    BLEBas BleControllerSlaveClass::_ble_bas;
+    BlinkLed BleControllerSlaveClass::_adv_led(BLE_ADV_LED_PIN, BLE_ADV_LED_ACTIVE_STATE);
+    BleControllerSlaveClass::cannotConnectCallback_t BleControllerSlaveClass::_cannot_connect_cb = nullptr;
+    BleControllerSlaveClass::receiveDataCallback_t BleControllerSlaveClass::_receive_data_cb = nullptr;
+
+    //------------------------------------------------------------------+
+    // public
+    //------------------------------------------------------------------+
+    void BleControllerSlaveClass::begin()
+    {
+      Bluefruit.configPrphConn(BLE_GATT_ATT_MTU_DEFAULT, BLE_GAP_EVENT_LENGTH_DEFAULT, BLE_HVN_TX_QUEUE_SIZE, BLE_GATTC_WRITE_CMD_TX_QUEUE_SIZE_DEFAULT);
+      Bluefruit.begin();
+      Bluefruit.setTxPower(BLE_TX_POWER);
+      Bluefruit.setName(BLE_DEVICE_NAME);
+      Bluefruit.autoConnLed(false);
+
+      Bluefruit.Periph.setConnectCallback(connect_callback);
+      Bluefruit.Periph.setDisconnectCallback(disconnect_callback);
 
 #ifdef BLE_OWN_ADDR
-    uint8_t addr[6] = BLE_OWN_ADDR;
-    ble_gap_addr_t tmp;
-    tmp.addr_type = BLE_GAP_ADDR_TYPE_RANDOM_STATIC;
-    memcpy(tmp.addr, addr, 6);
-    Bluefruit.setAddr(&tmp);
+      uint8_t addr[6] = BLE_OWN_ADDR;
+      ble_gap_addr_t tmp;
+      tmp.addr_type = BLE_GAP_ADDR_TYPE_RANDOM_STATIC;
+      memcpy(tmp.addr, addr, 6);
+      Bluefruit.setAddr(&tmp);
 #endif
 
-    // Configure and Start BLE Uart Service
-    _ble_uart.begin();
-    _ble_uart.setRxCallback(bleuart_rx_callback);
+      // Configure and Start BLE Uart Service
+      _ble_uart.begin();
+      _ble_uart.setRxCallback(bleuart_rx_callback);
 
-    // Start BLE Battery Service
-    _ble_bas.begin();
+      // Start BLE Battery Service
+      _ble_bas.begin();
 
-    // LEDの初期化
-    _adv_led.begin();
-  }
-
-  // 接続を開始
-  void BleControllerSlaveClass::startConnection()
-  {
-    // すでに開始している場合は何もしない
-    if (isRunning())
-    {
-      return;
+      // LEDの初期化
+      _adv_led.begin();
     }
 
-    startAdv();
-  }
-
-  // ペリファラル接続もしくはアドバタイズを停止する
-  void BleControllerSlaveClass::stopConnection()
-  {
-    Bluefruit.Advertising.restartOnDisconnect(false);
-    if (Bluefruit.Advertising.isRunning())
+    // 接続を開始
+    void BleControllerSlaveClass::startConnection()
     {
-      Bluefruit.Advertising.stop();
-    }
-
-    if (Bluefruit.Periph.connected())
-    {
-      Bluefruit.disconnect(Bluefruit.connHandle());
-
-      // 切断されるまで少し待つ必要がある
-      while (Bluefruit.Periph.connected())
+      // すでに開始している場合は何もしない
+      if (isRunning())
       {
-        delay(1);
+        return;
+      }
+
+      startAdv();
+    }
+
+    // ペリファラル接続もしくはアドバタイズを停止する
+    void BleControllerSlaveClass::stopConnection()
+    {
+      Bluefruit.Advertising.restartOnDisconnect(false);
+      if (Bluefruit.Advertising.isRunning())
+      {
+        Bluefruit.Advertising.stop();
+      }
+
+      if (Bluefruit.Periph.connected())
+      {
+        Bluefruit.disconnect(Bluefruit.connHandle());
+
+        // 切断されるまで少し待つ必要がある
+        while (Bluefruit.Periph.connected())
+        {
+          delay(1);
+        }
+      }
+      _adv_led.syncOff();
+    }
+
+    bool BleControllerSlaveClass::isRunning()
+    {
+      return (Bluefruit.Advertising.isRunning() || Bluefruit.Periph.connected());
+    }
+
+    uint16_t BleControllerSlaveClass::sendData(const uint8_t *data, uint16_t len)
+    {
+      return _ble_uart.write(data, len);
+    }
+
+    void BleControllerSlaveClass::clearBonds()
+    {
+      Bluefruit.Periph.clearBonds();
+    }
+
+    void BleControllerSlaveClass::setBatteryLevel(uint8_t level)
+    {
+      _ble_bas.write(level);
+    }
+
+    bool BleControllerSlaveClass::waitReady()
+    {
+      uint16_t conn_hdl = Bluefruit.connHandle();
+      auto conn = Bluefruit.Connection(conn_hdl);
+
+      if (conn != nullptr)
+      {
+        if (conn->getHvnPacket() == false)
+          return false;
+        conn->releaseHvnPacket();
+      }
+      return true;
+    }
+
+    void BleControllerSlaveClass::setCannnotConnectCallback(cannotConnectCallback_t callback)
+    {
+      _cannot_connect_cb = callback;
+    }
+
+    void BleControllerSlaveClass::setReceiveDataCallback(receiveDataCallback_t callback)
+    {
+      _receive_data_cb = callback;
+    }
+
+    //------------------------------------------------------------------+
+    // private
+    //------------------------------------------------------------------+
+    void BleControllerSlaveClass::startAdv(void)
+    {
+      // Advertising packet
+      Bluefruit.Advertising.addFlags(BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE);
+      Bluefruit.Advertising.addTxPower();
+
+      // Include bleuart 128-bit uuid
+      Bluefruit.Advertising.addService(_ble_uart);
+
+      // Secondary Scan Response packet (optional)
+      // Since there is no room for 'Name' in Advertising packet
+      Bluefruit.ScanResponse.addName();
+
+      // Start Advertising
+      // - Enable auto advertising if disconnected
+      // - Interval:  fast mode = 20 ms, slow mode = 152.5 ms
+      // - Timeout for fast mode is 30 seconds
+      // - Start(timeout) with timeout = 0 will advertise forever (until connected)
+      // For recommended advertising interval
+      // https://developer.apple.com/library/content/qa/qa1931/_index.html
+      Bluefruit.Advertising.setStopCallback(adv_stop_callback);
+      Bluefruit.Advertising.restartOnDisconnect(true);
+      Bluefruit.Advertising.setInterval(32, 244); // in unit of 0.625 ms
+      Bluefruit.Advertising.setFastTimeout(30);   // number of seconds in fast mode
+      Bluefruit.Advertising.start(60);            // 0 = Don't stop advertising after n seconds
+      _adv_led.blink();                           // advertising status led
+    }
+
+    // 一定時間接続できなかった場合
+    void BleControllerSlaveClass::adv_stop_callback()
+    {
+      _adv_led.syncOff();
+      if (_cannot_connect_cb != nullptr)
+      {
+        _cannot_connect_cb();
       }
     }
-    _adv_led.syncOff();
-  }
 
-  bool BleControllerSlaveClass::isRunning()
-  {
-    return (Bluefruit.Advertising.isRunning() || Bluefruit.Periph.connected());
-  }
-
-  uint16_t BleControllerSlaveClass::sendData(const uint8_t *data, uint16_t len)
-  {
-    return _ble_uart.write(data, len);
-  }
-
-  void BleControllerSlaveClass::clearBonds()
-  {
-    Bluefruit.Periph.clearBonds();
-  }
-
-  void BleControllerSlaveClass::setBatteryLevel(uint8_t level)
-  {
-    _ble_bas.write(level);
-  }
-
-  bool BleControllerSlaveClass::waitReady()
-  {
-    uint16_t conn_hdl = Bluefruit.connHandle();
-    auto conn = Bluefruit.Connection(conn_hdl);
-
-    if (conn != nullptr)
+    void BleControllerSlaveClass::connect_callback(uint16_t conn_handle)
     {
-      if (conn->getHvnPacket() == false)
-        return false;
-      conn->releaseHvnPacket();
+      BLEConnection *conn = Bluefruit.Connection(conn_handle);
+      conn->requestConnectionParameter(BLE_CONNECTION_INTERVAL, BLE_SLAVE_LATENCY, BLE_SUPERVISION_TIMEOUT);
+      conn->requestPHY();
+      _adv_led.off();
     }
-    return true;
-  }
 
-  void BleControllerSlaveClass::setCannnotConnectCallback(cannotConnectCallback_t callback)
-  {
-    _cannot_connect_cb = callback;
-  }
-
-  void BleControllerSlaveClass::setReceiveDataCallback(receiveDataCallback_t callback)
-  {
-    _receive_data_cb = callback;
-  }
-
-  //------------------------------------------------------------------+
-  // private
-  //------------------------------------------------------------------+
-  void BleControllerSlaveClass::startAdv(void)
-  {
-    // Advertising packet
-    Bluefruit.Advertising.addFlags(BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE);
-    Bluefruit.Advertising.addTxPower();
-
-    // Include bleuart 128-bit uuid
-    Bluefruit.Advertising.addService(_ble_uart);
-
-    // Secondary Scan Response packet (optional)
-    // Since there is no room for 'Name' in Advertising packet
-    Bluefruit.ScanResponse.addName();
-
-    // Start Advertising
-    // - Enable auto advertising if disconnected
-    // - Interval:  fast mode = 20 ms, slow mode = 152.5 ms
-    // - Timeout for fast mode is 30 seconds
-    // - Start(timeout) with timeout = 0 will advertise forever (until connected)
-    // For recommended advertising interval
-    // https://developer.apple.com/library/content/qa/qa1931/_index.html
-    Bluefruit.Advertising.setStopCallback(adv_stop_callback);
-    Bluefruit.Advertising.restartOnDisconnect(true);
-    Bluefruit.Advertising.setInterval(32, 244); // in unit of 0.625 ms
-    Bluefruit.Advertising.setFastTimeout(30);   // number of seconds in fast mode
-    Bluefruit.Advertising.start(60);            // 0 = Don't stop advertising after n seconds
-    _adv_led.blink();                           // advertising status led
-  }
-
-  // 一定時間接続できなかった場合
-  void BleControllerSlaveClass::adv_stop_callback()
-  {
-    _adv_led.syncOff();
-    if (_cannot_connect_cb != nullptr)
+    void BleControllerSlaveClass::disconnect_callback(uint16_t conn_handle, uint8_t reason)
     {
-      _cannot_connect_cb();
+      switch (reason)
+      {
+      case BLE_HCI_LOCAL_HOST_TERMINATED_CONNECTION:
+      {
+        // 自分から切断する場合はAdvertising.restartOnDisconnect(false)に設定してあるはず
+        // 特に何もすることはない
+        break;
+      }
+      default:
+      {
+        // 通常はAdvertising.restartOnDisconnect(true)に設定してあるはず
+        // Advertisingが自動再開されるはず、ledを点灯
+        _adv_led.blink();
+        break;
+      }
+      }
     }
-  }
 
-  void BleControllerSlaveClass::connect_callback(uint16_t conn_handle)
-  {
-    BLEConnection *conn = Bluefruit.Connection(conn_handle);
-    conn->requestConnectionParameter(BLE_CONNECTION_INTERVAL, BLE_SLAVE_LATENCY, BLE_SUPERVISION_TIMEOUT);
-    conn->requestPHY();
-    _adv_led.off();
-  }
+    void BleControllerSlaveClass::bleuart_rx_callback(uint16_t conn_handle, uint8_t *data, uint16_t len)
+    {
+      if (_receive_data_cb != nullptr)
+      {
+        _receive_data_cb(data, len);
+      }
+    }
 
-  void BleControllerSlaveClass::disconnect_callback(uint16_t conn_handle, uint8_t reason)
-  {
-    switch (reason)
-    {
-    case BLE_HCI_LOCAL_HOST_TERMINATED_CONNECTION:
-    {
-      // 自分から切断する場合はAdvertising.restartOnDisconnect(false)に設定してあるはず
-      // 特に何もすることはない
-      break;
-    }
-    default:
-    {
-      // 通常はAdvertising.restartOnDisconnect(true)に設定してあるはず
-      // Advertisingが自動再開されるはず、ledを点灯
-      _adv_led.blink();
-      break;
-    }
-    }
-  }
+  } // namespace Internal
 
-  void BleControllerSlaveClass::bleuart_rx_callback(uint16_t conn_handle, uint8_t *data, uint16_t len)
-  {
-    if (_receive_data_cb != nullptr)
-    {
-      _receive_data_cb(data, len);
-    }
-  }
-
-  BleControllerSlaveClass BleControllerSlave;
+  Internal::BleControllerSlaveClass BleControllerSlave;
 
 } // namespace hidpg

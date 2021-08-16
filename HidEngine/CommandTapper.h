@@ -26,41 +26,45 @@
 
 namespace hidpg
 {
-
-  class CommandTapperClass
+  namespace Internal
   {
-    friend class HidEngineTaskClass;
 
-  public:
-    static void begin();
-    static bool tap(Command *command, uint8_t n_times = 1, uint16_t tap_speed_ms = HID_ENGINE_TAP_SPEED_MS);
-
-  private:
-    static void onTimer();
-    static void timer_callback(TimerHandle_t timer_handle);
-
-    struct Info
+    class CommandTapperClass
     {
-      Command *command;
-      uint8_t num_of_taps;
-      uint16_t tap_speed_ms;
+      friend class HidEngineTaskClass;
+
+    public:
+      static void begin();
+      static bool tap(Command *command, uint8_t n_times = 1, uint16_t tap_speed_ms = HID_ENGINE_TAP_SPEED_MS);
+
+    private:
+      static void onTimer();
+      static void timer_callback(TimerHandle_t timer_handle);
+
+      struct Info
+      {
+        Command *command;
+        uint8_t num_of_taps;
+        uint16_t tap_speed_ms;
+      };
+
+      enum class State
+      {
+        NotRunning,
+        Press,
+        Release,
+        ChangeCommandInTheNext,
+      };
+
+      static LinkedList<Info> _list;
+      static Info _running;
+      static State _state;
+      static TimerHandle_t _timer_handle;
+      static StaticTimer_t _timer_buffer;
     };
 
-    enum class State
-    {
-      NotRunning,
-      Press,
-      Release,
-      ChangeCommandInTheNext,
-    };
+  } // namespace Internal
 
-    static LinkedList<Info> _list;
-    static Info _running;
-    static State _state;
-    static TimerHandle_t _timer_handle;
-    static StaticTimer_t _timer_buffer;
-  };
-
-  extern CommandTapperClass CommandTapper;
+  extern Internal::CommandTapperClass CommandTapper;
 
 } // namespace hidpg

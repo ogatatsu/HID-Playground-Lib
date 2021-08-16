@@ -29,15 +29,19 @@
 
 namespace hidpg
 {
-
-  class BleControllerClass
+  namespace Internal
   {
-  public:
-    static void begin();
-    static BleControllerPeripheral Periph;
-    static BleControllerCentral Central;
-  };
 
-  extern BleControllerClass BleController;
+    class BleControllerClass
+    {
+    public:
+      static void begin();
+      static BleControllerPeripheral Periph;
+      static BleControllerCentral Central;
+    };
+
+  } // namespace Internal
+
+  extern Internal::BleControllerClass BleController;
 
 } // namespace hidpg

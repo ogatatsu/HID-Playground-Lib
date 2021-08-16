@@ -27,7 +27,7 @@
 #define SLOT_FILE_NAME "Slot"
 #define STORE_DIR_ENAME "AddrStore"
 
-namespace hidpg
+namespace hidpg::Internal
 {
 
   BLEDis BleControllerPeripheral::_ble_dis;
@@ -253,4 +253,4 @@ namespace hidpg
     }
   }
 
-} // namespace hidpg
+} // namespace hidpg::Internal

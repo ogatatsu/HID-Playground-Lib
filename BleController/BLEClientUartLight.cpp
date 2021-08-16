@@ -37,7 +37,7 @@
 #include "BLEClientUartLight.h"
 #include "bluefruit.h"
 
-namespace hidpg
+namespace hidpg::Internal
 {
 
   void bleuart_central_notify_cb(BLEClientCharacteristic *chr, uint8_t *data, uint16_t len);
@@ -117,4 +117,4 @@ namespace hidpg
     return _rxd.write(content, len);
   }
 
-} // namespace hidpg
+} // namespace hidpg::Internal

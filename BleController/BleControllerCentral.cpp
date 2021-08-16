@@ -24,7 +24,7 @@
 
 #include "BleControllerCentral.h"
 
-namespace hidpg
+namespace hidpg::Internal
 {
 
   uint8_t BleControllerCentral::_slave_addr_list[NUM_OF_SLAVES][6] = BLE_SLAVE_ADDR_LIST;
@@ -252,4 +252,4 @@ namespace hidpg
     }
   }
 
-} // namespace hidpg
+} // namespace hidpg::Internal

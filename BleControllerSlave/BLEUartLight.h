@@ -38,7 +38,7 @@
 #include "BLECharacteristic.h"
 #include "BLEService.h"
 
-namespace hidpg
+namespace hidpg::Internal
 {
 
   // BLEUartの非ストリーム版軽量バージョン
@@ -74,4 +74,4 @@ namespace hidpg
     static void bleuart_txd_cccd_cb(uint16_t conn_hdl, BLECharacteristic *chr, uint16_t value);
   };
 
-} // namespace hidpg
+} // namespace hidpg::Internal

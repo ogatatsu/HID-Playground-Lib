@@ -31,7 +31,7 @@
 #include "nrf_gpiote.h"
 #include "nrf_ppi.h"
 
-namespace hidpg
+namespace hidpg::Internal
 {
 
   static voidFuncPtr senseCallback = NULL;
@@ -110,6 +110,6 @@ namespace hidpg
     __attribute__((weak)) void GPIOTE_IRQHandler() {}
   }
 
-} // namespace hidpg
+} // namespace hidpg::Internal
 
 #endif

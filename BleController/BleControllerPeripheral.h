@@ -31,7 +31,7 @@
 #include "MemStore.h"
 #include <bluefruit.h>
 
-namespace hidpg
+namespace hidpg::Internal
 {
 
   class BleControllerPeripheral
@@ -66,4 +66,4 @@ namespace hidpg
     static cannotConnectCallback_t _cannot_connect_cb;
   };
 
-} // namespace hidpg
+} // namespace hidpg::Internal

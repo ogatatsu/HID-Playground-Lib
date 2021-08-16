@@ -28,24 +28,28 @@
 
 namespace hidpg
 {
-
-  class HwRotaryEncoderClass
+  namespace Internal
   {
-  public:
-    using callback_t = void (*)(void);
 
-    static void begin(uint8_t pina, uint8_t pinb);
-    static void stopTask_and_setWakeUpInterrupt();
-    static void setCallback(callback_t fp);
-    static int32_t readStep();
+    class HwRotaryEncoderClass
+    {
+    public:
+      using callback_t = void (*)(void);
 
-    // Internal API
-    static void _irq_handler();
+      static void begin(uint8_t pina, uint8_t pinb);
+      static void stopTask_and_setWakeUpInterrupt();
+      static void setCallback(callback_t fp);
+      static int32_t readStep();
 
-  private:
-    static callback_t _cb;
-  };
+      // Internal API
+      static void _irq_handler();
 
-  extern class HwRotaryEncoderClass HwRotaryEncoder;
+    private:
+      static callback_t _cb;
+    };
+
+  } // namespace Internal
+
+  extern Internal::HwRotaryEncoderClass HwRotaryEncoder;
 
 } // namespace hidpg

@@ -29,7 +29,7 @@
 #include "BlinkLed.h"
 #include <bluefruit.h>
 
-namespace hidpg
+namespace hidpg::Internal
 {
 
   // clang-format off
@@ -79,4 +79,4 @@ namespace hidpg
     static disconnectCallback_t _disconnect_cb;
   };
 
-} // namespace hidpg
+} // namespace hidpg::Internal
