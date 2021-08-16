@@ -1,7 +1,7 @@
 /*
   The MIT License (MIT)
 
-  Copyright (c) 2019 ogatatsu.
+  Copyright (c) 2020 ogatatsu.
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -24,23 +24,21 @@
 
 #pragma once
 
-#ifndef DEBOUNCE_IN_MAX_PIN_COUNT
-#define DEBOUNCE_IN_MAX_PIN_COUNT 8
-#endif
+#include "DebounceIn_config.h"
 
-// 割り込みにSense signalを使用するか
-// nRF52でのみ使用可能
-// Sense signalを使用する場合割り込み数に制限はないのでDEBOUNCE_IN_MAX_PIN_COUNTは無視する
-#ifndef DEBOUNCE_IN_USE_SENSE_INTERRUPT
-#define DEBOUNCE_IN_USE_SENSE_INTERRUPT false
-#endif
+#if DEBOUNCE_IN_USE_SENSE_INTERRUPT
 
-// タスクのスタックサイズ
-#ifndef DEBOUNCE_IN_TASK_STACK_SIZE
-#define DEBOUNCE_IN_TASK_STACK_SIZE 128
-#endif
+#include "Arduino.h"
 
-// タスクのプライオリティ
-#ifndef DEBOUNCE_IN_TASK_PRIO
-#define DEBOUNCE_IN_TASK_PRIO 1
+namespace hidpg
+{
+
+  void attachSenseInterrupt(voidFuncPtr callback);
+  void detachSenseInterrupt();
+
+  void clearLatch(uint32_t pin);
+  bool readLatch(uint32_t pin);
+
+} // namespace hidpg
+
 #endif
