@@ -7,3 +7,6 @@
 [submodule "etl"]
 	path = etl
 	url = https://github.com/ETLCPP/etl.git
+[submodule "QDEC"]
+	path = QDEC
+	url = https://github.com/SimpleHacks/QDEC.git

@@ -1,0 +1,9 @@
+{
+  "name": "HID-Playground RotaryEncoder",
+  "frameworks": "arduino",
+  "dependencies": [
+    {
+      "name": "QDEC"
+    }
+  ]
+}
