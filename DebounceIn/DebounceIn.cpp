@@ -74,7 +74,7 @@ namespace hidpg
       _bounce_list_len++;
 
 #if DEBOUNCE_IN_USE_SENSE_INTERRUPT == false
-      attachInterrupt(pin, interrupt_callback, CHANGE);
+      attachInterrupt(digitalPinToInterrupt(pin), interrupt_callback, CHANGE);
 #endif
 
       // 後でポーリング回数を決めるためにdebounce_delayの最大値を保存しておく
