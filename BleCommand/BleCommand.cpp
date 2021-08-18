@@ -23,9 +23,7 @@
 */
 
 #include "BleCommand.h"
-#include "Arduino.h"
 #include "BleController.h"
-#include "HidCore.h"
 
 namespace hidpg
 {

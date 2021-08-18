@@ -26,7 +26,6 @@
 
 #include "BLEUartLight.h"
 #include "BlinkLed.h"
-#include "Set.h"
 #include <bluefruit.h>
 
 namespace hidpg

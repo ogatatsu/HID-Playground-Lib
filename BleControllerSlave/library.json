@@ -4,9 +4,6 @@
   "platforms": "nordicnrf52",
   "dependencies": [
     {
-      "name": "HID-Playground Set"
-    },
-    {
       "name": "HID-Playground BlinkLed"
     },
     {
