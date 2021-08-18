@@ -1,0 +1,6 @@
+[submodule "Bounce2"]
+	path = Bounce2
+	url = https://github.com/thomasfredericks/Bounce2
+[submodule "LinkedList"]
+	path = LinkedList
+	url = https://github.com/ivanseidel/LinkedList
