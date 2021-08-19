@@ -1,5 +1,5 @@
 {
-  "name": "HID-Playground BleCommand",
+  "name": "HID-Playground HidEngine_BleCommand",
   "frameworks": "arduino",
   "platforms": "nordicnrf52",
   "dependencies": [
