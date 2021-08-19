@@ -1,0 +1,12 @@
+{
+  "name": "HID-Playground HidEngine_UsbCommand",
+  "frameworks": "arduino",
+  "dependencies": [
+    {
+      "name": "HID-Playground HidEngine"
+    },
+    {
+      "name": "Adafruit TinyUSB Library"
+    }
+  ]
+}
