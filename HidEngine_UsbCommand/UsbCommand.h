@@ -37,6 +37,4 @@ namespace hidpg
     void onPress(uint8_t n_times) override;
   };
 
-  static inline Command *WAKE_UP() { return (new RemoteWakeup()); }
-
 } // namespace hidpg

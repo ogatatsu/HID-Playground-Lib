@@ -1,7 +1,7 @@
 /*
   The MIT License (MIT)
 
-  Copyright (c) 2019 ogatatsu.
+  Copyright (c) 2021 ogatatsu.
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -22,31 +22,27 @@
   THE SOFTWARE.
 */
 
-#include "BleCommand.h"
-#include "BleController.h"
+#pragma once
+
+#include "UsbCommand.h"
+#include "hash_code.h"
+#include <new>
 
 namespace hidpg
 {
-  //------------------------------------------------------------------+
-  // ConnectBluetooth
-  //------------------------------------------------------------------+
-  ConnectBluetooth::ConnectBluetooth(uint8_t slot) : _slot(slot)
-  {
-  }
 
-  void ConnectBluetooth::onPress(uint8_t n_times)
+  namespace Internal
   {
-    BleController.Periph.startConnection(_slot);
-  }
+    template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
+    Command *new_RemoteWakeup()
+    {
+      static uint8_t buf[sizeof(RemoteWakeup)];
+      return new (buf) RemoteWakeup();
+    }
 
-  //------------------------------------------------------------------+
-  // ResetConnection
-  //------------------------------------------------------------------+
-  void ResetConnection::onPress(uint8_t n_times)
-  {
-    BleController.Periph.stopConnection();
-    BleController.Periph.clearBonds();
-    NVIC_SystemReset();
-  }
+  } // namespace Internal
+
+// RemoteWakeup
+#define WAKE_UP() (Internal::new_RemoteWakeup<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>())
 
 } // namespace hidpg

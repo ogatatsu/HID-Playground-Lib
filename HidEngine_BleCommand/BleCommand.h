@@ -43,8 +43,6 @@ namespace hidpg
     const uint8_t _slot;
   };
 
-  static inline Command *BT(uint8_t slot) { return (new ConnectBluetooth(slot)); }
-
   //------------------------------------------------------------------+
   // ResetConnection
   //------------------------------------------------------------------+
@@ -54,6 +52,5 @@ namespace hidpg
     void onPress(uint8_t n_times) override;
   };
 
-  static inline Command *RESET() { return (new ResetConnection); }
 
 } // namespace hidpg

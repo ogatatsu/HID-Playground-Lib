@@ -1,7 +1,7 @@
 /*
   The MIT License (MIT)
 
-  Copyright (c) 2019 ogatatsu.
+  Copyright (c) 2021 ogatatsu.
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -22,31 +22,15 @@
   THE SOFTWARE.
 */
 
+#pragma once
+
 #include "BleCommand.h"
-#include "BleController.h"
 
 namespace hidpg
 {
-  //------------------------------------------------------------------+
-  // ConnectBluetooth
-  //------------------------------------------------------------------+
-  ConnectBluetooth::ConnectBluetooth(uint8_t slot) : _slot(slot)
-  {
-  }
 
-  void ConnectBluetooth::onPress(uint8_t n_times)
-  {
-    BleController.Periph.startConnection(_slot);
-  }
+  static inline Command *BT(uint8_t slot) { return (new ConnectBluetooth(slot)); }
 
-  //------------------------------------------------------------------+
-  // ResetConnection
-  //------------------------------------------------------------------+
-  void ResetConnection::onPress(uint8_t n_times)
-  {
-    BleController.Periph.stopConnection();
-    BleController.Periph.clearBonds();
-    NVIC_SystemReset();
-  }
+  static inline Command *RESET() { return (new ResetConnection); }
 
 } // namespace hidpg

@@ -224,15 +224,4 @@ namespace hidpg
 
   extern Internal::HidEngineClass HidEngine;
 
-  //------------------------------------------------------------------+
-  // short name inner command
-  //------------------------------------------------------------------+
-
-  // Sequence Mode
-  static inline Command *SEQ_MODE() { return (new Internal::HidEngineClass::SequenceMode); }
-  // Track
-  static inline Command *TRC(uint8_t track_id) { return (new Internal::HidEngineClass::Tracking(track_id)); }
-  // Track or Tap
-  static inline Command *TRT(uint8_t track_id, Command *command) { return (new Internal::HidEngineClass::TrackTap(track_id, command)); }
-
 } // namespace hidpg
