@@ -58,17 +58,21 @@ namespace hidpg
         _running.num_of_taps = n_times;
         _running.tap_speed_ms = tap_speed_ms;
 
+        _running.command->press(_running.num_of_taps);
+
         if (pdMS_TO_TICKS(tap_speed_ms) != xTimerGetPeriod(_timer_handle))
         {
           xTimerChangePeriod(_timer_handle, pdMS_TO_TICKS(tap_speed_ms), portMAX_DELAY);
         }
-        _running.command->press(_running.num_of_taps);
-        xTimerStart(_timer_handle, portMAX_DELAY);
+        else
+        {
+          xTimerStart(_timer_handle, portMAX_DELAY);
+        }
 
         return true;
       }
 
-      if (_running.command == command && _running.tap_speed_ms == tap_speed_ms)
+      if (_running.command == command && _running.tap_speed_ms == tap_speed_ms && _list.size() == 0)
       {
         _running.num_of_taps = constrain(_running.num_of_taps + n_times, 0, UINT8_MAX);
 
@@ -124,20 +128,27 @@ namespace hidpg
           _state = State::NotRunning;
         }
       }
-      else
+      else if (_state == State::Release)
       {
-        if (_state == State::ChangeCommandInTheNext)
-        {
-          _running = _list.shift();
-          if (pdMS_TO_TICKS(_running.tap_speed_ms) != xTimerGetPeriod(_timer_handle))
-          {
-            xTimerChangePeriod(_timer_handle, pdMS_TO_TICKS(_running.tap_speed_ms), portMAX_DELAY);
-          }
-        }
-
         _state = State::Press;
         _running.command->press(_running.num_of_taps);
         xTimerStart(_timer_handle, portMAX_DELAY);
+      }
+      else if (_state == State::ChangeCommandInTheNext)
+      {
+        _state = State::Press;
+
+        _running = _list.shift();
+        _running.command->press(_running.num_of_taps);
+
+        if (pdMS_TO_TICKS(_running.tap_speed_ms) != xTimerGetPeriod(_timer_handle))
+        {
+          xTimerChangePeriod(_timer_handle, pdMS_TO_TICKS(_running.tap_speed_ms), portMAX_DELAY);
+        }
+        else
+        {
+          xTimerStart(_timer_handle, portMAX_DELAY);
+        }
       }
     }
 
