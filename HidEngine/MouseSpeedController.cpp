@@ -119,7 +119,7 @@ namespace hidpg
     {
       if (_zero_counter == 0)
       {
-        return static_cast<double>(_rational.number() / _rational.denom());
+        return static_cast<double>(_rational.number()) / static_cast<double>(_rational.denom());
       }
       else
       {
