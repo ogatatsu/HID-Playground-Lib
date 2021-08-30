@@ -56,8 +56,6 @@ namespace hidpg
   {
     if (_prev_state == false) //FALL
     {
-      _last_pressed_command = this;
-
       // notify before different root command press
       for (int i = 0; i < _bdrcp_listener_list().size(); i++)
       {
@@ -67,6 +65,8 @@ namespace hidpg
           listener->onBeforeDifferentRootCommandPress();
         }
       }
+
+      _last_pressed_command = this;
       onPress(n_times);
     }
     _prev_state = true;
