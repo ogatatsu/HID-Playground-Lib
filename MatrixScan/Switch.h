@@ -27,6 +27,9 @@
 #include "Bounce2.h"
 #include "MatrixScan_config.h"
 #include "Set.h"
+#include "consthash/cityhash64.hxx"
+#include "consthash/crc64.hxx"
+#include <new>
 
 namespace hidpg
 {
@@ -39,7 +42,7 @@ namespace hidpg
 
   public:
     // 論理的なIDをセットする
-    Switch(uint8_t id, uint16_t debounce_delay_ms = MATRIX_SCAN_DEBOUNCE_DELAY_MS);
+    Switch(uint8_t id, uint16_t debounce_delay_ms);
     // スキャン時に呼ばれる、押されてるかを自分でチェックして自分のIDをセットする
     void updateState(Set &switch_ids);
 
@@ -48,5 +51,19 @@ namespace hidpg
   private:
     const uint8_t _id;
   };
+
+  namespace Internal
+  {
+
+    template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
+    Switch *new_Switch(uint8_t id, uint16_t debounce_delay_ms = MATRIX_SCAN_DEBOUNCE_DELAY_MS)
+    {
+      static uint8_t buf[sizeof(Switch)];
+      return new (buf) Switch(id, debounce_delay_ms);
+    }
+
+  } // namespace Internal
+
+#define SW(...) (Internal::new_Switch<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(__VA_ARGS__))
 
 } // namespace hidpg
