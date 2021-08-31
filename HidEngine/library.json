@@ -10,6 +10,9 @@
     },
     {
       "name": "LinkedList"
+    },
+    {
+      "name": "consthash"
     }
   ]
 }

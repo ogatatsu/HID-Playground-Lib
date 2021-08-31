@@ -25,7 +25,8 @@
 #pragma once
 
 #include "UsbCommand.h"
-#include "hash_code.h"
+#include "consthash/cityhash64.hxx"
+#include "consthash/crc64.hxx"
 #include <new>
 
 namespace hidpg
@@ -43,6 +44,6 @@ namespace hidpg
   } // namespace Internal
 
 // RemoteWakeup
-#define WAKE_UP() (Internal::new_RemoteWakeup<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>())
+#define WAKE_UP() (Internal::new_RemoteWakeup<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>())
 
 } // namespace hidpg

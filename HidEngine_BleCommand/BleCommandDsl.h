@@ -25,7 +25,8 @@
 #pragma once
 
 #include "BleCommand.h"
-#include "hash_code.h"
+#include "consthash/cityhash64.hxx"
+#include "consthash/crc64.hxx"
 #include <new>
 
 namespace hidpg
@@ -50,9 +51,9 @@ namespace hidpg
   } // namespace Internal
 
 // ConnectBluetooth
-#define BT(slot) (Internal::new_ConnectBluetooth<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>(slot))
+#define BT(slot) (Internal::new_ConnectBluetooth<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(slot))
 
 // ResetConnection
-#define RESET() (Internal::new_ResetConnection<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>())
+#define RESET() (Internal::new_ResetConnection<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>())
 
 } // namespace hidpg

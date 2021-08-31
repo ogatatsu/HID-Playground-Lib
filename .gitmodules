@@ -4,3 +4,6 @@
 [submodule "LinkedList"]
 	path = LinkedList
 	url = https://github.com/ivanseidel/LinkedList
+[submodule "consthash"]
+	path = consthash
+	url = https://github.com/ogatatsu/consthash.git

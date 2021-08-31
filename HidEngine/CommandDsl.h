@@ -26,7 +26,8 @@
 
 #include "Command.h"
 #include "HidEngine.h"
-#include "hash_code.h"
+#include "consthash/cityhash64.hxx"
+#include "consthash/crc64.hxx"
 #include <new>
 
 namespace hidpg
@@ -251,95 +252,95 @@ namespace hidpg
   } // namespace Internal
 
 // NormalKey
-#define NK(key_code) (Internal::new_NormalKey<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>(key_code))
+#define NK(key_code) (Internal::new_NormalKey<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(key_code))
 
 // ModifierKey
-#define MO(modifiers) (Internal::new_ModifierKey<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>(modifiers))
+#define MO(modifiers) (Internal::new_ModifierKey<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(modifiers))
 
 // CombinationKey
-#define CK(modifiers, key_code) (Internal::new_CombinationKey<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>(modifiers, key_code))
+#define CK(modifiers, key_code) (Internal::new_CombinationKey<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(modifiers, key_code))
 
 // ModifierTap
-#define MT(modifiers, command) (Internal::new_ModifierTap<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>(modifiers, command))
+#define MT(modifiers, command) (Internal::new_ModifierTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(modifiers, command))
 
 // OneShotModifier
-#define OSM(modifiers) (Internal::new_OneShotModifier<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>(modifiers))
+#define OSM(modifiers) (Internal::new_OneShotModifier<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(modifiers))
 
 // Layering
-#define LY(...) (Internal::new_Layering<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>(&Layer, __VA_ARGS__))
-#define LY1(...) (Internal::new_Layering<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>(&Layer1, __VA_ARGS__))
-#define LY2(...) (Internal::new_Layering<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>(&Layer2, __VA_ARGS__))
+#define LY(...) (Internal::new_Layering<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer, __VA_ARGS__))
+#define LY1(...) (Internal::new_Layering<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer1, __VA_ARGS__))
+#define LY2(...) (Internal::new_Layering<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer2, __VA_ARGS__))
 
 // LayerTap
-#define LT(layer_number, command) (Internal::new_LayerTap<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>(&Layer, layer_number, command))
-#define LT1(layer_number, command) (Internal::new_LayerTap<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>(&Layer1, layer_number, command))
-#define LT2(layer_number, command) (Internal::new_LayerTap<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>(&Layer2, layer_number, command))
+#define LT(layer_number, command) (Internal::new_LayerTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer, layer_number, command))
+#define LT1(layer_number, command) (Internal::new_LayerTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer1, layer_number, command))
+#define LT2(layer_number, command) (Internal::new_LayerTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer2, layer_number, command))
 
 // ToggleLayer
-#define TL(layer_number) (Internal::new_ToggleLayer<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>(&Layer, layer_number))
-#define TL1(layer_number) (Internal::new_ToggleLayer<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>(&Layer1, layer_number))
-#define TL2(layer_number) (Internal::new_ToggleLayer<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>(&Layer2, layer_number))
+#define TL(layer_number) (Internal::new_ToggleLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer, layer_number))
+#define TL1(layer_number) (Internal::new_ToggleLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer1, layer_number))
+#define TL2(layer_number) (Internal::new_ToggleLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer2, layer_number))
 
 // SwitchLayer
-#define SL(layer_number) (Internal::new_SwitchLayer<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>(&Layer, layer_number))
-#define SL1(layer_number) (Internal::new_SwitchLayer<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>(&Layer1, layer_number))
-#define SL2(layer_number) (Internal::new_SwitchLayer<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>(&Layer2, layer_number))
+#define SL(layer_number) (Internal::new_SwitchLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer, layer_number))
+#define SL1(layer_number) (Internal::new_SwitchLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer1, layer_number))
+#define SL2(layer_number) (Internal::new_SwitchLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer2, layer_number))
 
 // OneShotLayer
-#define OSL(layer_number) (Internal::new_OneShotLayer<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>(&Layer, layer_number))
-#define OSL1(layer_number) (Internal::new_OneShotLayer<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>(&Layer1, layer_number))
-#define OSL2(layer_number) (Internal::new_OneShotLayer<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>(&Layer2, layer_number))
+#define OSL(layer_number) (Internal::new_OneShotLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer, layer_number))
+#define OSL1(layer_number) (Internal::new_OneShotLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer1, layer_number))
+#define OSL2(layer_number) (Internal::new_OneShotLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer2, layer_number))
 
 // Tap
-#define TAP(...) (Internal::new_Tap<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>(__VA_ARGS__))
+#define TAP(...) (Internal::new_Tap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(__VA_ARGS__))
 
 // TapDance
-#define TD(...) (Internal::new_TapDance<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>(__VA_ARGS__))
+#define TD(...) (Internal::new_TapDance<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(__VA_ARGS__))
 
 // TapOrHold
-#define ToH(tap_command, ms, hold_command) (Internal::new_TapOrHold<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>(tap_command, ms, hold_command))
+#define ToH(tap_command, ms, hold_command) (Internal::new_TapOrHold<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(tap_command, ms, hold_command))
 
 // ConsumerControl
-#define CC(usage_code) (Internal::new_ConsumerControl<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>(usage_code))
+#define CC(usage_code) (Internal::new_ConsumerControl<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(usage_code))
 
 // SystemControl
-#define SC(usage_code) (Internal::new_SystemControl<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>(usage_code))
+#define SC(usage_code) (Internal::new_SystemControl<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(usage_code))
 
 // MouseMove
-#define MS_MOV(x, y) (Internal::new_MouseMove<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>(x, y))
+#define MS_MOV(x, y) (Internal::new_MouseMove<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(x, y))
 
 // MouseSpeed
-#define MS_SPD(percent) (Internal::new_MouseSpeed<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>(percent))
+#define MS_SPD(percent) (Internal::new_MouseSpeed<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(percent))
 
 // MouseScroll
-#define MS_SCR(scroll, horiz) (Internal::new_MouseScroll<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>(scroll, horiz))
+#define MS_SCR(scroll, horiz) (Internal::new_MouseScroll<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(scroll, horiz))
 
 // MouseClick
-#define MS_CLK(buttons) (Internal::new_MouseClick<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>(buttons))
+#define MS_CLK(buttons) (Internal::new_MouseClick<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(buttons))
 
 // RadialClick
-#define RD_CLK() (Internal::new_RadialClick<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>())
+#define RD_CLK() (Internal::new_RadialClick<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>())
 
 // RadialRotate
-#define RD_ROT(deci_degree) (Internal::new_RadialRotate<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>(deci_degree))
+#define RD_ROT(deci_degree) (Internal::new_RadialRotate<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(deci_degree))
 
 // If
-#define IF(func, true_command, false_command) (Internal::new_If<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>(func, true_command, false_command))
+#define IF(func, true_command, false_command) (Internal::new_If<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(func, true_command, false_command))
 
 // Multi
-#define MLT(...) (Internal::new_Multi<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>(__VA_ARGS__))
+#define MLT(...) (Internal::new_Multi<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(__VA_ARGS__))
 
 // NoOperation
-#define NOP() (Internal::new_NoOperation<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>())
+#define NOP() (Internal::new_NoOperation<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>())
 
 // SequenceMode
-#define SEQ_MODE() (Internal::new_SequenceMode<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>())
+#define SEQ_MODE() (Internal::new_SequenceMode<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>())
 
 // Track
-#define TRC(track_id) (Internal::new_Tracking<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>(track_id))
+#define TRC(track_id) (Internal::new_Tracking<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(track_id))
 
 // TrackTap
-#define TRT(track_id, command) (Internal::new_TrackTap<__COUNTER__, hash_code(109, __FILE__), hash_code(103, __FILE__)>(track_id, command))
+#define TRT(track_id, command) (Internal::new_TrackTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(track_id, command))
 
 // nullptr alias (_ * 7)
 #define _______ (static_cast<Command *>(nullptr))

@@ -7,6 +7,9 @@
     },
     {
       "name": "Adafruit TinyUSB Library"
+    },
+    {
+      "name": "consthash"
     }
   ]
 }

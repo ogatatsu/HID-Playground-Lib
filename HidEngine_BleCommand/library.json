@@ -8,6 +8,9 @@
     },
     {
       "name": "HID-Playground BleController"
+    },
+    {
+      "name": "consthash"
     }
   ]
 }
