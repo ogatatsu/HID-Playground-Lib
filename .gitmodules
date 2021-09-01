@@ -7,3 +7,6 @@
 [submodule "consthash"]
 	path = consthash
 	url = https://github.com/ogatatsu/consthash.git
+[submodule "etl"]
+	path = etl
+	url = https://github.com/ETLCPP/etl.git

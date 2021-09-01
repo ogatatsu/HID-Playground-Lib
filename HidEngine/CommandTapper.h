@@ -23,6 +23,7 @@
 */
 
 #include "Command.h"
+#include "etl/deque.h"
 
 namespace hidpg
 {
@@ -56,7 +57,7 @@ namespace hidpg
         ChangeCommandInTheNext,
       };
 
-      static LinkedList<Info> _list;
+      static etl::deque<Info, HID_ENGINE_COMMAND_TAPPER_QUEUE_SIZE> _deque;
       static Info _running;
       static State _state;
       static TimerHandle_t _timer_handle;

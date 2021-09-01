@@ -32,7 +32,7 @@ namespace hidpg
   namespace Internal
   {
 
-    LinkedList<CommandTapperClass::Info> CommandTapperClass::_list;
+    etl::deque<CommandTapperClass::Info, HID_ENGINE_COMMAND_TAPPER_QUEUE_SIZE> CommandTapperClass::_deque;
     CommandTapperClass::Info CommandTapperClass::_running = {.command = nullptr, .num_of_taps = 0, .tap_speed_ms = 0};
     CommandTapperClass::State CommandTapperClass::_state = CommandTapperClass::State::NotRunning;
     TimerHandle_t CommandTapperClass::_timer_handle = nullptr;
@@ -50,61 +50,53 @@ namespace hidpg
         return true;
       }
 
+      // 動いてないなら動かす
       if (_state == State::NotRunning)
       {
         _state = State::Press;
-
         _running.command = command;
         _running.num_of_taps = n_times;
         _running.tap_speed_ms = tap_speed_ms;
 
         _running.command->press(_running.num_of_taps);
 
-        if (pdMS_TO_TICKS(tap_speed_ms) != xTimerGetPeriod(_timer_handle))
-        {
-          xTimerChangePeriod(_timer_handle, pdMS_TO_TICKS(tap_speed_ms), portMAX_DELAY);
-        }
-        else
-        {
-          xTimerStart(_timer_handle, portMAX_DELAY);
-        }
+        xTimerChangePeriod(_timer_handle, pdMS_TO_TICKS(tap_speed_ms), portMAX_DELAY);
 
         return true;
       }
 
-      if (_running.command == command && _running.tap_speed_ms == tap_speed_ms && _list.size() == 0)
+      // キューが空で今動いてるコマンドと同じならタップ回数を足す
+      if (_deque.empty() && _running.command == command && _running.tap_speed_ms == tap_speed_ms)
       {
         _running.num_of_taps = constrain(_running.num_of_taps + n_times, 0, UINT8_MAX);
-
         return true;
       }
 
-      if (_list.size() > 0)
+      // キューが空でないならキューの最後のコマンドと比較して同じならタップ回数を足す
+      if (_deque.empty() == false)
       {
-        Info last = _list.get(_list.size() - 1);
+        Info &last = _deque.back();
 
         if (last.command == command && last.tap_speed_ms == tap_speed_ms)
         {
           last.num_of_taps = constrain(last.num_of_taps + n_times, 0, UINT8_MAX);
-          _list.set(_list.size() - 1, last);
-
           return true;
         }
       }
 
-      if (_list.size() > HID_ENGINE_COMMAND_TAPPER_QUEUE_SIZE)
+      // キューに空きがあるなら追加
+      if (_deque.available())
       {
-        return false;
+        Info data = {
+            .command = command,
+            .num_of_taps = n_times,
+            .tap_speed_ms = tap_speed_ms,
+        };
+        _deque.push_back(data);
+        return true;
       }
 
-      Info info = {
-          .command = command,
-          .num_of_taps = n_times,
-          .tap_speed_ms = tap_speed_ms,
-      };
-      _list.add(info);
-
-      return true;
+      return false;
     }
 
     void CommandTapperClass::onTimer()
@@ -113,19 +105,25 @@ namespace hidpg
       {
         _running.num_of_taps -= _running.command->release();
 
+        // まだタップ回数が残っている場合同じコマンドで再度タップ
         if (_running.num_of_taps > 0)
         {
           _state = State::Release;
           xTimerStart(_timer_handle, portMAX_DELAY);
         }
-        else if (_list.size() > 0)
+        // キューが空でないなら次のコマンドの準備
+        else if (_deque.empty() == false)
         {
           _state = State::ChangeCommandInTheNext;
           xTimerStart(_timer_handle, portMAX_DELAY);
         }
+        // 動作終了
         else
         {
           _state = State::NotRunning;
+          _running.command = nullptr;
+          _running.num_of_taps = 0;
+          _running.tap_speed_ms = 0;
         }
       }
       else if (_state == State::Release)
@@ -136,19 +134,13 @@ namespace hidpg
       }
       else if (_state == State::ChangeCommandInTheNext)
       {
-        _state = State::Press;
+        _running = _deque.front();
+        _deque.pop_front();
 
-        _running = _list.shift();
+        _state = State::Press;
         _running.command->press(_running.num_of_taps);
 
-        if (pdMS_TO_TICKS(_running.tap_speed_ms) != xTimerGetPeriod(_timer_handle))
-        {
-          xTimerChangePeriod(_timer_handle, pdMS_TO_TICKS(_running.tap_speed_ms), portMAX_DELAY);
-        }
-        else
-        {
-          xTimerStart(_timer_handle, portMAX_DELAY);
-        }
+        xTimerChangePeriod(_timer_handle, pdMS_TO_TICKS(_running.tap_speed_ms), portMAX_DELAY);
       }
     }
 
