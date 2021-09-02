@@ -41,6 +41,9 @@ namespace hidpg
 
     void HidEngineTaskClass::start()
     {
+      TimerMixin::begin();
+      CommandTapper.begin();
+
       _event_queue = xQueueCreateStatic(HID_ENGINE_EVENT_QUEUE_SIZE, sizeof(EventData), _event_queue_storage, &_event_queue_struct);
       _task_handle = xTaskCreateStatic(task, "HidEngine", HID_ENGINE_TASK_STACK_SIZE, nullptr, HID_ENGINE_TASK_PRIO, _task_stack, &_task_tcb);
     }
@@ -76,8 +79,7 @@ namespace hidpg
         }
         case EventType::Timer:
         {
-          evt.timer->cls->trigger(evt.timer->timer_number);
-          delete evt.timer;
+          evt.timer.cls->trigger(evt.timer.timer_number);
           break;
         }
         case EventType::CommandTapper:

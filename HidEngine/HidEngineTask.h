@@ -80,7 +80,7 @@ namespace hidpg
         ApplyToKeymapEventData apply_to_keymap;
         MouseMoveEventData mouse_move;
         RotateEncoderEventData rotate_encoder;
-        TimerEventData *timer;
+        TimerEventData timer;
         CommandTapperEventData command_tapper;
       };
     };

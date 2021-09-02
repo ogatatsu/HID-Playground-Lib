@@ -60,7 +60,6 @@ namespace hidpg
 
     void HidEngineClass::start()
     {
-      CommandTapper.begin();
       HidEngineTask.start();
     }
 

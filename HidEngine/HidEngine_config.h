@@ -39,6 +39,11 @@
 #define HID_ENGINE_COMMAND_TAPPER_QUEUE_SIZE 32
 #endif
 
+// TimerMixinで使用できる最大タイマー数
+#ifndef HID_ENGINE_TIMER_MIXIN_MAX_TIMER_COUNT
+#define HID_ENGINE_TIMER_MIXIN_MAX_TIMER_COUNT 8
+#endif
+
 // TapDanceコマンドのタップ判定時間 (ms)
 #ifndef HID_ENGINE_TAPPING_TERM_MS
 #define HID_ENGINE_TAPPING_TERM_MS 250

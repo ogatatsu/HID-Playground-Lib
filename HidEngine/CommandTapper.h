@@ -35,10 +35,10 @@ namespace hidpg
       friend class HidEngineTaskClass;
 
     public:
-      static void begin();
       static bool tap(Command *command, uint8_t n_times = 1, uint16_t tap_speed_ms = HID_ENGINE_TAP_SPEED_MS);
 
     private:
+      static void begin();
       static void onTimer();
       static void timer_callback(TimerHandle_t timer_handle);
 

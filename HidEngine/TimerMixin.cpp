@@ -29,34 +29,59 @@ using namespace hidpg::Internal;
 
 namespace hidpg
 {
+  StaticTimer_t TimerMixin::_timer_buffers[HID_ENGINE_TIMER_MIXIN_MAX_TIMER_COUNT];
+  TimerMixin::Info TimerMixin::_info_buffers[HID_ENGINE_TIMER_MIXIN_MAX_TIMER_COUNT];
+  etl::forward_list<TimerMixin::Info *, HID_ENGINE_TIMER_MIXIN_MAX_TIMER_COUNT> TimerMixin::_pool;
 
   void TimerMixin::timer_callback(TimerHandle_t timer_handle)
   {
+    Info *data = static_cast<TimerMixin::Info *>(pvTimerGetTimerID(timer_handle));
+
     // Software Timersのスタックを消費しないようにstaticで宣言
     static EventData evt;
     evt.event_type = EventType::Timer;
-
-    TimerEventData *te_data = static_cast<TimerEventData *>(pvTimerGetTimerID(timer_handle));
-    evt.timer = te_data;
+    evt.timer.cls = data->cls;
+    evt.timer.timer_number = data->timer_number;
     HidEngineTask.enqueEvent(evt);
 
-    xTimerDelete(timer_handle, portMAX_DELAY);
+    // プールに戻す
+    data->cls = nullptr;
+    data->timer_number = 0;
+    _pool.push_front(data);
+  }
+
+  void TimerMixin::begin()
+  {
+    for (int i = 0; i < HID_ENGINE_TIMER_MIXIN_MAX_TIMER_COUNT; i++)
+    {
+      _info_buffers[i].cls = nullptr;
+      _info_buffers[i].timer_number = 0;
+      _info_buffers[i].timer_handle = xTimerCreateStatic("TimerMixin", 0, false, &(_info_buffers[i]), timer_callback, &(_timer_buffers[i]));
+      _pool.push_front(&(_info_buffers[i]));
+    }
   }
 
   TimerMixin::TimerMixin() : _is_active(false), _num_of_timer(0)
   {
   }
 
-  void TimerMixin::startTimer(unsigned int ms)
+  bool TimerMixin::startTimer(unsigned int ms)
   {
-    TimerEventData *te_data = new TimerEventData();
-    te_data->cls = this;
-    te_data->timer_number = ++_num_of_timer;
+    if (_pool.empty())
+    {
+      return false;
+    }
 
-    TimerHandle_t th = xTimerCreate(nullptr, pdMS_TO_TICKS(ms), false, te_data, timer_callback);
-    xTimerStart(th, portMAX_DELAY);
+    Info *data = _pool.front();
+    _pool.pop_front();
 
+    data->cls = this;
+    data->timer_number = ++_num_of_timer;
+
+    xTimerChangePeriod(data->timer_handle, pdMS_TO_TICKS(ms), portMAX_DELAY);
     _is_active = true;
+
+    return true;
   }
 
   void TimerMixin::stopTimer()

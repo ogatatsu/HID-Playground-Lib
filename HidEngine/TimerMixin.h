@@ -26,6 +26,8 @@
 
 #include "Arduino.h"
 #include "FreeRTOS.h"
+#include "HidEngine_config.h"
+#include "etl/forward_list.h"
 #include "timers.h"
 
 namespace hidpg
@@ -41,18 +43,30 @@ namespace hidpg
 
   protected:
     TimerMixin();
-    void startTimer(unsigned int ms);
+    bool startTimer(unsigned int ms);
     void stopTimer();
     bool isTimerActive();
     virtual void onTimer() {}
 
   private:
-    static void timer_callback(TimerHandle_t timer_handle);
+    struct Info
+    {
+      TimerMixin *cls;
+      unsigned int timer_number;
+      TimerHandle_t timer_handle;
+    };
 
     void trigger(unsigned int timer_number);
 
+    static void begin();
+    static void timer_callback(TimerHandle_t timer_handle);
+
     bool _is_active;
     unsigned int _num_of_timer;
+
+    static StaticTimer_t _timer_buffers[HID_ENGINE_TIMER_MIXIN_MAX_TIMER_COUNT];
+    static Info _info_buffers[HID_ENGINE_TIMER_MIXIN_MAX_TIMER_COUNT];
+    static etl::forward_list<Info *, HID_ENGINE_TIMER_MIXIN_MAX_TIMER_COUNT> _pool;
   };
 
 } // namespace hidpg
