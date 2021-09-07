@@ -36,35 +36,15 @@ namespace hidpg
   //------------------------------------------------------------------+
   Command *Command::_last_pressed_command = nullptr;
 
-  // constructor
   Command::Command() : _parent(nullptr), _prev_state(false)
   {
   }
 
-  // private function
-  static Command *getRootCommand(Command *command)
-  {
-    while (command->getParent() != nullptr)
-    {
-      command = command->getParent();
-    }
-    return command;
-  }
-
-  // instance method
   void Command::press(uint8_t n_times)
   {
     if (_prev_state == false) //FALL
     {
-      // notify before different root command press
-      for (int i = 0; i < _bdrcp_listener_list().size(); i++)
-      {
-        Command *listener = _bdrcp_listener_list().get(i);
-        if (getRootCommand(listener) != getRootCommand(this))
-        {
-          listener->onBeforeDifferentRootCommandPress();
-        }
-      }
+      BdrcpEventListener::_notifyBeforeDifferentRootCommandPress(*this);
 
       _last_pressed_command = this;
       onPress(n_times);
@@ -89,23 +69,83 @@ namespace hidpg
   {
     return _last_pressed_command == this;
   }
-
-  void Command::addEventListener_BeforeDifferentRootCommandPress()
+  //------------------------------------------------------------------+
+  // BdrcpEventListener
+  //------------------------------------------------------------------+
+  BdrcpEventListener::BdrcpEventListener(Command *command) : _command(command)
   {
-    _bdrcp_listener_list().add(this);
+    this->clear();
   }
 
-  void Command::addEventListener_BeforeMouseMove()
+  void BdrcpEventListener::startListen_BeforeDifferentRootCommandPress()
   {
-    _bmm_listener_list().add(this);
-  }
-
-  void Command::_notifyBeforeMouseMove()
-  {
-    for (int i = 0; i < _bmm_listener_list().size(); i++)
+    if (this->is_linked() == false)
     {
-      Command *listener = _bmm_listener_list().get(i);
-      listener->onBeforeMouseMove();
+      _listener_list().push_back(*this);
+    }
+  }
+
+  void BdrcpEventListener::stopListen_BeforeDifferentRootCommandPress()
+  {
+    if (this->is_linked())
+    {
+      auto i_item = etl::intrusive_list<BdrcpEventListener, BdrcpEventListenerLink>::iterator(*this);
+      _listener_list().erase(i_item);
+      this->clear();
+    }
+  }
+
+  void BdrcpEventListener::_notifyBeforeDifferentRootCommandPress(Command &press_command)
+  {
+    for (BdrcpEventListener &listener : _listener_list())
+    {
+      if (getRootCommand(listener._command) != getRootCommand(&press_command))
+      {
+        listener.onBeforeDifferentRootCommandPress();
+      }
+    }
+  }
+
+  Command *BdrcpEventListener::getRootCommand(Command *command)
+  {
+    while (command->getParent() != nullptr)
+    {
+      command = command->getParent();
+    }
+    return command;
+  }
+
+  //------------------------------------------------------------------+
+  // BmmEventListener
+  //------------------------------------------------------------------+
+  BmmEventListener::BmmEventListener()
+  {
+    this->clear();
+  }
+
+  void BmmEventListener::startListen_BeforeMouseMove()
+  {
+    if (this->is_linked() == false)
+    {
+      _listener_list().push_back(*this);
+    }
+  }
+
+  void BmmEventListener::stopListen_BeforeMouseMove()
+  {
+    if (this->is_linked())
+    {
+      auto i_item = etl::intrusive_list<BmmEventListener, BmmEventListenerLink>::iterator(*this);
+      _listener_list().erase(i_item);
+      this->clear();
+    }
+  }
+
+  void BmmEventListener::_notifyBeforeMouseMove()
+  {
+    for (BmmEventListener &listener : _listener_list())
+    {
+      listener.onBeforeMouseMove();
     }
   }
 
@@ -382,12 +422,13 @@ namespace hidpg
   // TapDance
   //------------------------------------------------------------------+
   TapDance::TapDance(Pair pairs[], int8_t len, bool confirm_command_with_mouse_move)
-      : TimerMixin(), _pairs(pairs), _len(len), _idx_count(-1), _state(State::Unexecuted)
+      : TimerMixin(), BdrcpEventListener(this), BmmEventListener(),
+        _pairs(pairs), _len(len), _idx_count(-1), _state(State::Unexecuted)
   {
-    addEventListener_BeforeDifferentRootCommandPress();
+    startListen_BeforeDifferentRootCommandPress();
     if (confirm_command_with_mouse_move)
     {
-      addEventListener_BeforeMouseMove();
+      startListen_BeforeMouseMove();
     }
 
     for (int i = 0; i < len; i++)

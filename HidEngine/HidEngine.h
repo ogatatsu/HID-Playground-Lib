@@ -28,6 +28,8 @@
 #include "HidReporter.h"
 #include "Set.h"
 
+#define TRACKING_LINK_ID 2
+
 namespace hidpg
 {
 
@@ -176,7 +178,9 @@ namespace hidpg
         void onPress(uint8_t n_times) override;
       };
 
-      class Tracking : public Command
+      typedef etl::bidirectional_link<TRACKING_LINK_ID> TrackingLink;
+
+      class Tracking : public Command, public TrackingLink
       {
       public:
         Tracking(uint8_t track_id);
@@ -213,9 +217,10 @@ namespace hidpg
       static void switchSequenceMode();
       static SeqModeState _seq_mode_state;
 
-      static void startTracking(HidEngineClass::Tracking *tracking);
-      static void stopTracking(HidEngineClass::Tracking *tracking);
-      static LinkedList<Tracking *> _tracking_list;
+      static void startTracking(HidEngineClass::Tracking &tracking);
+      static void stopTracking(HidEngineClass::Tracking &tracking);
+      static etl::intrusive_list<Tracking, TrackingLink> _tracking_list;
+
       static int32_t _distance_x;
       static int32_t _distance_y;
     };

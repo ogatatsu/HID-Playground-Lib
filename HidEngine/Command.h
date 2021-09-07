@@ -27,9 +27,13 @@
 #include "HidEngine_config.h"
 #include "KeyCode.h"
 #include "Layer.h"
-#include "LinkedList.h"
 #include "TimerMixin.h"
+#include "etl/intrusive_links.h"
+#include "etl/intrusive_list.h"
 #include <stddef.h>
+
+#define BDRCP_EVENT_LISTENER_LINK_ID 0
+#define BMM_EVENT_LISTENER_LINK_ID 1
 
 namespace hidpg
 {
@@ -46,37 +50,72 @@ namespace hidpg
     void setParent(Command *parent) { _parent = parent; }
     Command *getParent() { return _parent; }
 
-    static void _notifyBeforeMouseMove();
-
   protected:
     bool isLastPressed();
     virtual void onPress(uint8_t n_times) {}
     virtual uint8_t onRelease() { return 1; }
-    virtual void onBeforeDifferentRootCommandPress() {}
-    virtual void onBeforeMouseMove() {}
-    void addEventListener_BeforeDifferentRootCommandPress();
-    void addEventListener_BeforeMouseMove();
 
   private:
-    // keymap(グローバル変数)の定義で特定のコマンドがnewされたときにaddEventListener_BeforeInput()が呼ばれる
-    // _listenerListはその内部で使用するので単純なstatic変数にすると初期化順序が問題になる。
-    // https://isocpp.org/wiki/faq/ctors#static-init-order-on-first-use
-    static LinkedList<Command *> &_bdrcp_listener_list()
-    {
-      static LinkedList<Command *> *list = new LinkedList<Command *>;
-      return *list;
-    };
-
-    static LinkedList<Command *> &_bmm_listener_list()
-    {
-      static LinkedList<Command *> *list = new LinkedList<Command *>;
-      return *list;
-    };
-
     static Command *_last_pressed_command;
 
     Command *_parent;
     bool _prev_state;
+  };
+
+  //------------------------------------------------------------------+
+  // BdrcpEventListener
+  //------------------------------------------------------------------+
+  typedef etl::bidirectional_link<BDRCP_EVENT_LISTENER_LINK_ID> BdrcpEventListenerLink;
+
+  class BdrcpEventListener : public BdrcpEventListenerLink
+  {
+  public:
+    BdrcpEventListener(Command *command);
+    static void _notifyBeforeDifferentRootCommandPress(Command &press_command);
+
+  protected:
+    void startListen_BeforeDifferentRootCommandPress();
+    void stopListen_BeforeDifferentRootCommandPress();
+    virtual void onBeforeDifferentRootCommandPress() = 0;
+
+  private:
+    static Command *getRootCommand(Command *command);
+
+    // keymap(グローバル変数)の定義で特定のコマンドがnewされたときにコンストラクタ内でstartListen_BeforeDifferentRootCommandPress()が呼ばれる、
+    // _listener_listはその内部で使用するので単純なstatic変数にすると初期化順序が問題となる可能性がある。
+    // https://isocpp.org/wiki/faq/ctors#static-init-order-on-first-use
+    static etl::intrusive_list<BdrcpEventListener, BdrcpEventListenerLink> &_listener_list()
+    {
+      static etl::intrusive_list<BdrcpEventListener, BdrcpEventListenerLink> list;
+      return list;
+    };
+
+    Command *_command;
+  };
+
+  //------------------------------------------------------------------+
+  // BmmEventListener
+  //------------------------------------------------------------------+
+  typedef etl::bidirectional_link<BMM_EVENT_LISTENER_LINK_ID> BmmEventListenerLink;
+
+  class BmmEventListener : public BmmEventListenerLink
+  {
+  public:
+    BmmEventListener();
+    static void _notifyBeforeMouseMove();
+
+  protected:
+    void startListen_BeforeMouseMove();
+    void stopListen_BeforeMouseMove();
+    virtual void onBeforeMouseMove() = 0;
+
+  private:
+    // Construct On First Use Idiom
+    static etl::intrusive_list<BmmEventListener, BmmEventListenerLink> &_listener_list()
+    {
+      static etl::intrusive_list<BmmEventListener, BmmEventListenerLink> list;
+      return list;
+    };
   };
 
   //------------------------------------------------------------------+
@@ -268,7 +307,7 @@ namespace hidpg
   //------------------------------------------------------------------+
   // TapDance
   //------------------------------------------------------------------+
-  class TapDance : public Command, public TimerMixin
+  class TapDance : public Command, public TimerMixin, public BdrcpEventListener, public BmmEventListener
   {
   public:
     struct Pair

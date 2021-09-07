@@ -49,7 +49,8 @@ namespace hidpg
     HidEngineClass::read_encoder_step_callback_t HidEngineClass::_read_encoder_step_cb = nullptr;
 
     HidEngineClass::SeqModeState HidEngineClass::_seq_mode_state = HidEngineClass::SeqModeState::Disable;
-    LinkedList<HidEngineClass::Tracking *> HidEngineClass::_tracking_list;
+    etl::intrusive_list<HidEngineClass::Tracking, HidEngineClass::TrackingLink> HidEngineClass::_tracking_list;
+
     int32_t HidEngineClass::_distance_x = 0;
     int32_t HidEngineClass::_distance_y = 0;
 
@@ -264,12 +265,12 @@ namespace hidpg
     {
       static uint8_t prev_track_id;
 
-      Command::_notifyBeforeMouseMove();
+      BmmEventListener::_notifyBeforeMouseMove();
 
       if (_tracking_list.size() > 0) // Tracking Commandが実行中の場合
       {
         // 一番上のtrack_idを取得
-        uint8_t track_id = _tracking_list[0]->getID();
+        uint8_t track_id = _tracking_list.back().getID();
 
         // 前回のidと違うなら0から距離を測る
         if (track_id != prev_track_id)
@@ -437,23 +438,21 @@ namespace hidpg
       }
     }
 
-    void HidEngineClass::startTracking(HidEngineClass::Tracking *tracking)
+    void HidEngineClass::startTracking(HidEngineClass::Tracking &tracking)
     {
-      _tracking_list.unshift(tracking);
+      _tracking_list.push_back(tracking);
     }
 
-    void HidEngineClass::stopTracking(HidEngineClass::Tracking *tracking)
+    void HidEngineClass::stopTracking(HidEngineClass::Tracking &tracking)
     {
-      for (int i = 0; i < _tracking_list.size(); i++)
+      if (tracking.is_linked())
       {
-        if (_tracking_list.get(i) == tracking)
+        auto i_item = etl::intrusive_list<Tracking, TrackingLink>::iterator(tracking);
+        _tracking_list.erase(i_item);
+        tracking.clear();
+        if (_tracking_list.empty())
         {
-          _tracking_list.remove(i);
-          if (_tracking_list.size() == 0)
-          {
-            _distance_x = _distance_y = 0;
-          }
-          return;
+          _distance_x = _distance_y = 0;
         }
       }
     }
@@ -471,6 +470,7 @@ namespace hidpg
     //------------------------------------------------------------------+
     HidEngineClass::Tracking::Tracking(uint8_t track_id) : _track_id(track_id)
     {
+      this->clear();
     }
 
     uint8_t HidEngineClass::Tracking::getID()
@@ -480,12 +480,12 @@ namespace hidpg
 
     void HidEngineClass::Tracking::onPress(uint8_t n_times)
     {
-      HidEngineClass::startTracking(this);
+      HidEngineClass::startTracking(*this);
     }
 
     uint8_t HidEngineClass::Tracking::onRelease()
     {
-      HidEngineClass::stopTracking(this);
+      HidEngineClass::stopTracking(*this);
       return 1;
     }
 
