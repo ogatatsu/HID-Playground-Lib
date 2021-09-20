@@ -177,7 +177,7 @@ namespace hidpg::Internal
 
   void BleControllerPeripheral::setBatteryLevel(uint8_t level)
   {
-    _ble_bas.write(level);
+    _ble_bas.notify(level);
   }
 
   void BleControllerPeripheral::setCannnotConnectCallback(cannotConnectCallback_t callback)
