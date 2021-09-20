@@ -166,7 +166,7 @@ namespace hidpg
   }
 
 #ifdef ARDUINO_ARCH_NRF52
-  void PAW3204DB::stopTask_and_setWakeUpInterrupt()
+  void PAW3204DB::stop_and_setWakeUpInterrupt()
   {
     vTaskSuspend(_task_handles[_id]);
 

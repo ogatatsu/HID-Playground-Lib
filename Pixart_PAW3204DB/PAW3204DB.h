@@ -92,7 +92,7 @@ namespace hidpg
     void changeMode(Mode mode);
 
 #ifdef ARDUINO_ARCH_NRF52
-    void stopTask_and_setWakeUpInterrupt();
+    void stop_and_setWakeUpInterrupt();
 #endif
 
   private:

@@ -41,7 +41,7 @@ namespace hidpg
       static void start();
       static bool addPin(uint8_t pin, int mode, uint16_t debounce_delay_ms = 10);
       static void setCallback(callback_t callback);
-      static void stopTask();
+      static void stop_and_setWakeUpInterrupt();
 
     private:
       static void task(void *pvParameters);

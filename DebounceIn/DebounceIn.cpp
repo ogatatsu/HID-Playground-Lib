@@ -85,12 +85,19 @@ namespace hidpg
       return true;
     }
 
-    void DebounceInClass::stopTask()
+    void DebounceInClass::stop_and_setWakeUpInterrupt()
     {
       if (_task_handle != nullptr)
       {
         vTaskSuspend(_task_handle);
       }
+
+#if DEBOUNCE_IN_USE_SENSE_INTERRUPT == false
+      // TODO
+      // for (int i = 0; i < _bounce_list_len; i++)
+      // {
+      // }
+#endif
     }
 
     void DebounceInClass::setCallback(callback_t callback)

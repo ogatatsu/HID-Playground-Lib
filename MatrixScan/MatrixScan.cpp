@@ -51,7 +51,7 @@ namespace hidpg
     }
 
 #ifdef ARDUINO_ARCH_NRF52
-    void MatrixScanClass::stopTask_and_setWakeUpInterrupt()
+    void MatrixScanClass::stop_and_setWakeUpInterrupt()
     {
       if (_task_handle != nullptr)
       {

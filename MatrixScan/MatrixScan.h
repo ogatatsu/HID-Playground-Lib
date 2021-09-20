@@ -52,7 +52,7 @@ namespace hidpg
       static void setCallback(callback_t callback);
 
 #ifdef ARDUINO_ARCH_NRF52
-      static void stopTask_and_setWakeUpInterrupt();
+      static void stop_and_setWakeUpInterrupt();
 #endif
 
     private:

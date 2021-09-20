@@ -356,7 +356,7 @@ namespace hidpg
   }
 
 #ifdef ARDUINO_ARCH_NRF52
-  void PMW3360DM::stopTask_and_setWakeUpInterrupt()
+  void PMW3360DM::stop_and_setWakeUpInterrupt()
   {
     vTaskSuspend(_task_handles[_id]);
 
