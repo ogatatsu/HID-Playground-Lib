@@ -37,11 +37,15 @@ namespace hidpg
   public:
     using callback_t = void (*)(void);
 
-    void setPins(uint16_t pin_a, uint16_t pin_b, bool use_full_step)
+    void setPins(uint16_t pin_a, uint16_t pin_b)
     {
       _qdec.setPinA(pin_a);
       _qdec.setPinB(pin_b);
-      _qdec.setFullStep(use_full_step);
+    }
+
+    void useFullStep(bool is_full_step)
+    {
+      _qdec.setFullStep(is_full_step);
     }
 
     void start()
