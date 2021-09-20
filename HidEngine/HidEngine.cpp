@@ -283,7 +283,7 @@ namespace hidpg
 
         if (_read_mouse_delta_cb != nullptr)
         {
-          _read_mouse_delta_cb(&delta_x, &delta_y); // 距離を足す
+          _read_mouse_delta_cb(delta_x, delta_y); // 距離を足す
           _distance_x += delta_x;
           _distance_y += delta_y;
         }
@@ -321,14 +321,14 @@ namespace hidpg
       {
         if (_read_mouse_delta_cb != nullptr)
         {
-          int16_t x, y;
+          int16_t delta_x, delta_y;
 
           Hid.waitReady();
-          _read_mouse_delta_cb(&x, &y);
+          _read_mouse_delta_cb(delta_x, delta_y);
 
-          if (!(x == 0 && y == 0))
+          if (!(delta_x == 0 && delta_y == 0))
           {
-            Hid.mouseMove(x, y);
+            Hid.mouseMove(delta_x, delta_y);
           }
         }
       }
@@ -413,7 +413,7 @@ namespace hidpg
         int32_t step;
 
         Hid.waitReady();
-        _read_encoder_step_cb(encoder_id, &step);
+        _read_encoder_step_cb(encoder_id, step);
         uint8_t step_u8 = constrain(abs(step), 0, UINT8_MAX);
 
         if (step >= 0)

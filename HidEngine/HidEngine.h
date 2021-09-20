@@ -130,8 +130,8 @@ namespace hidpg
         _encoder_map_len = encoder_map_len;
       }
 
-      using read_mouse_delta_callback_t = void (*)(int16_t *delta_x, int16_t *delta_y);
-      using read_encoder_step_callback_t = void (*)(uint8_t encoder_id, int32_t *step);
+      using read_mouse_delta_callback_t = void (*)(int16_t &delta_x, int16_t &delta_y);
+      using read_encoder_step_callback_t = void (*)(uint8_t encoder_id, int32_t &step);
 
       static void setHidReporter(HidReporter *hid_reporter);
       static void start();
