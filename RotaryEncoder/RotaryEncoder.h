@@ -31,11 +31,20 @@
 namespace hidpg
 {
 
+  const uint32_t ROTARY_ENCODER_DOWNSHIFT_TIME_MS = 10000;
+  const uint32_t ROTARY_ENCODER_REST_MODE_INTERVAL_MS = 100;
+  const uint32_t ROTARY_ENCODER_REST_MODE_SCAN_INTERRUPT_WINDOW_MS = 1;
+
   template <uint8_t ID>
   class RotaryEncoder
   {
   public:
     using callback_t = void (*)(void);
+
+    RotaryEncoder()
+    {
+      _timer_handle = xTimerCreateStatic("RotaryEncoder", 0, false, nullptr, timer_callback, &_timer_buffer);
+    }
 
     void setPins(uint16_t pin_a, uint16_t pin_b)
     {
@@ -57,8 +66,8 @@ namespace hidpg
 
       _qdec.begin();
 
-      attachInterrupt(digitalPinToInterrupt(_qdec.getPinA()), interrupt_callback, CHANGE);
-      attachInterrupt(digitalPinToInterrupt(_qdec.getPinB()), interrupt_callback, CHANGE);
+      Mode mode = _current_mode == Mode::Rest ? Mode::Run_Downshift : _current_mode;
+      setMode(mode);
 
       if (_task_handle == nullptr)
       {
@@ -70,9 +79,34 @@ namespace hidpg
       }
     }
 
+    void stop()
+    {
+      if (_qdec.getIsStarted() == false)
+      {
+        return;
+      }
+
+      vTaskSuspend(_task_handle);
+      interrupt_off();
+      xTimerStop(_timer_handle, portMAX_DELAY);
+      _qdec.end();
+    }
+
     void setCallback(callback_t cb)
     {
       _callback = cb;
+    }
+
+    void enableRestMode(bool is_rest_mode)
+    {
+      if (is_rest_mode == true && _current_mode == Mode::Run)
+      {
+        setMode(Mode::Run_Downshift);
+      }
+      else if (is_rest_mode == false && _current_mode != Mode::Run)
+      {
+        setMode(Mode::Run);
+      }
     }
 
     int32_t readStep()
@@ -86,25 +120,80 @@ namespace hidpg
       return result;
     }
 
-    void stop()
+  private:
+    enum class Mode
     {
-      if (_qdec.getIsStarted() == false)
-      {
-        return;
-      }
+      Run,
+      Run_Downshift,
+      Rest,
+    };
 
-      vTaskSuspend(_task_handle);
-
-      detachInterrupt(digitalPinToInterrupt(_qdec.getPinA()));
-      detachInterrupt(digitalPinToInterrupt(_qdec.getPinB()));
-
-      pinMode(_qdec.getPinA(), INPUT);
-      pinMode(_qdec.getPinB(), INPUT);
-
-      _qdec.end();
+    static void interrupt_on()
+    {
+      pinMode(_qdec.getPinA(), INPUT_PULLUP);
+      pinMode(_qdec.getPinB(), INPUT_PULLUP);
+      attachInterrupt(digitalPinToInterrupt(_qdec.getPinA()), interrupt_callback, CHANGE);
+      attachInterrupt(digitalPinToInterrupt(_qdec.getPinB()), interrupt_callback, CHANGE);
     }
 
-  private:
+    static void interrupt_off()
+    {
+      detachInterrupt(digitalPinToInterrupt(_qdec.getPinA()));
+      detachInterrupt(digitalPinToInterrupt(_qdec.getPinB()));
+      pinMode(_qdec.getPinA(), INPUT);
+      pinMode(_qdec.getPinB(), INPUT);
+    }
+
+    static void setMode(Mode mode)
+    {
+      switch (mode)
+      {
+      case Mode::Run:
+        xTimerStop(_timer_handle, portMAX_DELAY);
+        _current_mode = Mode::Run;
+        interrupt_on();
+        break;
+
+      case Mode::Run_Downshift:
+        xTimerChangePeriod(_timer_handle, ROTARY_ENCODER_DOWNSHIFT_TIME_MS, portMAX_DELAY);
+        _current_mode = Mode::Run_Downshift;
+        interrupt_on();
+        break;
+
+      case Mode::Rest:
+        xTimerChangePeriod(_timer_handle, ROTARY_ENCODER_REST_MODE_INTERVAL_MS, portMAX_DELAY);
+        interrupt_off();
+        _current_mode = Mode::Rest;
+        break;
+
+      default:
+        break;
+      }
+    }
+
+    static void timer_callback(TimerHandle_t timer_handle)
+    {
+      if (_current_mode == Mode::Run_Downshift)
+      {
+        setMode(Mode::Rest);
+      }
+      else if (_current_mode == Mode::Rest)
+      {
+        _does_interrupt = false;
+        interrupt_on();
+        delay(ROTARY_ENCODER_REST_MODE_SCAN_INTERRUPT_WINDOW_MS);
+        interrupt_off();
+        if (_does_interrupt)
+        {
+          setMode(Mode::Run_Downshift);
+        }
+        else
+        {
+          xTimerChangePeriod(_timer_handle, ROTARY_ENCODER_REST_MODE_INTERVAL_MS, 0);
+        }
+      }
+    }
+
     static void task(void *pvParameters)
     {
       while (true)
@@ -141,6 +230,15 @@ namespace hidpg
             _needs_call = false;
           }
         }
+
+        if (_current_mode == Mode::Run_Downshift)
+        {
+          xTimerResetFromISR(_timer_handle, nullptr);
+        }
+        else if (_current_mode == Mode::Rest)
+        {
+          _does_interrupt = true;
+        }
       }
     }
 
@@ -151,10 +249,26 @@ namespace hidpg
     static TaskHandle_t _task_handle;
     static StackType_t _task_stack[];
     static StaticTask_t _task_tcb;
+    static Mode _current_mode;
+    static bool _does_interrupt;
+    static TimerHandle_t _timer_handle;
+    static StaticTimer_t _timer_buffer;
   };
 
   template <uint8_t ID>
   typename RotaryEncoder<ID>::callback_t RotaryEncoder<ID>::_callback = nullptr;
+
+  template <uint8_t ID>
+  typename RotaryEncoder<ID>::Mode RotaryEncoder<ID>::_current_mode = RotaryEncoder<ID>::Mode::Run;
+
+  template <uint8_t ID>
+  bool RotaryEncoder<ID>::_does_interrupt = false;
+
+  template <uint8_t ID>
+  TimerHandle_t RotaryEncoder<ID>::_timer_handle = nullptr;
+
+  template <uint8_t ID>
+  StaticTimer_t RotaryEncoder<ID>::_timer_buffer;
 
   template <uint8_t ID>
   bool RotaryEncoder<ID>::_needs_call = true;
