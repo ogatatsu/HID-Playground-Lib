@@ -25,7 +25,7 @@
 #include "BleCommand.h"
 #include "BleController.h"
 
-namespace hidpg
+namespace hidpg::Internal
 {
   //------------------------------------------------------------------+
   // ConnectBluetooth
@@ -49,4 +49,4 @@ namespace hidpg
     NVIC_SystemReset();
   }
 
-} // namespace hidpg
+} // namespace hidpg::Internal

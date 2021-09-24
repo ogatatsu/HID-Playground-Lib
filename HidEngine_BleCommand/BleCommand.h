@@ -25,7 +25,7 @@
 
 #include "Command.h"
 
-namespace hidpg
+namespace hidpg::Internal
 {
 
   //------------------------------------------------------------------+
@@ -53,4 +53,4 @@ namespace hidpg
   };
 
 
-} // namespace hidpg
+} // namespace hidpg::Internal

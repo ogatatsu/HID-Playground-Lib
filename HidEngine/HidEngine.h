@@ -28,7 +28,7 @@
 #include "HidReporter.h"
 #include "Set.h"
 
-#define TRACKING_LINK_ID 2
+#define TRACK_ID_LINK_ID 2
 
 namespace hidpg
 {
@@ -75,6 +75,17 @@ namespace hidpg
     uint8_t encoder_id;
     Command *counterclockwise_command;
     Command *clockwise_command;
+  };
+
+  typedef etl::bidirectional_link<TRACK_ID_LINK_ID> TrackIDLink;
+
+  struct TrackID : public TrackIDLink
+  {
+    TrackID(uint8_t track_id) : _track_id(track_id) { clear(); }
+    uint8_t getID() const { return _track_id; }
+
+  private:
+    uint8_t _track_id;
   };
 
   namespace Internal
@@ -141,6 +152,10 @@ namespace hidpg
       static void setReadMouseDeltaCallback(read_mouse_delta_callback_t cb);
       static void setReadEncoderStepCallback(read_encoder_step_callback_t cb);
 
+      static void switchSequenceMode();
+      static void startTracking(TrackID &track_id);
+      static void stopTracking(TrackID &track_id);
+
     private:
       static void applyToKeymap_impl(Set &key_ids);
       static void processSeqKeymap(Set &key_ids);
@@ -168,45 +183,6 @@ namespace hidpg
       static read_mouse_delta_callback_t _read_mouse_delta_cb;
       static read_encoder_step_callback_t _read_encoder_step_cb;
 
-      //------------------------------------------------------------------+
-      // HidEngine inner command
-      //------------------------------------------------------------------+
-    public:
-      class SequenceMode : public Command
-      {
-      protected:
-        void onPress(uint8_t n_times) override;
-      };
-
-      typedef etl::bidirectional_link<TRACKING_LINK_ID> TrackingLink;
-
-      class Tracking : public Command, public TrackingLink
-      {
-      public:
-        Tracking(uint8_t track_id);
-        uint8_t getID();
-
-      protected:
-        void onPress(uint8_t n_times) override;
-        uint8_t onRelease() override;
-
-      private:
-        uint8_t _track_id;
-      };
-
-      class TrackTap : public Tracking
-      {
-      public:
-        TrackTap(uint8_t track_id, Command *command);
-
-      protected:
-        uint8_t onRelease() override;
-
-      private:
-        Command *_command;
-      };
-
-    private:
       enum class SeqModeState
       {
         Disable,
@@ -214,15 +190,53 @@ namespace hidpg
         WaitRelease,
       };
 
-      static void switchSequenceMode();
       static SeqModeState _seq_mode_state;
 
-      static void startTracking(HidEngineClass::Tracking &tracking);
-      static void stopTracking(HidEngineClass::Tracking &tracking);
-      static etl::intrusive_list<Tracking, TrackingLink> _tracking_list;
-
+      static etl::intrusive_list<TrackID, TrackIDLink> _tracking_list;
       static int32_t _distance_x;
       static int32_t _distance_y;
+    };
+
+    //------------------------------------------------------------------+
+    // SequenceMode
+    //------------------------------------------------------------------+
+    class SequenceMode : public Command
+    {
+    protected:
+      void onPress(uint8_t n_times) override;
+    };
+
+    //------------------------------------------------------------------+
+    // Tracking
+    //------------------------------------------------------------------+
+    class Tracking : public Command
+    {
+    public:
+      Tracking(uint8_t track_id);
+
+    protected:
+      void onPress(uint8_t n_times) override;
+      uint8_t onRelease() override;
+
+    private:
+      TrackID _track_id;
+    };
+
+    //------------------------------------------------------------------+
+    // TrackTap
+    //------------------------------------------------------------------+
+    class TrackTap : public Command
+    {
+    public:
+      TrackTap(uint8_t track_id, Command *command);
+
+    protected:
+      void onPress(uint8_t n_times) override;
+      uint8_t onRelease() override;
+
+    private:
+      TrackID _track_id;
+      Command *_command;
     };
 
   } // namespace Internal

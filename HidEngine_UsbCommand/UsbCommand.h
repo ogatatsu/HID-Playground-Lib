@@ -25,7 +25,7 @@
 
 #include "Command.h"
 
-namespace hidpg
+namespace hidpg::Internal
 {
 
   //------------------------------------------------------------------+
@@ -37,4 +37,4 @@ namespace hidpg
     void onPress(uint8_t n_times) override;
   };
 
-} // namespace hidpg
+} // namespace hidpg::Internal

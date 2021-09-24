@@ -49,7 +49,7 @@ namespace hidpg
     HidEngineClass::read_encoder_step_callback_t HidEngineClass::_read_encoder_step_cb = nullptr;
 
     HidEngineClass::SeqModeState HidEngineClass::_seq_mode_state = HidEngineClass::SeqModeState::Disable;
-    etl::intrusive_list<HidEngineClass::Tracking, HidEngineClass::TrackingLink> HidEngineClass::_tracking_list;
+    etl::intrusive_list<TrackID, TrackIDLink> HidEngineClass::_tracking_list;
 
     int32_t HidEngineClass::_distance_x = 0;
     int32_t HidEngineClass::_distance_y = 0;
@@ -427,9 +427,6 @@ namespace hidpg
       }
     }
 
-    //------------------------------------------------------------------+
-    // HidEngine inner command
-    //------------------------------------------------------------------+
     void HidEngineClass::switchSequenceMode()
     {
       if (_seq_mode_state == SeqModeState::Disable)
@@ -438,18 +435,21 @@ namespace hidpg
       }
     }
 
-    void HidEngineClass::startTracking(HidEngineClass::Tracking &tracking)
+    void HidEngineClass::startTracking(TrackID &track_id)
     {
-      _tracking_list.push_back(tracking);
+      if (track_id.is_linked() == false)
+      {
+        _tracking_list.push_back(track_id);
+      }
     }
 
-    void HidEngineClass::stopTracking(HidEngineClass::Tracking &tracking)
+    void HidEngineClass::stopTracking(TrackID &track_id)
     {
-      if (tracking.is_linked())
+      if (track_id.is_linked())
       {
-        auto i_item = etl::intrusive_list<Tracking, TrackingLink>::iterator(tracking);
+        auto i_item = etl::intrusive_list<TrackID, TrackIDLink>::iterator(track_id);
         _tracking_list.erase(i_item);
-        tracking.clear();
+        track_id.clear();
         if (_tracking_list.empty())
         {
           _distance_x = _distance_y = 0;
@@ -460,46 +460,45 @@ namespace hidpg
     //------------------------------------------------------------------+
     // SequenceMode
     //------------------------------------------------------------------+
-    void HidEngineClass::SequenceMode::onPress(uint8_t n_times)
+    void SequenceMode::onPress(uint8_t n_times)
     {
-      HidEngineClass::switchSequenceMode();
+      HidEngine.switchSequenceMode();
     }
 
     //------------------------------------------------------------------+
     // Tracking
     //------------------------------------------------------------------+
-    HidEngineClass::Tracking::Tracking(uint8_t track_id) : _track_id(track_id)
+    Tracking::Tracking(uint8_t track_id) : _track_id(track_id)
     {
-      this->clear();
     }
 
-    uint8_t HidEngineClass::Tracking::getID()
+    void Tracking::onPress(uint8_t n_times)
     {
-      return _track_id;
+      HidEngine.startTracking(_track_id);
     }
 
-    void HidEngineClass::Tracking::onPress(uint8_t n_times)
+    uint8_t Tracking::onRelease()
     {
-      HidEngineClass::startTracking(*this);
-    }
-
-    uint8_t HidEngineClass::Tracking::onRelease()
-    {
-      HidEngineClass::stopTracking(*this);
+      HidEngine.stopTracking(_track_id);
       return 1;
     }
 
     //------------------------------------------------------------------+
     // TrackTap
     //------------------------------------------------------------------+
-    HidEngineClass::TrackTap::TrackTap(uint8_t track_id, Command *command) : Tracking(track_id), _command(command)
+    TrackTap::TrackTap(uint8_t track_id, Command *command) : _track_id(track_id), _command(command)
     {
       _command->setParent(this);
     }
 
-    uint8_t HidEngineClass::TrackTap::onRelease()
+    void TrackTap::onPress(uint8_t n_times)
     {
-      Tracking::onRelease();
+      HidEngine.startTracking(_track_id);
+    }
+
+    uint8_t TrackTap::onRelease()
+    {
+      HidEngine.stopTracking(_track_id);
       if (this->isLastPressed())
       {
         _command->press();

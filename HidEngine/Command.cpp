@@ -149,686 +149,690 @@ namespace hidpg
     }
   }
 
-  //------------------------------------------------------------------+
-  // NormalKey
-  //------------------------------------------------------------------+
-  NormalKey::NormalKey(KeyCode key_code) : _key_code(key_code)
+  namespace Internal
   {
-  }
 
-  void NormalKey::onPress(uint8_t n_times)
-  {
-    Hid.setKey(_key_code);
-    Hid.sendKeyReport(true);
-  }
-
-  uint8_t NormalKey::onRelease()
-  {
-    Hid.unsetKey(_key_code);
-    Hid.sendKeyReport(false);
-    return 1;
-  }
-
-  //------------------------------------------------------------------+
-  // ModifierKey
-  //------------------------------------------------------------------+
-  ModifierKey::ModifierKey(Modifiers modifiers) : _modifiers(modifiers)
-  {
-  }
-
-  void ModifierKey::onPress(uint8_t n_times)
-  {
-    Hid.setModifiers(_modifiers);
-    Hid.sendKeyReport(true);
-  }
-
-  uint8_t ModifierKey::onRelease()
-  {
-    Hid.unsetModifiers(_modifiers);
-    Hid.sendKeyReport(false);
-    return 1;
-  }
-
-  //------------------------------------------------------------------+
-  // CombinationKey
-  //------------------------------------------------------------------+
-  CombinationKey::CombinationKey(Modifiers modifiers, KeyCode key_code) : _modifiers(modifiers), _key_code(key_code)
-  {
-  }
-
-  void CombinationKey::onPress(uint8_t n_times)
-  {
-    Hid.setKey(_key_code);
-    Hid.setModifiers(_modifiers);
-    Hid.sendKeyReport(true);
-  }
-
-  uint8_t CombinationKey::onRelease()
-  {
-    Hid.unsetKey(_key_code);
-    Hid.unsetModifiers(_modifiers);
-    Hid.sendKeyReport(false);
-    return 1;
-  }
-
-  //------------------------------------------------------------------+
-  // ModifierTap
-  //------------------------------------------------------------------+
-  ModifierTap::ModifierTap(Modifiers modifiers, Command *command)
-      : _modifiers(modifiers), _command(command)
-  {
-    _command->setParent(this);
-  }
-
-  void ModifierTap::onPress(uint8_t n_times)
-  {
-    Hid.setModifiers(_modifiers);
-  }
-
-  uint8_t ModifierTap::onRelease()
-  {
-    Hid.unsetModifiers(_modifiers);
-    if (this->isLastPressed())
+    //------------------------------------------------------------------+
+    // NormalKey
+    //------------------------------------------------------------------+
+    NormalKey::NormalKey(KeyCode key_code) : _key_code(key_code)
     {
-      CommandTapper.tap(_command);
     }
-    else
+
+    void NormalKey::onPress(uint8_t n_times)
     {
+      Hid.setKey(_key_code);
+      Hid.sendKeyReport(true);
+    }
+
+    uint8_t NormalKey::onRelease()
+    {
+      Hid.unsetKey(_key_code);
       Hid.sendKeyReport(false);
+      return 1;
     }
-    return 1;
-  }
 
-  //------------------------------------------------------------------+
-  // OneShotModifier
-  //------------------------------------------------------------------+
-  OneShotModifier::OneShotModifier(Modifiers modifiers) : _modifiers(modifiers)
-  {
-  }
-
-  void OneShotModifier::onPress(uint8_t n_times)
-  {
-    Hid.holdOneShotModifiers(_modifiers);
-  }
-
-  uint8_t OneShotModifier::onRelease()
-  {
-    Hid.releaseOneShotModifiers(_modifiers);
-    return 1;
-  }
-
-  //------------------------------------------------------------------+
-  // Layering
-  //------------------------------------------------------------------+
-  Layering::Layering(LayerClass *layer, Command *commands[HID_ENGINE_LAYER_SIZE]) : _layer(layer), _commands(commands)
-  {
-    for (int i = 0; i < HID_ENGINE_LAYER_SIZE; i++)
+    //------------------------------------------------------------------+
+    // ModifierKey
+    //------------------------------------------------------------------+
+    ModifierKey::ModifierKey(Modifiers modifiers) : _modifiers(modifiers)
     {
-      if (commands[i] != nullptr)
+    }
+
+    void ModifierKey::onPress(uint8_t n_times)
+    {
+      Hid.setModifiers(_modifiers);
+      Hid.sendKeyReport(true);
+    }
+
+    uint8_t ModifierKey::onRelease()
+    {
+      Hid.unsetModifiers(_modifiers);
+      Hid.sendKeyReport(false);
+      return 1;
+    }
+
+    //------------------------------------------------------------------+
+    // CombinationKey
+    //------------------------------------------------------------------+
+    CombinationKey::CombinationKey(Modifiers modifiers, KeyCode key_code) : _modifiers(modifiers), _key_code(key_code)
+    {
+    }
+
+    void CombinationKey::onPress(uint8_t n_times)
+    {
+      Hid.setKey(_key_code);
+      Hid.setModifiers(_modifiers);
+      Hid.sendKeyReport(true);
+    }
+
+    uint8_t CombinationKey::onRelease()
+    {
+      Hid.unsetKey(_key_code);
+      Hid.unsetModifiers(_modifiers);
+      Hid.sendKeyReport(false);
+      return 1;
+    }
+
+    //------------------------------------------------------------------+
+    // ModifierTap
+    //------------------------------------------------------------------+
+    ModifierTap::ModifierTap(Modifiers modifiers, Command *command)
+        : _modifiers(modifiers), _command(command)
+    {
+      _command->setParent(this);
+    }
+
+    void ModifierTap::onPress(uint8_t n_times)
+    {
+      Hid.setModifiers(_modifiers);
+    }
+
+    uint8_t ModifierTap::onRelease()
+    {
+      Hid.unsetModifiers(_modifiers);
+      if (this->isLastPressed())
       {
-        commands[i]->setParent(this);
+        CommandTapper.tap(_command);
+      }
+      else
+      {
+        Hid.sendKeyReport(false);
+      }
+      return 1;
+    }
+
+    //------------------------------------------------------------------+
+    // OneShotModifier
+    //------------------------------------------------------------------+
+    OneShotModifier::OneShotModifier(Modifiers modifiers) : _modifiers(modifiers)
+    {
+    }
+
+    void OneShotModifier::onPress(uint8_t n_times)
+    {
+      Hid.holdOneShotModifiers(_modifiers);
+    }
+
+    uint8_t OneShotModifier::onRelease()
+    {
+      Hid.releaseOneShotModifiers(_modifiers);
+      return 1;
+    }
+
+    //------------------------------------------------------------------+
+    // Layering
+    //------------------------------------------------------------------+
+    Layering::Layering(LayerClass *layer, Command *commands[HID_ENGINE_LAYER_SIZE]) : _layer(layer), _commands(commands)
+    {
+      for (int i = 0; i < HID_ENGINE_LAYER_SIZE; i++)
+      {
+        if (commands[i] != nullptr)
+        {
+          commands[i]->setParent(this);
+        }
       }
     }
-  }
 
-  void Layering::onPress(uint8_t n_times)
-  {
-    // 現在のレイヤーの状態を取得
-    layer_bitmap_t layer_state = _layer->getState();
-    _layer->clearOneShot();
-
-    _running_command = nullptr;
-
-    // layerを上から舐めていってonのlayerを探す
-    int i = HID_ENGINE_LAYER_SIZE - 1;
-    for (; i >= 0; i--)
+    void Layering::onPress(uint8_t n_times)
     {
-      if (bitRead(layer_state, i) == 1)
+      // 現在のレイヤーの状態を取得
+      layer_bitmap_t layer_state = _layer->getState();
+      _layer->clearOneShot();
+
+      _running_command = nullptr;
+
+      // layerを上から舐めていってonのlayerを探す
+      int i = HID_ENGINE_LAYER_SIZE - 1;
+      for (; i >= 0; i--)
       {
+        if (bitRead(layer_state, i) == 1)
+        {
+          break;
+        }
+      }
+
+      // onのレイヤーでもそのlayerのコマンドがnullptr(transparent)ならさらに下を探していく
+      for (; i >= 0; i--)
+      {
+        if (_commands[i] == nullptr)
+        {
+          continue;
+        }
+        // 見つかった
+        _running_command = _commands[i];
         break;
       }
-    }
-
-    // onのレイヤーでもそのlayerのコマンドがnullptr(transparent)ならさらに下を探していく
-    for (; i >= 0; i--)
-    {
-      if (_commands[i] == nullptr)
+      // 委託する
+      if (_running_command != nullptr)
       {
-        continue;
-      }
-      // 見つかった
-      _running_command = _commands[i];
-      break;
-    }
-    // 委託する
-    if (_running_command != nullptr)
-    {
-      _running_command->press(n_times);
-    }
-  }
-
-  uint8_t Layering::onRelease()
-  {
-    uint8_t result = 1;
-    if (_running_command != nullptr)
-    {
-      result = _running_command->release();
-    }
-    return result;
-  }
-
-  //------------------------------------------------------------------+
-  // LayerTap
-  //------------------------------------------------------------------+
-  LayerTap::LayerTap(LayerClass *layer, uint8_t layer_number, Command *command)
-      : _layer(layer), _layer_number(layer_number), _command(command)
-  {
-    _command->setParent(this);
-  }
-
-  void LayerTap::onPress(uint8_t n_times)
-  {
-    _layer->on(_layer_number);
-  }
-
-  uint8_t LayerTap::onRelease()
-  {
-    _layer->off(_layer_number);
-    if (this->isLastPressed())
-    {
-      CommandTapper.tap(_command);
-    }
-    return 1;
-  }
-
-  //------------------------------------------------------------------+
-  // ToggleLayer
-  //------------------------------------------------------------------+
-  ToggleLayer::ToggleLayer(LayerClass *layer, uint8_t layer_number) : _layer(layer), _layer_number(layer_number)
-  {
-  }
-
-  void ToggleLayer::onPress(uint8_t n_times)
-  {
-    _layer->toggle(_layer_number);
-  }
-
-  //------------------------------------------------------------------+
-  // SwitchLayer
-  //------------------------------------------------------------------+
-  SwitchLayer::SwitchLayer(LayerClass *layer, uint8_t layer_number) : _layer(layer), _layer_number(layer_number)
-  {
-  }
-
-  void SwitchLayer::onPress(uint8_t n_times)
-  {
-    _layer->on(_layer_number);
-  }
-
-  uint8_t SwitchLayer::onRelease()
-  {
-    _layer->off(_layer_number);
-    return 1;
-  }
-
-  //------------------------------------------------------------------+
-  // OneShotLayer
-  //------------------------------------------------------------------+
-  OneShotLayer::OneShotLayer(LayerClass *layer, uint8_t layer_number) : _layer(layer), _layer_number(layer_number)
-  {
-  }
-
-  void OneShotLayer::onPress(uint8_t n_times)
-  {
-    _layer->setOneShot(_layer_number);
-    _chained_osl = _layer->getOneShotState();
-
-    for (int i = 0; i < HID_ENGINE_LAYER_SIZE; i++)
-    {
-      if (bitRead(_chained_osl, i))
-      {
-        _layer->on(i);
+        _running_command->press(n_times);
       }
     }
-  }
 
-  uint8_t OneShotLayer::onRelease()
-  {
-    for (int i = 0; i < HID_ENGINE_LAYER_SIZE; i++)
+    uint8_t Layering::onRelease()
     {
-      if (bitRead(_chained_osl, i))
+      uint8_t result = 1;
+      if (_running_command != nullptr)
       {
-        _layer->off(i);
+        result = _running_command->release();
+      }
+      return result;
+    }
+
+    //------------------------------------------------------------------+
+    // LayerTap
+    //------------------------------------------------------------------+
+    LayerTap::LayerTap(LayerClass *layer, uint8_t layer_number, Command *command)
+        : _layer(layer), _layer_number(layer_number), _command(command)
+    {
+      _command->setParent(this);
+    }
+
+    void LayerTap::onPress(uint8_t n_times)
+    {
+      _layer->on(_layer_number);
+    }
+
+    uint8_t LayerTap::onRelease()
+    {
+      _layer->off(_layer_number);
+      if (this->isLastPressed())
+      {
+        CommandTapper.tap(_command);
+      }
+      return 1;
+    }
+
+    //------------------------------------------------------------------+
+    // ToggleLayer
+    //------------------------------------------------------------------+
+    ToggleLayer::ToggleLayer(LayerClass *layer, uint8_t layer_number) : _layer(layer), _layer_number(layer_number)
+    {
+    }
+
+    void ToggleLayer::onPress(uint8_t n_times)
+    {
+      _layer->toggle(_layer_number);
+    }
+
+    //------------------------------------------------------------------+
+    // SwitchLayer
+    //------------------------------------------------------------------+
+    SwitchLayer::SwitchLayer(LayerClass *layer, uint8_t layer_number) : _layer(layer), _layer_number(layer_number)
+    {
+    }
+
+    void SwitchLayer::onPress(uint8_t n_times)
+    {
+      _layer->on(_layer_number);
+    }
+
+    uint8_t SwitchLayer::onRelease()
+    {
+      _layer->off(_layer_number);
+      return 1;
+    }
+
+    //------------------------------------------------------------------+
+    // OneShotLayer
+    //------------------------------------------------------------------+
+    OneShotLayer::OneShotLayer(LayerClass *layer, uint8_t layer_number) : _layer(layer), _layer_number(layer_number)
+    {
+    }
+
+    void OneShotLayer::onPress(uint8_t n_times)
+    {
+      _layer->setOneShot(_layer_number);
+      _chained_osl = _layer->getOneShotState();
+
+      for (int i = 0; i < HID_ENGINE_LAYER_SIZE; i++)
+      {
+        if (bitRead(_chained_osl, i))
+        {
+          _layer->on(i);
+        }
       }
     }
-    return 1;
-  }
 
-  //------------------------------------------------------------------+
-  // Tap
-  //------------------------------------------------------------------+
-  Tap::Tap(Command *command, uint8_t n_times, uint16_t tap_speed_ms)
-      : _command(command), _n_times(n_times), _tap_speed_ms(tap_speed_ms)
-  {
-    _command->setParent(this);
-  }
-
-  void Tap::onPress(uint8_t n_times)
-  {
-    CommandTapper.tap(_command, _n_times, _tap_speed_ms);
-  }
-
-  //------------------------------------------------------------------+
-  // TapDance
-  //------------------------------------------------------------------+
-  TapDance::TapDance(Pair pairs[], int8_t len, bool confirm_command_with_mouse_move)
-      : TimerMixin(), BdrcpEventListener(this), BmmEventListener(),
-        _pairs(pairs), _len(len), _idx_count(-1), _state(State::Unexecuted)
-  {
-    startListen_BeforeDifferentRootCommandPress();
-    if (confirm_command_with_mouse_move)
+    uint8_t OneShotLayer::onRelease()
     {
-      startListen_BeforeMouseMove();
+      for (int i = 0; i < HID_ENGINE_LAYER_SIZE; i++)
+      {
+        if (bitRead(_chained_osl, i))
+        {
+          _layer->off(i);
+        }
+      }
+      return 1;
     }
 
-    for (int i = 0; i < len; i++)
+    //------------------------------------------------------------------+
+    // Tap
+    //------------------------------------------------------------------+
+    Tap::Tap(Command *command, uint8_t n_times, uint16_t tap_speed_ms)
+        : _command(command), _n_times(n_times), _tap_speed_ms(tap_speed_ms)
     {
-      pairs[i].tap_command->setParent(this);
-      pairs[i].hold_command->setParent(this);
+      _command->setParent(this);
     }
-  }
 
-  void TapDance::onPress(uint8_t n_times)
-  {
-    if (_state == State::Unexecuted || _state == State::Tap_or_NextCommand)
+    void Tap::onPress(uint8_t n_times)
     {
-      _idx_count++;
-      _state = State::Unfixed;
-      startTimer(HID_ENGINE_TAPPING_TERM_MS);
+      CommandTapper.tap(_command, _n_times, _tap_speed_ms);
     }
-  }
 
-  uint8_t TapDance::onRelease()
-  {
-    if (_state == State::FixedToHold)
+    //------------------------------------------------------------------+
+    // TapDance
+    //------------------------------------------------------------------+
+    TapDance::TapDance(Pair pairs[], int8_t len, bool confirm_command_with_mouse_move)
+        : TimerMixin(), BdrcpEventListener(this), BmmEventListener(),
+          _pairs(pairs), _len(len), _idx_count(-1), _state(State::Unexecuted)
     {
-      _running_command->release();
-      _state = State::Unexecuted;
+      startListen_BeforeDifferentRootCommandPress();
+      if (confirm_command_with_mouse_move)
+      {
+        startListen_BeforeMouseMove();
+      }
+
+      for (int i = 0; i < len; i++)
+      {
+        pairs[i].tap_command->setParent(this);
+        pairs[i].hold_command->setParent(this);
+      }
     }
-    else if (_state == State::Unfixed)
+
+    void TapDance::onPress(uint8_t n_times)
     {
-      if (_idx_count == _len - 1)
+      if (_state == State::Unexecuted || _state == State::Tap_or_NextCommand)
+      {
+        _idx_count++;
+        _state = State::Unfixed;
+        startTimer(HID_ENGINE_TAPPING_TERM_MS);
+      }
+    }
+
+    uint8_t TapDance::onRelease()
+    {
+      if (_state == State::FixedToHold)
+      {
+        _running_command->release();
+        _state = State::Unexecuted;
+      }
+      else if (_state == State::Unfixed)
+      {
+        if (_idx_count == _len - 1)
+        {
+          CommandTapper.tap(_pairs[_idx_count].tap_command);
+          _idx_count = -1;
+          _state = State::Unexecuted;
+        }
+        else
+        {
+          _state = State::Tap_or_NextCommand;
+          startTimer(HID_ENGINE_TAPPING_TERM_MS);
+        }
+      }
+      return 1;
+    }
+
+    void TapDance::onTimer()
+    {
+      if (_state == State::Unfixed)
+      {
+        _state = State::FixedToHold;
+        _running_command = _pairs[_idx_count].hold_command;
+        _idx_count = -1;
+        _running_command->press();
+      }
+      else if (_state == State::Tap_or_NextCommand)
       {
         CommandTapper.tap(_pairs[_idx_count].tap_command);
         _idx_count = -1;
         _state = State::Unexecuted;
       }
-      else
+    }
+
+    void TapDance::onBeforeInput()
+    {
+      if (_state == State::Unfixed)
       {
-        _state = State::Tap_or_NextCommand;
-        startTimer(HID_ENGINE_TAPPING_TERM_MS);
+        _state = State::FixedToHold;
+        _running_command = _pairs[_idx_count].hold_command;
+        _idx_count = -1;
+        _running_command->press();
+      }
+      else if (_state == State::Tap_or_NextCommand)
+      {
+        CommandTapper.tap(_pairs[_idx_count].tap_command);
+        _idx_count = -1;
+        _state = State::Unexecuted;
       }
     }
-    return 1;
-  }
 
-  void TapDance::onTimer()
-  {
-    if (_state == State::Unfixed)
+    void TapDance::onBeforeDifferentRootCommandPress()
     {
-      _state = State::FixedToHold;
-      _running_command = _pairs[_idx_count].hold_command;
-      _idx_count = -1;
-      _running_command->press();
+      onBeforeInput();
     }
-    else if (_state == State::Tap_or_NextCommand)
+
+    void TapDance::onBeforeMouseMove()
     {
-      CommandTapper.tap(_pairs[_idx_count].tap_command);
-      _idx_count = -1;
-      _state = State::Unexecuted;
+      onBeforeInput();
     }
-  }
 
-  void TapDance::onBeforeInput()
-  {
-    if (_state == State::Unfixed)
+    //------------------------------------------------------------------+
+    // TapOrHold
+    //------------------------------------------------------------------+
+    TapOrHold::TapOrHold(Command *tap_command, unsigned int ms, Command *hold_command)
+        : TimerMixin(), _ms(ms), _state(State::Unexecuted), _tap_command(tap_command), _hold_command(hold_command)
     {
-      _state = State::FixedToHold;
-      _running_command = _pairs[_idx_count].hold_command;
-      _idx_count = -1;
-      _running_command->press();
+      _tap_command->setParent(this);
+      _hold_command->setParent(this);
     }
-    else if (_state == State::Tap_or_NextCommand)
+
+    void TapOrHold::onPress(uint8_t n_times)
     {
-      CommandTapper.tap(_pairs[_idx_count].tap_command);
-      _idx_count = -1;
-      _state = State::Unexecuted;
+      if (_state == State::Unexecuted)
+      {
+        _state = State::Unfixed;
+        startTimer(_ms);
+      }
     }
-  }
 
-  void TapDance::onBeforeDifferentRootCommandPress()
-  {
-    onBeforeInput();
-  }
-
-  void TapDance::onBeforeMouseMove()
-  {
-    onBeforeInput();
-  }
-
-  //------------------------------------------------------------------+
-  // TapOrHold
-  //------------------------------------------------------------------+
-  TapOrHold::TapOrHold(Command *tap_command, unsigned int ms, Command *hold_command)
-      : TimerMixin(), _ms(ms), _state(State::Unexecuted), _tap_command(tap_command), _hold_command(hold_command)
-  {
-    _tap_command->setParent(this);
-    _hold_command->setParent(this);
-  }
-
-  void TapOrHold::onPress(uint8_t n_times)
-  {
-    if (_state == State::Unexecuted)
+    uint8_t TapOrHold::onRelease()
     {
-      _state = State::Unfixed;
-      startTimer(_ms);
+      if (_state == State::Unfixed)
+      {
+        CommandTapper.tap(_tap_command);
+        _state = State::Unexecuted;
+        stopTimer();
+      }
+      else if (_state == State::FixedToHold)
+      {
+        _hold_command->release();
+        _state = State::Unexecuted;
+      }
+      return 1;
     }
-  }
 
-  uint8_t TapOrHold::onRelease()
-  {
-    if (_state == State::Unfixed)
+    void TapOrHold::onTimer()
     {
-      CommandTapper.tap(_tap_command);
-      _state = State::Unexecuted;
-      stopTimer();
+      if (_state == State::Unfixed)
+      {
+        _state = State::FixedToHold;
+        _hold_command->press();
+      }
     }
-    else if (_state == State::FixedToHold)
+
+    //------------------------------------------------------------------+
+    // ConsumerControl
+    //------------------------------------------------------------------+
+    ConsumerControl::ConsumerControl(ConsumerControlCode usage_code) : _usage_code(usage_code)
     {
-      _hold_command->release();
-      _state = State::Unexecuted;
     }
-    return 1;
-  }
 
-  void TapOrHold::onTimer()
-  {
-    if (_state == State::Unfixed)
+    void ConsumerControl::onPress(uint8_t n_times)
     {
-      _state = State::FixedToHold;
-      _hold_command->press();
+      Hid.consumerKeyPress(_usage_code);
     }
-  }
-
-  //------------------------------------------------------------------+
-  // ConsumerControl
-  //------------------------------------------------------------------+
-  ConsumerControl::ConsumerControl(ConsumerControlCode usage_code) : _usage_code(usage_code)
-  {
-  }
-
-  void ConsumerControl::onPress(uint8_t n_times)
-  {
-    Hid.consumerKeyPress(_usage_code);
-  }
-  uint8_t ConsumerControl::onRelease()
-  {
-    Hid.consumerKeyRelease();
-    return 1;
-  }
-
-  //------------------------------------------------------------------+
-  // SystemControl
-  //------------------------------------------------------------------+
-  SystemControl::SystemControl(SystemControlCode usage_code) : _usage_code(usage_code)
-  {
-  }
-
-  void SystemControl::onPress(uint8_t n_times)
-  {
-    Hid.systemControlKeyPress(_usage_code);
-  }
-  uint8_t SystemControl::onRelease()
-  {
-    Hid.systemControlKeyRelease();
-    return 1;
-  }
-
-  //------------------------------------------------------------------+
-  // MouseMove
-  //------------------------------------------------------------------+
-  MouseMove::Mover::Mover() : TimerMixin(), _total_x(0), _total_y(0), _count(0)
-  {
-  }
-
-  void MouseMove::Mover::setXY(int16_t x, int16_t y)
-  {
-    _count++;
-    _total_x += x;
-    _total_y += y;
-    calcXY(x, y);
-    Hid.mouseMove(x, y);
-    if (_count == 1)
+    uint8_t ConsumerControl::onRelease()
     {
-      startTimer(HID_ENGINE_MOUSEKEY_DELAY_MS);
+      Hid.consumerKeyRelease();
+      return 1;
     }
-  }
 
-  void MouseMove::Mover::unsetXY(int16_t x, int16_t y)
-  {
-    _count--;
-    _total_x -= x;
-    _total_y -= y;
-    if (_count == 0)
+    //------------------------------------------------------------------+
+    // SystemControl
+    //------------------------------------------------------------------+
+    SystemControl::SystemControl(SystemControlCode usage_code) : _usage_code(usage_code)
     {
-      stopTimer();
     }
-  }
 
-  void MouseMove::Mover::onTimer()
-  {
-    int16_t x, y;
-    calcXY(x, y);
-    Hid.mouseMove(x, y);
-    startTimer(HID_ENGINE_MOUSEKEY_INTERVAL_MS);
-  }
-
-  void MouseMove::Mover::calcXY(int16_t &x, int16_t &y)
-  {
-    double factor = MouseSpeedController.getfactor();
-    int ix, iy;
-    ix = round(_total_x * factor);
-    ix = constrain(ix, INT16_MIN, INT16_MAX);
-    iy = round(_total_y * factor);
-    iy = constrain(iy, INT16_MIN, INT16_MAX);
-    x = static_cast<int16_t>(ix);
-    y = static_cast<int16_t>(iy);
-  }
-
-  MouseMove::Mover MouseMove::_mover;
-
-  MouseMove::MouseMove(int16_t x, int16_t y)
-      : _x(x), _y(y)
-  {
-  }
-
-  void MouseMove::onPress(uint8_t n_times)
-  {
-    _mover.setXY(_x, _y);
-  }
-
-  uint8_t MouseMove::onRelease()
-  {
-    _mover.unsetXY(_x, _y);
-    return 1;
-  }
-
-  //------------------------------------------------------------------+
-  // MouseSpeed
-  //------------------------------------------------------------------+
-  MouseSpeed::MouseSpeed(int16_t percent)
-      : _percent(percent)
-  {
-  }
-
-  void MouseSpeed::onPress(uint8_t n_times)
-  {
-    if (_percent == 0)
+    void SystemControl::onPress(uint8_t n_times)
     {
-      MouseSpeedController.setZero();
+      Hid.systemControlKeyPress(_usage_code);
     }
-    else
+    uint8_t SystemControl::onRelease()
     {
-      MouseSpeedController.accel(_percent);
+      Hid.systemControlKeyRelease();
+      return 1;
     }
-  }
 
-  uint8_t MouseSpeed::onRelease()
-  {
-    if (_percent == 0)
+    //------------------------------------------------------------------+
+    // MouseMove
+    //------------------------------------------------------------------+
+    MouseMove::Mover::Mover() : TimerMixin(), _total_x(0), _total_y(0), _count(0)
     {
-      MouseSpeedController.unsetZero();
     }
-    else
+
+    void MouseMove::Mover::setXY(int16_t x, int16_t y)
     {
-      MouseSpeedController.decel(_percent);
+      _count++;
+      _total_x += x;
+      _total_y += y;
+      calcXY(x, y);
+      Hid.mouseMove(x, y);
+      if (_count == 1)
+      {
+        startTimer(HID_ENGINE_MOUSEKEY_DELAY_MS);
+      }
     }
-    return 1;
-  }
 
-  //------------------------------------------------------------------+
-  // MouseScroll
-  //------------------------------------------------------------------+
-  MouseScroll::MouseScroll(int8_t scroll, int8_t horiz)
-      : _scroll(scroll), _horiz(horiz), _max_n_times(127 / max(abs(_scroll), abs(_horiz)))
-  {
-  }
-
-  void MouseScroll::onPress(uint8_t n_times)
-  {
-    _actual_n_times = min(n_times, _max_n_times);
-    Hid.mouseScroll(_scroll * _actual_n_times, _horiz * _actual_n_times);
-  }
-
-  uint8_t MouseScroll::onRelease()
-  {
-    return _actual_n_times;
-  }
-
-  //------------------------------------------------------------------+
-  // MouseClick
-  //------------------------------------------------------------------+
-  MouseClick::MouseClick(MouseButtons buttons) : _buttons(buttons)
-  {
-  }
-
-  void MouseClick::onPress(uint8_t n_times)
-  {
-    Hid.mouseButtonsPress(_buttons);
-  }
-
-  uint8_t MouseClick::onRelease()
-  {
-    Hid.mouseButtonsRelease(_buttons);
-    return 1;
-  }
-
-  //------------------------------------------------------------------+
-  // RadialClick
-  //------------------------------------------------------------------+
-
-  void RadialClick::onPress(uint8_t n_times)
-  {
-    Hid.radialControllerButtonPress();
-  }
-
-  uint8_t RadialClick::onRelease()
-  {
-    Hid.radialControllerButtonRelease();
-    return 1;
-  }
-
-  //------------------------------------------------------------------+
-  // RadialRotate
-  //------------------------------------------------------------------+
-  RadialRotate::RadialRotate(int16_t deci_degree)
-      : _deci_degree(deci_degree), _max_n_times(min(3600 / abs(_deci_degree), UINT8_MAX))
-  {
-  }
-
-  void RadialRotate::onPress(uint8_t n_times)
-  {
-    _actual_n_times = min(n_times, _max_n_times);
-    Hid.radialControllerDialRotate(_deci_degree * _actual_n_times);
-  }
-
-  uint8_t RadialRotate::onRelease()
-  {
-    return _actual_n_times;
-  }
-
-  //------------------------------------------------------------------+
-  // If
-  //------------------------------------------------------------------+
-  If::If(bool (*func)(), Command *true_command, Command *false_command)
-      : _func(func), _true_command(true_command), _false_command(false_command)
-  {
-    _true_command->setParent(this);
-    _false_command->setParent(this);
-  }
-
-  void If::onPress(uint8_t n_times)
-  {
-    _running_command = _func() ? _true_command : _false_command;
-    _running_command->press(n_times);
-  }
-
-  uint8_t If::onRelease()
-  {
-    return _running_command->release();
-  }
-
-  //------------------------------------------------------------------+
-  // Multi
-  //------------------------------------------------------------------+
-  Multi::Multi(Command *commands[], uint8_t len)
-      : _commands(commands), _len(len)
-  {
-    for (size_t i = 0; i < len; i++)
+    void MouseMove::Mover::unsetXY(int16_t x, int16_t y)
     {
-      _commands[i]->setParent(this);
+      _count--;
+      _total_x -= x;
+      _total_y -= y;
+      if (_count == 0)
+      {
+        stopTimer();
+      }
     }
-  }
 
-  void Multi::onPress(uint8_t n_times)
-  {
-    for (size_t i = 0; i < _len; i++)
+    void MouseMove::Mover::onTimer()
     {
-      _commands[i]->press();
+      int16_t x, y;
+      calcXY(x, y);
+      Hid.mouseMove(x, y);
+      startTimer(HID_ENGINE_MOUSEKEY_INTERVAL_MS);
     }
-  }
 
-  uint8_t Multi::onRelease()
-  {
-    for (size_t i = 0; i < _len; i++)
+    void MouseMove::Mover::calcXY(int16_t &x, int16_t &y)
     {
-      _commands[i]->release();
+      double factor = MouseSpeedController.getfactor();
+      int ix, iy;
+      ix = round(_total_x * factor);
+      ix = constrain(ix, INT16_MIN, INT16_MAX);
+      iy = round(_total_y * factor);
+      iy = constrain(iy, INT16_MIN, INT16_MAX);
+      x = static_cast<int16_t>(ix);
+      y = static_cast<int16_t>(iy);
     }
-    return 1;
-  }
 
-  //------------------------------------------------------------------+
-  // NoOperation
-  //------------------------------------------------------------------+
+    MouseMove::Mover MouseMove::_mover;
 
-  void NoOperation::onPress(uint8_t n_times)
-  {
-    _n_times = n_times;
-  }
+    MouseMove::MouseMove(int16_t x, int16_t y)
+        : _x(x), _y(y)
+    {
+    }
 
-  uint8_t NoOperation::onRelease()
-  {
-    return _n_times;
-  }
+    void MouseMove::onPress(uint8_t n_times)
+    {
+      _mover.setXY(_x, _y);
+    }
+
+    uint8_t MouseMove::onRelease()
+    {
+      _mover.unsetXY(_x, _y);
+      return 1;
+    }
+
+    //------------------------------------------------------------------+
+    // MouseSpeed
+    //------------------------------------------------------------------+
+    MouseSpeed::MouseSpeed(int16_t percent)
+        : _percent(percent)
+    {
+    }
+
+    void MouseSpeed::onPress(uint8_t n_times)
+    {
+      if (_percent == 0)
+      {
+        MouseSpeedController.setZero();
+      }
+      else
+      {
+        MouseSpeedController.accel(_percent);
+      }
+    }
+
+    uint8_t MouseSpeed::onRelease()
+    {
+      if (_percent == 0)
+      {
+        MouseSpeedController.unsetZero();
+      }
+      else
+      {
+        MouseSpeedController.decel(_percent);
+      }
+      return 1;
+    }
+
+    //------------------------------------------------------------------+
+    // MouseScroll
+    //------------------------------------------------------------------+
+    MouseScroll::MouseScroll(int8_t scroll, int8_t horiz)
+        : _scroll(scroll), _horiz(horiz), _max_n_times(127 / max(abs(_scroll), abs(_horiz)))
+    {
+    }
+
+    void MouseScroll::onPress(uint8_t n_times)
+    {
+      _actual_n_times = min(n_times, _max_n_times);
+      Hid.mouseScroll(_scroll * _actual_n_times, _horiz * _actual_n_times);
+    }
+
+    uint8_t MouseScroll::onRelease()
+    {
+      return _actual_n_times;
+    }
+
+    //------------------------------------------------------------------+
+    // MouseClick
+    //------------------------------------------------------------------+
+    MouseClick::MouseClick(MouseButtons buttons) : _buttons(buttons)
+    {
+    }
+
+    void MouseClick::onPress(uint8_t n_times)
+    {
+      Hid.mouseButtonsPress(_buttons);
+    }
+
+    uint8_t MouseClick::onRelease()
+    {
+      Hid.mouseButtonsRelease(_buttons);
+      return 1;
+    }
+
+    //------------------------------------------------------------------+
+    // RadialClick
+    //------------------------------------------------------------------+
+
+    void RadialClick::onPress(uint8_t n_times)
+    {
+      Hid.radialControllerButtonPress();
+    }
+
+    uint8_t RadialClick::onRelease()
+    {
+      Hid.radialControllerButtonRelease();
+      return 1;
+    }
+
+    //------------------------------------------------------------------+
+    // RadialRotate
+    //------------------------------------------------------------------+
+    RadialRotate::RadialRotate(int16_t deci_degree)
+        : _deci_degree(deci_degree), _max_n_times(min(3600 / abs(_deci_degree), UINT8_MAX))
+    {
+    }
+
+    void RadialRotate::onPress(uint8_t n_times)
+    {
+      _actual_n_times = min(n_times, _max_n_times);
+      Hid.radialControllerDialRotate(_deci_degree * _actual_n_times);
+    }
+
+    uint8_t RadialRotate::onRelease()
+    {
+      return _actual_n_times;
+    }
+
+    //------------------------------------------------------------------+
+    // If
+    //------------------------------------------------------------------+
+    If::If(bool (*func)(), Command *true_command, Command *false_command)
+        : _func(func), _true_command(true_command), _false_command(false_command)
+    {
+      _true_command->setParent(this);
+      _false_command->setParent(this);
+    }
+
+    void If::onPress(uint8_t n_times)
+    {
+      _running_command = _func() ? _true_command : _false_command;
+      _running_command->press(n_times);
+    }
+
+    uint8_t If::onRelease()
+    {
+      return _running_command->release();
+    }
+
+    //------------------------------------------------------------------+
+    // Multi
+    //------------------------------------------------------------------+
+    Multi::Multi(Command *commands[], uint8_t len)
+        : _commands(commands), _len(len)
+    {
+      for (size_t i = 0; i < len; i++)
+      {
+        _commands[i]->setParent(this);
+      }
+    }
+
+    void Multi::onPress(uint8_t n_times)
+    {
+      for (size_t i = 0; i < _len; i++)
+      {
+        _commands[i]->press();
+      }
+    }
+
+    uint8_t Multi::onRelease()
+    {
+      for (size_t i = 0; i < _len; i++)
+      {
+        _commands[i]->release();
+      }
+      return 1;
+    }
+
+    //------------------------------------------------------------------+
+    // NoOperation
+    //------------------------------------------------------------------+
+    void NoOperation::onPress(uint8_t n_times)
+    {
+      _n_times = n_times;
+    }
+
+    uint8_t NoOperation::onRelease()
+    {
+      return _n_times;
+    }
+
+  } // namespace Internal
 
 } // namespace hidpg

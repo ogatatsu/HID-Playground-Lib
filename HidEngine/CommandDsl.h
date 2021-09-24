@@ -37,6 +37,7 @@ namespace hidpg
 
   namespace Internal
   {
+
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
     Command *new_NormalKey(KeyCode key_code)
     {
@@ -231,22 +232,22 @@ namespace hidpg
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
     Command *new_SequenceMode()
     {
-      static uint8_t buf[sizeof(HidEngineClass::SequenceMode)];
-      return new (buf) HidEngineClass::SequenceMode();
+      static uint8_t buf[sizeof(SequenceMode)];
+      return new (buf) SequenceMode();
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
     Command *new_Tracking(uint8_t track_id)
     {
-      static uint8_t buf[sizeof(HidEngineClass::Tracking)];
-      return new (buf) HidEngineClass::Tracking(track_id);
+      static uint8_t buf[sizeof(Tracking)];
+      return new (buf) Tracking(track_id);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
     Command *new_TrackTap(uint8_t track_id, Command *command)
     {
-      static uint8_t buf[sizeof(HidEngineClass::TrackTap)];
-      return new (buf) HidEngineClass::TrackTap(track_id, command);
+      static uint8_t buf[sizeof(TrackTap)];
+      return new (buf) TrackTap(track_id, command);
     }
 
   } // namespace Internal

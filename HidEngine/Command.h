@@ -118,453 +118,458 @@ namespace hidpg
     };
   };
 
-  //------------------------------------------------------------------+
-  // NormalKey
-  //------------------------------------------------------------------+
-  class NormalKey : public Command
+  namespace Internal
   {
-  public:
-    NormalKey(KeyCode key_code);
 
-  protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
-
-  private:
-    const KeyCode _key_code;
-  };
-
-  //------------------------------------------------------------------+
-  // ModifierKey
-  //------------------------------------------------------------------+
-  class ModifierKey : public Command
-  {
-  public:
-    ModifierKey(Modifiers modifiers);
-
-  protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
-
-  private:
-    const Modifiers _modifiers;
-  };
-
-  //------------------------------------------------------------------+
-  // CombinationKey
-  //------------------------------------------------------------------+
-  class CombinationKey : public Command
-  {
-  public:
-    CombinationKey(Modifiers modifiers, KeyCode key_code);
-
-  protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
-
-  private:
-    const Modifiers _modifiers;
-    const KeyCode _key_code;
-  };
-
-  //------------------------------------------------------------------+
-  // ModifierTap
-  //------------------------------------------------------------------+
-  class ModifierTap : public Command
-  {
-  public:
-    ModifierTap(Modifiers modifiers, Command *command);
-
-  protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
-
-  private:
-    const Modifiers _modifiers;
-    Command *_command;
-  };
-
-  //------------------------------------------------------------------+
-  // OneShotModifier
-  //------------------------------------------------------------------+
-  class OneShotModifier : public Command
-  {
-  public:
-    OneShotModifier(Modifiers modifiers);
-
-  protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
-
-  private:
-    const Modifiers _modifiers;
-  };
-
-  //------------------------------------------------------------------+
-  // Layering
-  //------------------------------------------------------------------+
-  class Layering : public Command
-  {
-  public:
-    Layering(LayerClass *layer, Command *commands[HID_ENGINE_LAYER_SIZE]);
-
-  protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
-
-  private:
-    LayerClass *_layer;
-    Command **const _commands;
-    Command *_running_command;
-  };
-
-  //------------------------------------------------------------------+
-  // LayerTap
-  //------------------------------------------------------------------+
-  class LayerTap : public Command
-  {
-  public:
-    LayerTap(LayerClass *layer, uint8_t layer_number, Command *command);
-
-  protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
-
-  private:
-    LayerClass *_layer;
-    const uint8_t _layer_number;
-    Command *_command;
-  };
-
-  //------------------------------------------------------------------+
-  // ToggleLayer
-  //------------------------------------------------------------------+
-  class ToggleLayer : public Command
-  {
-  public:
-    ToggleLayer(LayerClass *layer, uint8_t layer_number);
-
-  protected:
-    void onPress(uint8_t n_times) override;
-
-  private:
-    LayerClass *_layer;
-    const uint8_t _layer_number;
-  };
-
-  //------------------------------------------------------------------+
-  // SwitchLayer
-  //------------------------------------------------------------------+
-  class SwitchLayer : public Command
-  {
-  public:
-    SwitchLayer(LayerClass *layer, uint8_t layer_number);
-
-  protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
-
-  private:
-    LayerClass *_layer;
-    const uint8_t _layer_number;
-  };
-
-  //------------------------------------------------------------------+
-  // OneShotLayer
-  //------------------------------------------------------------------+
-  class OneShotLayer : public Command
-  {
-  public:
-    OneShotLayer(LayerClass *layer, uint8_t layer_number);
-
-  protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
-
-  private:
-    LayerClass *_layer;
-    const uint8_t _layer_number;
-    layer_bitmap_t _chained_osl;
-  };
-
-  // ------------------------------------------------------------------+
-  // Tap
-  // ------------------------------------------------------------------+
-  class Tap : public Command
-  {
-  public:
-    Tap(Command *command, uint8_t n_times, uint16_t tap_speed_ms);
-
-  protected:
-    void onPress(uint8_t n_times) override;
-
-  private:
-    Command *_command;
-    const uint8_t _n_times;
-    const uint16_t _tap_speed_ms;
-  };
-
-  //------------------------------------------------------------------+
-  // TapDance
-  //------------------------------------------------------------------+
-  class TapDance : public Command, public TimerMixin, public BdrcpEventListener, public BmmEventListener
-  {
-  public:
-    struct Pair
-    {
-      Command *tap_command;
-      Command *hold_command;
-    };
-
-    TapDance(Pair pairs[], int8_t len, bool confirm_command_with_mouse_move);
-
-  protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
-    void onTimer() override;
-    void onBeforeDifferentRootCommandPress() override;
-    void onBeforeMouseMove() override;
-    void onBeforeInput();
-
-  private:
-    enum class State : uint8_t
-    {
-      Unexecuted,
-      Unfixed,
-      Tap_or_NextCommand,
-      FixedToHold,
-    };
-
-    Pair *const _pairs;
-    Command *_running_command;
-    const int8_t _len;
-    int8_t _idx_count;
-    State _state;
-  };
-
-  //------------------------------------------------------------------+
-  // TapOrHold
-  //------------------------------------------------------------------+
-  class TapOrHold : public Command, public TimerMixin
-  {
-  public:
-    TapOrHold(Command *tap_command, unsigned int ms, Command *hold_command);
-
-  protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
-    void onTimer() override;
-
-  private:
-    enum class State : uint8_t
-    {
-      Unexecuted,
-      Unfixed,
-      FixedToHold,
-    };
-
-    const unsigned int _ms;
-    State _state;
-    Command *const _tap_command;
-    Command *const _hold_command;
-  };
-
-  //------------------------------------------------------------------+
-  // ConsumerControl
-  //------------------------------------------------------------------+
-  class ConsumerControl : public Command
-  {
-  public:
-    ConsumerControl(ConsumerControlCode usage_code);
-
-  protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
-
-  private:
-    const ConsumerControlCode _usage_code;
-  };
-
-  //------------------------------------------------------------------+
-  // SystemControl
-  //------------------------------------------------------------------+
-  class SystemControl : public Command
-  {
-  public:
-    SystemControl(SystemControlCode usage_code);
-
-  protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
-
-  private:
-    const SystemControlCode _usage_code;
-  };
-
-  //------------------------------------------------------------------+
-  // MouseMove
-  //------------------------------------------------------------------+
-  class MouseMove : public Command
-  {
-  public:
-    MouseMove(int16_t x, int16_t y);
-
-  protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
-
-  private:
-    class Mover : public TimerMixin
+    //------------------------------------------------------------------+
+    // NormalKey
+    //------------------------------------------------------------------+
+    class NormalKey : public Command
     {
     public:
-      Mover();
-      void setXY(int16_t x, int16_t y);
-      void unsetXY(int16_t x, int16_t y);
+      NormalKey(KeyCode key_code);
 
     protected:
+      void onPress(uint8_t n_times) override;
+      uint8_t onRelease() override;
+
+    private:
+      const KeyCode _key_code;
+    };
+
+    //------------------------------------------------------------------+
+    // ModifierKey
+    //------------------------------------------------------------------+
+    class ModifierKey : public Command
+    {
+    public:
+      ModifierKey(Modifiers modifiers);
+
+    protected:
+      void onPress(uint8_t n_times) override;
+      uint8_t onRelease() override;
+
+    private:
+      const Modifiers _modifiers;
+    };
+
+    //------------------------------------------------------------------+
+    // CombinationKey
+    //------------------------------------------------------------------+
+    class CombinationKey : public Command
+    {
+    public:
+      CombinationKey(Modifiers modifiers, KeyCode key_code);
+
+    protected:
+      void onPress(uint8_t n_times) override;
+      uint8_t onRelease() override;
+
+    private:
+      const Modifiers _modifiers;
+      const KeyCode _key_code;
+    };
+
+    //------------------------------------------------------------------+
+    // ModifierTap
+    //------------------------------------------------------------------+
+    class ModifierTap : public Command
+    {
+    public:
+      ModifierTap(Modifiers modifiers, Command *command);
+
+    protected:
+      void onPress(uint8_t n_times) override;
+      uint8_t onRelease() override;
+
+    private:
+      const Modifiers _modifiers;
+      Command *_command;
+    };
+
+    //------------------------------------------------------------------+
+    // OneShotModifier
+    //------------------------------------------------------------------+
+    class OneShotModifier : public Command
+    {
+    public:
+      OneShotModifier(Modifiers modifiers);
+
+    protected:
+      void onPress(uint8_t n_times) override;
+      uint8_t onRelease() override;
+
+    private:
+      const Modifiers _modifiers;
+    };
+
+    //------------------------------------------------------------------+
+    // Layering
+    //------------------------------------------------------------------+
+    class Layering : public Command
+    {
+    public:
+      Layering(LayerClass *layer, Command *commands[HID_ENGINE_LAYER_SIZE]);
+
+    protected:
+      void onPress(uint8_t n_times) override;
+      uint8_t onRelease() override;
+
+    private:
+      LayerClass *_layer;
+      Command **const _commands;
+      Command *_running_command;
+    };
+
+    //------------------------------------------------------------------+
+    // LayerTap
+    //------------------------------------------------------------------+
+    class LayerTap : public Command
+    {
+    public:
+      LayerTap(LayerClass *layer, uint8_t layer_number, Command *command);
+
+    protected:
+      void onPress(uint8_t n_times) override;
+      uint8_t onRelease() override;
+
+    private:
+      LayerClass *_layer;
+      const uint8_t _layer_number;
+      Command *_command;
+    };
+
+    //------------------------------------------------------------------+
+    // ToggleLayer
+    //------------------------------------------------------------------+
+    class ToggleLayer : public Command
+    {
+    public:
+      ToggleLayer(LayerClass *layer, uint8_t layer_number);
+
+    protected:
+      void onPress(uint8_t n_times) override;
+
+    private:
+      LayerClass *_layer;
+      const uint8_t _layer_number;
+    };
+
+    //------------------------------------------------------------------+
+    // SwitchLayer
+    //------------------------------------------------------------------+
+    class SwitchLayer : public Command
+    {
+    public:
+      SwitchLayer(LayerClass *layer, uint8_t layer_number);
+
+    protected:
+      void onPress(uint8_t n_times) override;
+      uint8_t onRelease() override;
+
+    private:
+      LayerClass *_layer;
+      const uint8_t _layer_number;
+    };
+
+    //------------------------------------------------------------------+
+    // OneShotLayer
+    //------------------------------------------------------------------+
+    class OneShotLayer : public Command
+    {
+    public:
+      OneShotLayer(LayerClass *layer, uint8_t layer_number);
+
+    protected:
+      void onPress(uint8_t n_times) override;
+      uint8_t onRelease() override;
+
+    private:
+      LayerClass *_layer;
+      const uint8_t _layer_number;
+      layer_bitmap_t _chained_osl;
+    };
+
+    // ------------------------------------------------------------------+
+    // Tap
+    // ------------------------------------------------------------------+
+    class Tap : public Command
+    {
+    public:
+      Tap(Command *command, uint8_t n_times, uint16_t tap_speed_ms);
+
+    protected:
+      void onPress(uint8_t n_times) override;
+
+    private:
+      Command *_command;
+      const uint8_t _n_times;
+      const uint16_t _tap_speed_ms;
+    };
+
+    //------------------------------------------------------------------+
+    // TapDance
+    //------------------------------------------------------------------+
+    class TapDance : public Command, public TimerMixin, public BdrcpEventListener, public BmmEventListener
+    {
+    public:
+      struct Pair
+      {
+        Command *tap_command;
+        Command *hold_command;
+      };
+
+      TapDance(Pair pairs[], int8_t len, bool confirm_command_with_mouse_move);
+
+    protected:
+      void onPress(uint8_t n_times) override;
+      uint8_t onRelease() override;
+      void onTimer() override;
+      void onBeforeDifferentRootCommandPress() override;
+      void onBeforeMouseMove() override;
+      void onBeforeInput();
+
+    private:
+      enum class State : uint8_t
+      {
+        Unexecuted,
+        Unfixed,
+        Tap_or_NextCommand,
+        FixedToHold,
+      };
+
+      Pair *const _pairs;
+      Command *_running_command;
+      const int8_t _len;
+      int8_t _idx_count;
+      State _state;
+    };
+
+    //------------------------------------------------------------------+
+    // TapOrHold
+    //------------------------------------------------------------------+
+    class TapOrHold : public Command, public TimerMixin
+    {
+    public:
+      TapOrHold(Command *tap_command, unsigned int ms, Command *hold_command);
+
+    protected:
+      void onPress(uint8_t n_times) override;
+      uint8_t onRelease() override;
       void onTimer() override;
 
     private:
-      void calcXY(int16_t &x, int16_t &y);
+      enum class State : uint8_t
+      {
+        Unexecuted,
+        Unfixed,
+        FixedToHold,
+      };
 
-      int _total_x;
-      int _total_y;
-      uint8_t _count;
+      const unsigned int _ms;
+      State _state;
+      Command *const _tap_command;
+      Command *const _hold_command;
     };
 
-    static Mover _mover;
+    //------------------------------------------------------------------+
+    // ConsumerControl
+    //------------------------------------------------------------------+
+    class ConsumerControl : public Command
+    {
+    public:
+      ConsumerControl(ConsumerControlCode usage_code);
 
-    const int16_t _x;
-    const int16_t _y;
-  };
+    protected:
+      void onPress(uint8_t n_times) override;
+      uint8_t onRelease() override;
 
-  //------------------------------------------------------------------+
-  // MouseSpeed
-  //------------------------------------------------------------------+
-  class MouseSpeed : public Command
-  {
-  public:
-    MouseSpeed(int16_t percent);
+    private:
+      const ConsumerControlCode _usage_code;
+    };
 
-  protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
+    //------------------------------------------------------------------+
+    // SystemControl
+    //------------------------------------------------------------------+
+    class SystemControl : public Command
+    {
+    public:
+      SystemControl(SystemControlCode usage_code);
 
-  private:
-    const int16_t _percent;
-  };
+    protected:
+      void onPress(uint8_t n_times) override;
+      uint8_t onRelease() override;
 
-  //------------------------------------------------------------------+
-  // MouseScroll
-  //------------------------------------------------------------------+
-  class MouseScroll : public Command
-  {
-  public:
-    MouseScroll(int8_t scroll, int8_t horiz);
+    private:
+      const SystemControlCode _usage_code;
+    };
 
-  protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
+    //------------------------------------------------------------------+
+    // MouseMove
+    //------------------------------------------------------------------+
+    class MouseMove : public Command
+    {
+    public:
+      MouseMove(int16_t x, int16_t y);
 
-  private:
-    const int8_t _scroll;
-    const int8_t _horiz;
-    const uint8_t _max_n_times;
-    uint8_t _actual_n_times;
-  };
+    protected:
+      void onPress(uint8_t n_times) override;
+      uint8_t onRelease() override;
 
-  //------------------------------------------------------------------+
-  // MouseClick
-  //------------------------------------------------------------------+
-  class MouseClick : public Command
-  {
-  public:
-    MouseClick(MouseButtons buttons);
+    private:
+      class Mover : public TimerMixin
+      {
+      public:
+        Mover();
+        void setXY(int16_t x, int16_t y);
+        void unsetXY(int16_t x, int16_t y);
 
-  protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
+      protected:
+        void onTimer() override;
 
-  private:
-    const MouseButtons _buttons;
-  };
+      private:
+        void calcXY(int16_t &x, int16_t &y);
 
-  //------------------------------------------------------------------+
-  // RadialClick
-  //------------------------------------------------------------------+
-  class RadialClick : public Command
-  {
-  protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
-  };
+        int _total_x;
+        int _total_y;
+        uint8_t _count;
+      };
 
-  //------------------------------------------------------------------+
-  // RadialRotate
-  //------------------------------------------------------------------+
-  class RadialRotate : public Command
-  {
-  public:
-    RadialRotate(int16_t deci_degree);
+      static Mover _mover;
 
-  protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
+      const int16_t _x;
+      const int16_t _y;
+    };
 
-  private:
-    const int16_t _deci_degree;
-    const uint8_t _max_n_times;
-    uint8_t _actual_n_times;
-  };
+    //------------------------------------------------------------------+
+    // MouseSpeed
+    //------------------------------------------------------------------+
+    class MouseSpeed : public Command
+    {
+    public:
+      MouseSpeed(int16_t percent);
 
-  //------------------------------------------------------------------+
-  // If
-  //------------------------------------------------------------------+
-  class If : public Command
-  {
-  public:
-    If(bool (*func)(), Command *true_command, Command *false_command);
+    protected:
+      void onPress(uint8_t n_times) override;
+      uint8_t onRelease() override;
 
-  protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
+    private:
+      const int16_t _percent;
+    };
 
-  private:
-    bool (*const _func)();
-    Command *const _true_command;
-    Command *const _false_command;
-    Command *_running_command;
-  };
+    //------------------------------------------------------------------+
+    // MouseScroll
+    //------------------------------------------------------------------+
+    class MouseScroll : public Command
+    {
+    public:
+      MouseScroll(int8_t scroll, int8_t horiz);
 
-  //------------------------------------------------------------------+
-  // Multi
-  //------------------------------------------------------------------+
-  class Multi : public Command
-  {
-  public:
-    Multi(Command *commands[], uint8_t len);
+    protected:
+      void onPress(uint8_t n_times) override;
+      uint8_t onRelease() override;
 
-  protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
+    private:
+      const int8_t _scroll;
+      const int8_t _horiz;
+      const uint8_t _max_n_times;
+      uint8_t _actual_n_times;
+    };
 
-  private:
-    Command **const _commands;
-    const uint8_t _len;
-  };
+    //------------------------------------------------------------------+
+    // MouseClick
+    //------------------------------------------------------------------+
+    class MouseClick : public Command
+    {
+    public:
+      MouseClick(MouseButtons buttons);
 
-  //------------------------------------------------------------------+
-  // NoOperation
-  //------------------------------------------------------------------+
-  class NoOperation : public Command
-  {
+    protected:
+      void onPress(uint8_t n_times) override;
+      uint8_t onRelease() override;
 
-  protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
+    private:
+      const MouseButtons _buttons;
+    };
 
-  private:
-    uint8_t _n_times;
-  };
+    //------------------------------------------------------------------+
+    // RadialClick
+    //------------------------------------------------------------------+
+    class RadialClick : public Command
+    {
+    protected:
+      void onPress(uint8_t n_times) override;
+      uint8_t onRelease() override;
+    };
+
+    //------------------------------------------------------------------+
+    // RadialRotate
+    //------------------------------------------------------------------+
+    class RadialRotate : public Command
+    {
+    public:
+      RadialRotate(int16_t deci_degree);
+
+    protected:
+      void onPress(uint8_t n_times) override;
+      uint8_t onRelease() override;
+
+    private:
+      const int16_t _deci_degree;
+      const uint8_t _max_n_times;
+      uint8_t _actual_n_times;
+    };
+
+    //------------------------------------------------------------------+
+    // If
+    //------------------------------------------------------------------+
+    class If : public Command
+    {
+    public:
+      If(bool (*func)(), Command *true_command, Command *false_command);
+
+    protected:
+      void onPress(uint8_t n_times) override;
+      uint8_t onRelease() override;
+
+    private:
+      bool (*const _func)();
+      Command *const _true_command;
+      Command *const _false_command;
+      Command *_running_command;
+    };
+
+    //------------------------------------------------------------------+
+    // Multi
+    //------------------------------------------------------------------+
+    class Multi : public Command
+    {
+    public:
+      Multi(Command *commands[], uint8_t len);
+
+    protected:
+      void onPress(uint8_t n_times) override;
+      uint8_t onRelease() override;
+
+    private:
+      Command **const _commands;
+      const uint8_t _len;
+    };
+
+    //------------------------------------------------------------------+
+    // NoOperation
+    //------------------------------------------------------------------+
+    class NoOperation : public Command
+    {
+
+    protected:
+      void onPress(uint8_t n_times) override;
+      uint8_t onRelease() override;
+
+    private:
+      uint8_t _n_times;
+    };
+
+  } // namespace Internal
 
 } // namespace hidpg

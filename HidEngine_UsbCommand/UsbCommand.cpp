@@ -25,12 +25,12 @@
 #include "UsbCommand.h"
 #include "Adafruit_TinyUSB.h"
 
-namespace hidpg
+namespace hidpg::Internal
 {
+
   //------------------------------------------------------------------+
   // RemoteWakeup
   //------------------------------------------------------------------+
-
   void RemoteWakeup::onPress(uint8_t n_times)
   {
     if (USBDevice.suspended())
@@ -39,4 +39,4 @@ namespace hidpg
     }
   }
 
-} // namespace hidpg
+} // namespace hidpg::Internal

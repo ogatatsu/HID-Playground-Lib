@@ -29,6 +29,6 @@
 namespace hidpg
 {
 
-  static inline Command *WAKE_UP() { return (new RemoteWakeup()); }
+  static inline Command *WAKE_UP() { return (new Internal::RemoteWakeup()); }
 
 } // namespace hidpg
