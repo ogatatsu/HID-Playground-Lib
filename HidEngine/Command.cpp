@@ -408,6 +408,24 @@ namespace hidpg
     }
 
     //------------------------------------------------------------------+
+    // UpBaseLayer
+    //------------------------------------------------------------------+
+    UpBaseLayer::UpBaseLayer(LayerClass *layer, uint8_t i) : _layer(layer), _i(i)
+    {
+    }
+
+    void UpBaseLayer::onPress(uint8_t n_times)
+    {
+      _layer->addToBase(_i);
+    }
+
+    uint8_t UpBaseLayer::onRelease()
+    {
+      _layer->addToBase(-_i);
+      return 1;
+    }
+
+    //------------------------------------------------------------------+
     // Tap
     //------------------------------------------------------------------+
     Tap::Tap(Command *command, uint8_t n_times, uint16_t tap_speed_ms)

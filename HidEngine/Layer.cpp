@@ -29,7 +29,7 @@
 namespace hidpg
 {
 
-  LayerClass::LayerClass() : _on_counters(), _toggle(0), _one_shot(0), _callback(nullptr)
+  LayerClass::LayerClass() : _base(0), _on_counters(), _toggle(0), _one_shot(0), _callback(nullptr)
   {
   }
 
@@ -40,7 +40,7 @@ namespace hidpg
       return;
     }
 
-    if (_callback != nullptr && _on_counters[number] == 0)
+    if (_callback != nullptr)
     {
       layer_bitmap_t prev_state = getState();
       _on_counters[number]++;
@@ -64,7 +64,7 @@ namespace hidpg
       return;
     }
 
-    if (_callback != nullptr && _on_counters[number] == 1)
+    if (_callback != nullptr)
     {
       layer_bitmap_t prev_state = getState();
       _on_counters[number]--;
@@ -105,6 +105,25 @@ namespace hidpg
     }
   }
 
+  void LayerClass::addToBase(int8_t i)
+  {
+    if (_callback != nullptr)
+    {
+      layer_bitmap_t prev_state = getState();
+      _base += i;
+      layer_bitmap_t state = getState();
+
+      if (prev_state != state)
+      {
+        _callback(prev_state, state);
+      }
+    }
+    else
+    {
+      _base += i;
+    }
+  }
+
   void LayerClass::setOneShot(uint8_t number)
   {
     if (number >= HID_ENGINE_LAYER_SIZE)
@@ -112,7 +131,7 @@ namespace hidpg
       return;
     }
 
-    if (_callback != nullptr && bitRead(_one_shot, number) == 0)
+    if (_callback != nullptr)
     {
       layer_bitmap_t prev_state = getState();
       bitSet(_one_shot, number);
@@ -155,8 +174,9 @@ namespace hidpg
 
   layer_bitmap_t LayerClass::getState()
   {
-    // layer 0 is always true
-    layer_bitmap_t result = 1 | _toggle | _one_shot;
+    uint8_t base = constrain(_base, 0, HID_ENGINE_LAYER_SIZE - 1);
+
+    layer_bitmap_t result = (1UL << base) | _toggle | _one_shot;
 
     for (int i = 0; i < HID_ENGINE_LAYER_SIZE; i++)
     {

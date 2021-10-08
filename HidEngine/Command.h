@@ -290,6 +290,23 @@ namespace hidpg
       layer_bitmap_t _chained_osl;
     };
 
+    //------------------------------------------------------------------+
+    // UpBaseLayer
+    //------------------------------------------------------------------+
+    class UpBaseLayer : public Command
+    {
+    public:
+      UpBaseLayer(LayerClass *layer, uint8_t i);
+
+    protected:
+      void onPress(uint8_t n_times) override;
+      uint8_t onRelease() override;
+
+    private:
+      LayerClass *_layer;
+      const uint8_t _i;
+    };
+
     // ------------------------------------------------------------------+
     // Tap
     // ------------------------------------------------------------------+

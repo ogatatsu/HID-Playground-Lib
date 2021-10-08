@@ -98,6 +98,10 @@ namespace hidpg
   static inline Command *OSL1(uint8_t layer_number) { return (new Internal::OneShotLayer(&Layer1, layer_number)); }
   static inline Command *OSL2(uint8_t layer_number) { return (new Internal::OneShotLayer(&Layer2, layer_number)); }
 
+  static inline Command *UPL(uint8_t i) { return (new Internal::UpBaseLayer(&Layer, i)); }
+  static inline Command *UPL1(uint8_t i) { return (new Internal::UpBaseLayer(&Layer1, i)); }
+  static inline Command *UPL2(uint8_t i) { return (new Internal::UpBaseLayer(&Layer2, i)); }
+
   static inline Command *TAP(Command *command, uint8_t n_times, uint16_t tap_speed_ms = HID_ENGINE_TAP_SPEED_MS) { return (new Internal::Tap(command, n_times, tap_speed_ms)); }
 
   template <int8_t N>

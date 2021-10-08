@@ -41,6 +41,7 @@ namespace hidpg
     void on(uint8_t number);
     void off(uint8_t number);
     void toggle(uint8_t number);
+    void addToBase(int8_t i);
 
     // OneShot
     void setOneShot(uint8_t number);
@@ -52,6 +53,7 @@ namespace hidpg
     void setCallback(callback_t callback);
 
   private:
+    int16_t _base;
     uint8_t _on_counters[HID_ENGINE_LAYER_SIZE];
     layer_bitmap_t _toggle;
     layer_bitmap_t _one_shot;

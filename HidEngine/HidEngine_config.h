@@ -49,11 +49,6 @@
 #define HID_ENGINE_TAPPING_TERM_MS 250
 #endif
 
-// 同時押しキーマップの最大同時押し数
-#ifndef HID_ENGINE_MAX_SIMUL_PRESS_COUNT
-#define HID_ENGINE_MAX_SIMUL_PRESS_COUNT 3
-#endif
-
 // シーケンスキーマップの最大シーケンス数
 #ifndef HID_ENGINE_MAX_SEQ_COUNT
 #define HID_ENGINE_MAX_SEQ_COUNT 5

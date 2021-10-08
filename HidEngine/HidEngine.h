@@ -39,13 +39,6 @@ namespace hidpg
     Command *command;
   };
 
-  struct SimulKey
-  {
-    uint8_t key_ids[HID_ENGINE_MAX_SIMUL_PRESS_COUNT];
-    Command *command;
-    size_t key_ids_len;
-  };
-
   struct SeqKey
   {
     uint8_t key_ids[HID_ENGINE_MAX_SEQ_COUNT];
@@ -103,18 +96,6 @@ namespace hidpg
         _keymap_len = keymap_len;
       }
 
-      template <uint8_t simul_keymap_len>
-      static void setSimulKeymap(SimulKey (&simul_keymap)[simul_keymap_len])
-      {
-        _simul_keymap = simul_keymap;
-        _simul_keymap_len = simul_keymap_len;
-
-        for (int i = 0; i < _simul_keymap_len; i++)
-        {
-          _simul_keymap[i].key_ids_len = getValidLength(_simul_keymap[i].key_ids, HID_ENGINE_MAX_SIMUL_PRESS_COUNT);
-        }
-      }
-
       template <uint8_t seq_keymap_len>
       static void setSeqKeymap(SeqKey (&seq_keymap)[seq_keymap_len])
       {
@@ -159,7 +140,6 @@ namespace hidpg
     private:
       static void applyToKeymap_impl(Set &key_ids);
       static void processSeqKeymap(Set &key_ids);
-      static void processSimulKeymap(Set &key_ids);
       static void processKeymap(Set &key_ids);
       static void mouseMove_impl();
       static void processTrackX(size_t track_map_idx);
@@ -169,13 +149,11 @@ namespace hidpg
       static size_t getValidLength(const uint8_t key_ids[], size_t max_len);
 
       static Key *_keymap;
-      static SimulKey *_simul_keymap;
       static SeqKey *_seq_keymap;
       static Track *_track_map;
       static Encoder *_encoder_map;
 
       static uint8_t _keymap_len;
-      static uint8_t _simul_keymap_len;
       static uint8_t _seq_keymap_len;
       static uint8_t _track_map_len;
       static uint8_t _encoder_map_len;
