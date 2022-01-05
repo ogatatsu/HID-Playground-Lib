@@ -51,7 +51,7 @@ namespace hidpg
 
     struct MouseMoveEventData
     {
-      //empty
+      uint8_t mouse_id;
     };
 
     struct RotateEncoderEventData

@@ -69,7 +69,7 @@ namespace hidpg
         }
         case EventType::MouseMove:
         {
-          HidEngine.mouseMove_impl();
+          HidEngine.mouseMove_impl(evt.mouse_move.mouse_id);
           break;
         }
         case EventType::RotateEncoder:

@@ -55,7 +55,8 @@ namespace hidpg
   struct Track
   {
     uint8_t track_id;
-    uint16_t threshold_distance;
+    uint8_t mouse_id;
+    uint16_t distance;
     AngleSnap angle_snap;
     Command *up_command;
     Command *down_command;
@@ -122,13 +123,13 @@ namespace hidpg
         _encoder_map_len = encoder_map_len;
       }
 
-      using read_mouse_delta_callback_t = void (*)(int16_t &delta_x, int16_t &delta_y);
+      using read_mouse_delta_callback_t = void (*)(uint8_t mouse_id, int16_t &delta_x, int16_t &delta_y);
       using read_encoder_step_callback_t = void (*)(uint8_t encoder_id, int32_t &step);
 
       static void setHidReporter(HidReporter *hid_reporter);
       static void start();
       static void applyToKeymap(const Set &key_ids);
-      static void mouseMove();
+      static void mouseMove(uint8_t mouse_id);
       static void rotateEncoder(uint8_t encoder_id);
       static void setReadMouseDeltaCallback(read_mouse_delta_callback_t cb);
       static void setReadEncoderStepCallback(read_encoder_step_callback_t cb);
@@ -141,9 +142,9 @@ namespace hidpg
       static void applyToKeymap_impl(Set &key_ids);
       static void processSeqKeymap(Set &key_ids);
       static void processKeymap(Set &key_ids);
-      static void mouseMove_impl();
-      static void processTrackX(size_t track_map_idx);
-      static void processTrackY(size_t track_map_idx);
+      static void mouseMove_impl(uint8_t mouse_id);
+      static void processTrackX(Track &track);
+      static void processTrackY(Track &track);
       static void rotateEncoder_impl(uint8_t encoder_id);
       static int match_with_seqKeymap(const uint8_t id_seq[], size_t len, SeqKey **matched);
       static size_t getValidLength(const uint8_t key_ids[], size_t max_len);
@@ -171,8 +172,8 @@ namespace hidpg
       static SeqModeState _seq_mode_state;
 
       static etl::intrusive_list<TrackID, TrackIDLink> _tracking_list;
-      static int32_t _distance_x;
-      static int32_t _distance_y;
+      static int32_t _total_distance_x;
+      static int32_t _total_distance_y;
     };
 
     //------------------------------------------------------------------+

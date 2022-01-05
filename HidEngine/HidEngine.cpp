@@ -49,8 +49,8 @@ namespace hidpg
     HidEngineClass::SeqModeState HidEngineClass::_seq_mode_state = HidEngineClass::SeqModeState::Disable;
     etl::intrusive_list<TrackID, TrackIDLink> HidEngineClass::_tracking_list;
 
-    int32_t HidEngineClass::_distance_x = 0;
-    int32_t HidEngineClass::_distance_y = 0;
+    int32_t HidEngineClass::_total_distance_x = 0;
+    int32_t HidEngineClass::_total_distance_y = 0;
 
     void HidEngineClass::setHidReporter(HidReporter *hid_reporter)
     {
@@ -70,10 +70,11 @@ namespace hidpg
       HidEngineTask.enqueEvent(evt);
     }
 
-    void HidEngineClass::mouseMove()
+    void HidEngineClass::mouseMove(uint8_t mouse_id)
     {
       EventData evt;
       evt.event_type = EventType::MouseMove;
+      evt.mouse_move.mouse_id = mouse_id;
       HidEngineTask.enqueEvent(evt);
     }
 
@@ -239,60 +240,75 @@ namespace hidpg
     //------------------------------------------------------------------+
     // MouseMove
     //------------------------------------------------------------------+
-    void HidEngineClass::mouseMove_impl()
+    void HidEngineClass::mouseMove_impl(uint8_t mouse_id)
     {
       static uint8_t prev_track_id;
+      static uint8_t prev_mouse_id;
 
       BmmEventListener::_notifyBeforeMouseMove();
 
-      if (_tracking_list.size() > 0) // Tracking Commandが実行中の場合
+      Track track;
+      bool is_tracking = false;
+
+      if (_tracking_list.size() > 0)
       {
         // 一番上のtrack_idを取得
         uint8_t track_id = _tracking_list.back().getID();
 
-        // 前回のidと違うなら0から距離を測る
-        if (track_id != prev_track_id)
+        // trackMapからtrack_idとmouse_idが一致するアイテムを検索
+        for (int i = 0; i < _track_map_len; i++)
         {
-          _distance_x = _distance_y = 0;
-          prev_track_id = track_id;
+          if ((_track_map[i].track_id == track_id) && (_track_map[i].mouse_id == mouse_id))
+          {
+            track = _track_map[i];
+            is_tracking = true;
+            break;
+          }
+        }
+      }
+
+      if (is_tracking)
+      {
+        // 前回のidと違うなら距離をリセット
+        if ((track.track_id != prev_track_id) || (mouse_id != prev_mouse_id))
+        {
+          _total_distance_x = _total_distance_y = 0;
+          prev_track_id = track.track_id;
+          prev_mouse_id = mouse_id;
         }
 
         int16_t delta_x = 0, delta_y = 0;
 
         if (_read_mouse_delta_cb != nullptr)
         {
-          _read_mouse_delta_cb(delta_x, delta_y); // 距離を足す
-          _distance_x += delta_x;
-          _distance_y += delta_y;
-        }
+          // 距離を取得
+          _read_mouse_delta_cb(mouse_id, delta_x, delta_y);
 
-        // trackMapから一致するtrack_idのインデックスを検索
-        int match_idx = -1;
-        for (int i = 0; i < _track_map_len; i++)
-        {
-          if (_track_map[i].track_id == track_id)
+          // 逆方向に動いたら距離をリセット
+          if (bitRead(_total_distance_x ^ delta_x, 15))
           {
-            match_idx = i;
-            break;
+            _total_distance_x = 0;
           }
-        }
+          if (bitRead(_total_distance_y ^ delta_y, 15))
+          {
+            _total_distance_y = 0;
+          }
 
-        // 一致するtrack_idが無かったら抜ける
-        if (match_idx == -1)
-        {
-          return;
+          //距離を足す
+          _total_distance_x += delta_x;
+          _total_distance_y += delta_y;
         }
 
         // 距離の大きさによって実行する順序を変える
         if (abs(delta_x) >= abs(delta_y))
         {
-          processTrackX(match_idx);
-          processTrackY(match_idx);
+          processTrackX(track);
+          processTrackY(track);
         }
         else
         {
-          processTrackY(match_idx);
-          processTrackX(match_idx);
+          processTrackY(track);
+          processTrackX(track);
         }
       }
       else
@@ -302,7 +318,7 @@ namespace hidpg
           int16_t delta_x, delta_y;
 
           Hid.waitReady();
-          _read_mouse_delta_cb(delta_x, delta_y);
+          _read_mouse_delta_cb(mouse_id, delta_x, delta_y);
 
           if (!(delta_x == 0 && delta_y == 0))
           {
@@ -312,54 +328,54 @@ namespace hidpg
       }
     }
 
-    void HidEngineClass::processTrackY(size_t track_map_idx)
+    void HidEngineClass::processTrackY(Track &track)
     {
-      int16_t threshold = _track_map[track_map_idx].threshold_distance;
+      int16_t threshold = track.distance;
 
-      if (_distance_y <= -threshold) // 上
+      if (_total_distance_y <= -threshold) // up
       {
-        uint8_t n_times = min(abs(_distance_y / threshold), UINT8_MAX);
-        _distance_y %= threshold;
-        CommandTapper.tap(_track_map[track_map_idx].up_command, n_times);
-        if (_track_map[track_map_idx].angle_snap == AngleSnap::Enable)
+        uint8_t n_times = min(abs(_total_distance_y / threshold), UINT8_MAX);
+        _total_distance_y %= threshold;
+        CommandTapper.tap(track.up_command, n_times);
+        if (track.angle_snap == AngleSnap::Enable)
         {
-          _distance_x = 0;
+          _total_distance_x = 0;
         }
       }
-      else if (_distance_y >= threshold) // 下
+      else if (_total_distance_y >= threshold) // down
       {
-        uint8_t n_times = min(_distance_y / threshold, UINT8_MAX);
-        _distance_y %= threshold;
-        CommandTapper.tap(_track_map[track_map_idx].down_command, n_times);
-        if (_track_map[track_map_idx].angle_snap == AngleSnap::Enable)
+        uint8_t n_times = min(_total_distance_y / threshold, UINT8_MAX);
+        _total_distance_y %= threshold;
+        CommandTapper.tap(track.down_command, n_times);
+        if (track.angle_snap == AngleSnap::Enable)
         {
-          _distance_x = 0;
+          _total_distance_x = 0;
         }
       }
     }
 
-    void HidEngineClass::processTrackX(size_t track_map_idx)
+    void HidEngineClass::processTrackX(Track &track)
     {
-      int16_t threshold = _track_map[track_map_idx].threshold_distance;
+      int16_t threshold = track.distance;
 
-      if (_distance_x <= -threshold) // 左
+      if (_total_distance_x <= -threshold) // left
       {
-        uint8_t n_times = min(abs(_distance_x / threshold), UINT8_MAX);
-        _distance_x %= threshold;
-        CommandTapper.tap(_track_map[track_map_idx].left_command, n_times);
-        if (_track_map[track_map_idx].angle_snap == AngleSnap::Enable)
+        uint8_t n_times = min(abs(_total_distance_x / threshold), UINT8_MAX);
+        _total_distance_x %= threshold;
+        CommandTapper.tap(track.left_command, n_times);
+        if (track.angle_snap == AngleSnap::Enable)
         {
-          _distance_y = 0;
+          _total_distance_y = 0;
         }
       }
-      else if (_distance_x >= threshold) // 右
+      else if (_total_distance_x >= threshold) // right
       {
-        uint8_t n_times = min(_distance_x / threshold, UINT8_MAX);
-        _distance_x %= threshold;
-        CommandTapper.tap(_track_map[track_map_idx].right_command, n_times);
-        if (_track_map[track_map_idx].angle_snap == AngleSnap::Enable)
+        uint8_t n_times = min(_total_distance_x / threshold, UINT8_MAX);
+        _total_distance_x %= threshold;
+        CommandTapper.tap(track.right_command, n_times);
+        if (track.angle_snap == AngleSnap::Enable)
         {
-          _distance_y = 0;
+          _total_distance_y = 0;
         }
       }
     }
@@ -430,7 +446,7 @@ namespace hidpg
         track_id.clear();
         if (_tracking_list.empty())
         {
-          _distance_x = _distance_y = 0;
+          _total_distance_x = _total_distance_y = 0;
         }
       }
     }
