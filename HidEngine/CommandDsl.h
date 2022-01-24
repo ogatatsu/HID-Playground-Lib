@@ -210,6 +210,13 @@ namespace hidpg
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
+    Command *new_OnceEvery(uint32_t ms, Command *command)
+    {
+      static uint8_t buf[sizeof(OnceEvery)];
+      return new (buf) OnceEvery(ms, command);
+    }
+
+    template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
     Command *new_If(bool (*func)(), Command *true_command, Command *false_command)
     {
       static uint8_t buf[sizeof(If)];
@@ -336,6 +343,9 @@ namespace hidpg
 
 // RadialRotate
 #define RD_ROT(deci_degree) (Internal::new_RadialRotate<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(deci_degree))
+
+// OnceEvery
+#define OE(ms, command) (Internal::new_OnceEvery<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(ms, command))
 
 // If
 #define IF(func, true_command, false_command) (Internal::new_If<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(func, true_command, false_command))

@@ -538,6 +538,24 @@ namespace hidpg
     };
 
     //------------------------------------------------------------------+
+    // OnceEvery
+    //------------------------------------------------------------------+
+    class OnceEvery : public Command
+    {
+    public:
+      OnceEvery(uint32_t ms, Command *command);
+      void onPress(uint8_t n_times) override;
+      uint8_t onRelease() override;
+
+    private:
+      uint32_t _ms;
+      Command *_command;
+      uint32_t _last_press_millis;
+      bool _has_pressed;
+      uint8_t _n_times;
+    };
+
+    //------------------------------------------------------------------+
     // If
     //------------------------------------------------------------------+
     class If : public Command

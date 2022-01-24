@@ -107,7 +107,7 @@ namespace hidpg
   template <int8_t N>
   static Command *TD(const Internal::TapDance::Pair (&arr)[N], bool confirm_command_with_mouse_move = false)
   {
-    TapDance::Pair *arg = new TapDance::Pair[N];
+    Internal::TapDance::Pair *arg = new Internal::TapDance::Pair[N];
     for (int i = 0; i < N; i++)
     {
       arg[i].tap_command = arr[i].tap_command;
@@ -137,6 +137,8 @@ namespace hidpg
     deci_degree = constrain(deci_degree, -3600, 3600);
     return (new Internal::RadialRotate(deci_degree));
   }
+
+  static inline Command *OE(uint32_t ms, Command *command) { return (new Internal::OnceEvery(ms, command)); }
 
   static inline Command *IF(bool (*func)(), Command *true_command, Command *false_command) { return (new Internal::If(func, true_command, false_command)); }
 

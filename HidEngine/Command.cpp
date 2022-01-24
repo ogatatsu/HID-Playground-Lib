@@ -42,7 +42,7 @@ namespace hidpg
 
   void Command::press(uint8_t n_times)
   {
-    if (_prev_state == false) //FALL
+    if (_prev_state == false) // FALL
     {
       BdrcpEventListener::_notifyBeforeDifferentRootCommandPress(*this);
 
@@ -56,7 +56,7 @@ namespace hidpg
   {
     uint8_t result = 0;
 
-    if (_prev_state == true) //RISE
+    if (_prev_state == true) // RISE
     {
       result = onRelease();
     }
@@ -786,6 +786,38 @@ namespace hidpg
     uint8_t RadialRotate::onRelease()
     {
       return _actual_n_times;
+    }
+
+    //------------------------------------------------------------------+
+    // OnceEvery
+    //------------------------------------------------------------------+
+    OnceEvery::OnceEvery(uint32_t ms, Command *command)
+        : _ms(ms), _command(command), _last_press_millis(0), _has_pressed(false)
+    {
+    }
+
+    void OnceEvery::onPress(uint8_t n_times)
+    {
+      _n_times = n_times;
+
+      uint32_t current_millis = millis();
+      if (static_cast<uint32_t>(current_millis - _last_press_millis) >= _ms)
+      {
+        _command->press();
+        _last_press_millis = current_millis;
+        _has_pressed = true;
+      }
+    }
+
+    uint8_t OnceEvery::onRelease()
+    {
+      if (_has_pressed)
+      {
+        _command->release();
+        _has_pressed = false;
+      }
+
+      return _n_times;
     }
 
     //------------------------------------------------------------------+
