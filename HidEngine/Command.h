@@ -91,6 +91,7 @@ namespace hidpg
     };
 
     Command *_command;
+    bool _is_listen;
   };
 
   //------------------------------------------------------------------+
@@ -116,6 +117,8 @@ namespace hidpg
       static etl::intrusive_list<BmmEventListener, BmmEventListenerLink> list;
       return list;
     };
+
+    bool _is_listen;
   };
 
   namespace Internal
@@ -336,7 +339,7 @@ namespace hidpg
         Command *hold_command;
       };
 
-      TapDance(Pair pairs[], int8_t len, bool confirm_command_with_mouse_move);
+      TapDance(Pair pairs[], int8_t len, bool determine_with_mouse_move);
 
     protected:
       void onPress(uint8_t n_times) override;
@@ -345,12 +348,14 @@ namespace hidpg
       void onBeforeDifferentRootCommandPress() override;
       void onBeforeMouseMove() override;
       void onBeforeInput();
+      void startListen();
+      void stopListen();
 
     private:
       enum class State : uint8_t
       {
         Unexecuted,
-        Unfixed,
+        Pressed,
         Tap_or_NextCommand,
         FixedToHold,
       };
@@ -358,6 +363,7 @@ namespace hidpg
       Pair *const _pairs;
       Command *_running_command;
       const int8_t _len;
+      bool _determine_with_mouse_move;
       int8_t _idx_count;
       State _state;
     };
@@ -379,7 +385,7 @@ namespace hidpg
       enum class State : uint8_t
       {
         Unexecuted,
-        Unfixed,
+        Pressed,
         FixedToHold,
       };
 

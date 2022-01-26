@@ -131,7 +131,7 @@ namespace hidpg
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3, size_t N>
-    Command *new_TapDance(const TapDance::Pair (&arr)[N], bool confirm_command_with_mouse_move = false)
+    Command *new_TapDance(const TapDance::Pair (&arr)[N], bool determine_with_mouse_move = false)
     {
       static TapDance::Pair arg[N];
       static uint8_t buf[sizeof(TapDance)];
@@ -141,7 +141,7 @@ namespace hidpg
         arg[i].tap_command = arr[i].tap_command;
         arg[i].hold_command = arr[i].hold_command;
       }
-      return new (buf) TapDance(arg, N, confirm_command_with_mouse_move);
+      return new (buf) TapDance(arg, N, determine_with_mouse_move);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>

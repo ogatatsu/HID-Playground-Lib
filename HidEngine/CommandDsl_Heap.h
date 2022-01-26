@@ -105,7 +105,7 @@ namespace hidpg
   static inline Command *TAP(Command *command, uint8_t n_times, uint16_t tap_speed_ms = HID_ENGINE_TAP_SPEED_MS) { return (new Internal::Tap(command, n_times, tap_speed_ms)); }
 
   template <int8_t N>
-  static Command *TD(const Internal::TapDance::Pair (&arr)[N], bool confirm_command_with_mouse_move = false)
+  static Command *TD(const Internal::TapDance::Pair (&arr)[N], bool determine_with_mouse_move = false)
   {
     Internal::TapDance::Pair *arg = new Internal::TapDance::Pair[N];
     for (int i = 0; i < N; i++)
@@ -113,7 +113,7 @@ namespace hidpg
       arg[i].tap_command = arr[i].tap_command;
       arg[i].hold_command = arr[i].hold_command;
     }
-    return (new Internal::TapDance(arg, N, confirm_command_with_mouse_move));
+    return (new Internal::TapDance(arg, N, determine_with_mouse_move));
   }
 
   static inline Command *ToH(Command *tap_command, unsigned int ms, Command *hold_command) { return (new Internal::TapOrHold(tap_command, ms, hold_command)); }
