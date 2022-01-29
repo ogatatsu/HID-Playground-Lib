@@ -28,7 +28,7 @@
 #include "HidReporter.h"
 #include "Set.h"
 
-#define TRACK_ID_LINK_ID 2
+#define GESTURE_ID_LINK_ID 2
 
 namespace hidpg
 {
@@ -52,9 +52,9 @@ namespace hidpg
     Disable,
   };
 
-  struct Track
+  struct Gesture
   {
-    uint8_t track_id;
+    uint8_t gesture_id;
     uint8_t mouse_id;
     uint16_t distance;
     AngleSnap angle_snap;
@@ -71,15 +71,15 @@ namespace hidpg
     Command *clockwise_command;
   };
 
-  typedef etl::bidirectional_link<TRACK_ID_LINK_ID> TrackIDLink;
+  typedef etl::bidirectional_link<GESTURE_ID_LINK_ID> GestureIDLink;
 
-  struct TrackID : public TrackIDLink
+  struct GestureID : public GestureIDLink
   {
-    TrackID(uint8_t track_id) : _track_id(track_id) { clear(); }
-    uint8_t getID() const { return _track_id; }
+    GestureID(uint8_t gesture_id) : _gesture_id(gesture_id) { clear(); }
+    uint8_t getID() const { return _gesture_id; }
 
   private:
-    uint8_t _track_id;
+    uint8_t _gesture_id;
   };
 
   namespace Internal
@@ -109,11 +109,11 @@ namespace hidpg
         }
       }
 
-      template <uint8_t track_map_len>
-      static void setTrackMap(Track (&track_map)[track_map_len])
+      template <uint8_t gesture_map_len>
+      static void setGestureMap(Gesture (&gesture_map)[gesture_map_len])
       {
-        _track_map = track_map;
-        _track_map_len = track_map_len;
+        _gesture_map = gesture_map;
+        _gesture_map_len = gesture_map_len;
       }
 
       template <uint8_t encoder_map_len>
@@ -135,28 +135,28 @@ namespace hidpg
       static void setReadEncoderStepCallback(read_encoder_step_callback_t cb);
 
       static void switchSequenceMode();
-      static void startTracking(TrackID &track_id);
-      static void stopTracking(TrackID &track_id);
+      static void startGesture(GestureID &gesture_id);
+      static void stopGesture(GestureID &gesture_id);
 
     private:
       static void applyToKeymap_impl(Set &key_ids);
       static void processSeqKeymap(Set &key_ids);
       static void processKeymap(Set &key_ids);
       static void mouseMove_impl(uint8_t mouse_id);
-      static void processTrackX(Track &track);
-      static void processTrackY(Track &track);
+      static void processGestureX(Gesture &gesture);
+      static void processGestureY(Gesture &gesture);
       static void rotateEncoder_impl(uint8_t encoder_id);
       static int match_with_seqKeymap(const uint8_t id_seq[], size_t len, SeqKey **matched);
       static size_t getValidLength(const uint8_t key_ids[], size_t max_len);
 
       static Key *_keymap;
       static SeqKey *_seq_keymap;
-      static Track *_track_map;
+      static Gesture *_gesture_map;
       static Encoder *_encoder_map;
 
       static uint8_t _keymap_len;
       static uint8_t _seq_keymap_len;
-      static uint8_t _track_map_len;
+      static uint8_t _gesture_map_len;
       static uint8_t _encoder_map_len;
 
       static read_mouse_delta_callback_t _read_mouse_delta_cb;
@@ -171,7 +171,7 @@ namespace hidpg
 
       static SeqModeState _seq_mode_state;
 
-      static etl::intrusive_list<TrackID, TrackIDLink> _tracking_list;
+      static etl::intrusive_list<GestureID, GestureIDLink> _gesture_list;
       static int32_t _total_distance_x;
       static int32_t _total_distance_y;
     };
@@ -186,35 +186,35 @@ namespace hidpg
     };
 
     //------------------------------------------------------------------+
-    // Tracking
+    // GestureCommand
     //------------------------------------------------------------------+
-    class Tracking : public Command
+    class GestureCommand : public Command
     {
     public:
-      Tracking(uint8_t track_id);
+      GestureCommand(uint8_t gesture_id);
 
     protected:
       void onPress(uint8_t n_times) override;
       uint8_t onRelease() override;
 
     private:
-      TrackID _track_id;
+      GestureID _gesture_id;
     };
 
     //------------------------------------------------------------------+
-    // TrackTap
+    // GestureOrTap
     //------------------------------------------------------------------+
-    class TrackTap : public Command
+    class GestureOrTap : public Command
     {
     public:
-      TrackTap(uint8_t track_id, Command *command);
+      GestureOrTap(uint8_t gesture_id, Command *command);
 
     protected:
       void onPress(uint8_t n_times) override;
       uint8_t onRelease() override;
 
     private:
-      TrackID _track_id;
+      GestureID _gesture_id;
       Command *_command;
     };
 

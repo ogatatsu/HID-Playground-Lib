@@ -251,17 +251,17 @@ namespace hidpg
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_Tracking(uint8_t track_id)
+    Command *new_GestureCommand(uint8_t gesture_id)
     {
-      static uint8_t buf[sizeof(Tracking)];
-      return new (buf) Tracking(track_id);
+      static uint8_t buf[sizeof(GestureCommand)];
+      return new (buf) GestureCommand(gesture_id);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_TrackTap(uint8_t track_id, Command *command)
+    Command *new_GestureOrTap(uint8_t gesture_id, Command *command)
     {
-      static uint8_t buf[sizeof(TrackTap)];
-      return new (buf) TrackTap(track_id, command);
+      static uint8_t buf[sizeof(GestureOrTap)];
+      return new (buf) GestureOrTap(gesture_id, command);
     }
 
   } // namespace Internal
@@ -359,11 +359,11 @@ namespace hidpg
 // SequenceMode
 #define SEQ_MODE() (Internal::new_SequenceMode<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>())
 
-// Track
-#define TRC(track_id) (Internal::new_Tracking<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(track_id))
+// Gesture
+#define GST(gesture_id) (Internal::new_GestureCommand<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(gesture_id))
 
-// TrackTap
-#define TRT(track_id, command) (Internal::new_TrackTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(track_id, command))
+// GestureOrTap
+#define GoT(gesture_id, command) (Internal::new_GestureOrTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(gesture_id, command))
 
 // nullptr alias (_ * 7)
 #define _______ (static_cast<Command *>(nullptr))

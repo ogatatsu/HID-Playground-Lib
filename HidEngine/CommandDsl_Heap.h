@@ -158,9 +158,9 @@ namespace hidpg
 
   static inline Command *SEQ_MODE() { return (new Internal::SequenceMode); }
 
-  static inline Command *TRC(uint8_t track_id) { return (new Internal::Tracking(track_id)); }
+  static inline Command *GST(uint8_t gesture_id) { return (new Internal::GestureCommand(gesture_id)); }
 
-  static inline Command *TRT(uint8_t track_id, Command *command) { return (new Internal::TrackTap(track_id, command)); }
+  static inline Command *GoT(uint8_t gesture_id, Command *command) { return (new Internal::GestureOrTap(gesture_id, command)); }
 
   // nullptr alias (_ * 7)
   #define _______ (static_cast<Command *>(nullptr))

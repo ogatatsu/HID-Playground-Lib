@@ -35,19 +35,19 @@ namespace hidpg
 
     Key *HidEngineClass::_keymap = nullptr;
     SeqKey *HidEngineClass::_seq_keymap = nullptr;
-    Track *HidEngineClass::_track_map = nullptr;
+    Gesture *HidEngineClass::_gesture_map = nullptr;
     Encoder *HidEngineClass::_encoder_map = nullptr;
 
     uint8_t HidEngineClass::_keymap_len = 0;
     uint8_t HidEngineClass::_seq_keymap_len = 0;
-    uint8_t HidEngineClass::_track_map_len = 0;
+    uint8_t HidEngineClass::_gesture_map_len = 0;
     uint8_t HidEngineClass::_encoder_map_len = 0;
 
     HidEngineClass::read_mouse_delta_callback_t HidEngineClass::_read_mouse_delta_cb = nullptr;
     HidEngineClass::read_encoder_step_callback_t HidEngineClass::_read_encoder_step_cb = nullptr;
 
     HidEngineClass::SeqModeState HidEngineClass::_seq_mode_state = HidEngineClass::SeqModeState::Disable;
-    etl::intrusive_list<TrackID, TrackIDLink> HidEngineClass::_tracking_list;
+    etl::intrusive_list<GestureID, GestureIDLink> HidEngineClass::_gesture_list;
 
     int32_t HidEngineClass::_total_distance_x = 0;
     int32_t HidEngineClass::_total_distance_y = 0;
@@ -242,38 +242,38 @@ namespace hidpg
     //------------------------------------------------------------------+
     void HidEngineClass::mouseMove_impl(uint8_t mouse_id)
     {
-      static uint8_t prev_track_id;
+      static uint8_t prev_gesture_id;
       static uint8_t prev_mouse_id;
 
       BmmEventListener::_notifyBeforeMouseMove();
 
-      Track track;
-      bool is_tracking = false;
+      Gesture gesture;
+      bool is_gesturing = false;
 
-      if (_tracking_list.size() > 0)
+      if (_gesture_list.size() > 0)
       {
-        // 一番上のtrack_idを取得
-        uint8_t track_id = _tracking_list.back().getID();
+        // 一番上のgesture_idを取得
+        uint8_t gesture_id = _gesture_list.back().getID();
 
-        // trackMapからtrack_idとmouse_idが一致するアイテムを検索
-        for (int i = 0; i < _track_map_len; i++)
+        // gesture_mapからgesture_idとmouse_idが一致するアイテムを検索
+        for (int i = 0; i < _gesture_map_len; i++)
         {
-          if ((_track_map[i].track_id == track_id) && (_track_map[i].mouse_id == mouse_id))
+          if ((_gesture_map[i].gesture_id == gesture_id) && (_gesture_map[i].mouse_id == mouse_id))
           {
-            track = _track_map[i];
-            is_tracking = true;
+            gesture = _gesture_map[i];
+            is_gesturing = true;
             break;
           }
         }
       }
 
-      if (is_tracking)
+      if (is_gesturing)
       {
         // 前回のidと違うなら距離をリセット
-        if ((track.track_id != prev_track_id) || (mouse_id != prev_mouse_id))
+        if ((gesture.gesture_id != prev_gesture_id) || (mouse_id != prev_mouse_id))
         {
           _total_distance_x = _total_distance_y = 0;
-          prev_track_id = track.track_id;
+          prev_gesture_id = gesture.gesture_id;
           prev_mouse_id = mouse_id;
         }
 
@@ -302,13 +302,13 @@ namespace hidpg
         // 距離の大きさによって実行する順序を変える
         if (abs(delta_x) >= abs(delta_y))
         {
-          processTrackX(track);
-          processTrackY(track);
+          processGestureX(gesture);
+          processGestureY(gesture);
         }
         else
         {
-          processTrackY(track);
-          processTrackX(track);
+          processGestureY(gesture);
+          processGestureX(gesture);
         }
       }
       else
@@ -328,16 +328,16 @@ namespace hidpg
       }
     }
 
-    void HidEngineClass::processTrackY(Track &track)
+    void HidEngineClass::processGestureY(Gesture &gesture)
     {
-      int16_t threshold = track.distance;
+      int16_t threshold = gesture.distance;
 
       if (_total_distance_y <= -threshold) // up
       {
         uint8_t n_times = min(abs(_total_distance_y / threshold), UINT8_MAX);
         _total_distance_y %= threshold;
-        CommandTapper.tap(track.up_command, n_times);
-        if (track.angle_snap == AngleSnap::Enable)
+        CommandTapper.tap(gesture.up_command, n_times);
+        if (gesture.angle_snap == AngleSnap::Enable)
         {
           _total_distance_x = 0;
         }
@@ -346,24 +346,24 @@ namespace hidpg
       {
         uint8_t n_times = min(_total_distance_y / threshold, UINT8_MAX);
         _total_distance_y %= threshold;
-        CommandTapper.tap(track.down_command, n_times);
-        if (track.angle_snap == AngleSnap::Enable)
+        CommandTapper.tap(gesture.down_command, n_times);
+        if (gesture.angle_snap == AngleSnap::Enable)
         {
           _total_distance_x = 0;
         }
       }
     }
 
-    void HidEngineClass::processTrackX(Track &track)
+    void HidEngineClass::processGestureX(Gesture &gesture)
     {
-      int16_t threshold = track.distance;
+      int16_t threshold = gesture.distance;
 
       if (_total_distance_x <= -threshold) // left
       {
         uint8_t n_times = min(abs(_total_distance_x / threshold), UINT8_MAX);
         _total_distance_x %= threshold;
-        CommandTapper.tap(track.left_command, n_times);
-        if (track.angle_snap == AngleSnap::Enable)
+        CommandTapper.tap(gesture.left_command, n_times);
+        if (gesture.angle_snap == AngleSnap::Enable)
         {
           _total_distance_y = 0;
         }
@@ -372,8 +372,8 @@ namespace hidpg
       {
         uint8_t n_times = min(_total_distance_x / threshold, UINT8_MAX);
         _total_distance_x %= threshold;
-        CommandTapper.tap(track.right_command, n_times);
-        if (track.angle_snap == AngleSnap::Enable)
+        CommandTapper.tap(gesture.right_command, n_times);
+        if (gesture.angle_snap == AngleSnap::Enable)
         {
           _total_distance_y = 0;
         }
@@ -429,22 +429,22 @@ namespace hidpg
       }
     }
 
-    void HidEngineClass::startTracking(TrackID &track_id)
+    void HidEngineClass::startGesture(GestureID &gesture_id)
     {
-      if (track_id.is_linked() == false)
+      if (gesture_id.is_linked() == false)
       {
-        _tracking_list.push_back(track_id);
+        _gesture_list.push_back(gesture_id);
       }
     }
 
-    void HidEngineClass::stopTracking(TrackID &track_id)
+    void HidEngineClass::stopGesture(GestureID &gesture_id)
     {
-      if (track_id.is_linked())
+      if (gesture_id.is_linked())
       {
-        auto i_item = etl::intrusive_list<TrackID, TrackIDLink>::iterator(track_id);
-        _tracking_list.erase(i_item);
-        track_id.clear();
-        if (_tracking_list.empty())
+        auto i_item = etl::intrusive_list<GestureID, GestureIDLink>::iterator(gesture_id);
+        _gesture_list.erase(i_item);
+        gesture_id.clear();
+        if (_gesture_list.empty())
         {
           _total_distance_x = _total_distance_y = 0;
         }
@@ -460,39 +460,39 @@ namespace hidpg
     }
 
     //------------------------------------------------------------------+
-    // Tracking
+    // GestureCommand
     //------------------------------------------------------------------+
-    Tracking::Tracking(uint8_t track_id) : _track_id(track_id)
+    GestureCommand::GestureCommand(uint8_t gesture_id) : _gesture_id(gesture_id)
     {
     }
 
-    void Tracking::onPress(uint8_t n_times)
+    void GestureCommand::onPress(uint8_t n_times)
     {
-      HidEngine.startTracking(_track_id);
+      HidEngine.startGesture(_gesture_id);
     }
 
-    uint8_t Tracking::onRelease()
+    uint8_t GestureCommand::onRelease()
     {
-      HidEngine.stopTracking(_track_id);
+      HidEngine.stopGesture(_gesture_id);
       return 1;
     }
 
     //------------------------------------------------------------------+
-    // TrackTap
+    // GestureOrTap
     //------------------------------------------------------------------+
-    TrackTap::TrackTap(uint8_t track_id, Command *command) : _track_id(track_id), _command(command)
+    GestureOrTap::GestureOrTap(uint8_t gesture_id, Command *command) : _gesture_id(gesture_id), _command(command)
     {
       _command->setParent(this);
     }
 
-    void TrackTap::onPress(uint8_t n_times)
+    void GestureOrTap::onPress(uint8_t n_times)
     {
-      HidEngine.startTracking(_track_id);
+      HidEngine.startGesture(_gesture_id);
     }
 
-    uint8_t TrackTap::onRelease()
+    uint8_t GestureOrTap::onRelease()
     {
-      HidEngine.stopTracking(_track_id);
+      HidEngine.stopGesture(_gesture_id);
       if (this->isLastPressed())
       {
         _command->press();
