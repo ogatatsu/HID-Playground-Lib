@@ -50,8 +50,8 @@
 #endif
 
 // シーケンスキーマップの最大シーケンス数
-#ifndef HID_ENGINE_MAX_SEQ_COUNT
-#define HID_ENGINE_MAX_SEQ_COUNT 5
+#ifndef HID_ENGINE_MAX_SEQUENCE_COUNT
+#define HID_ENGINE_MAX_SEQUENCE_COUNT 5
 #endif
 
 // MouseMoveコマンドの最初のキープレス時のディレイ

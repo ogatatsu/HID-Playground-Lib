@@ -39,9 +39,9 @@ namespace hidpg
     Command *command;
   };
 
-  struct SeqKey
+  struct SequenceKey
   {
-    uint8_t key_ids[HID_ENGINE_MAX_SEQ_COUNT];
+    uint8_t key_ids[HID_ENGINE_MAX_SEQUENCE_COUNT];
     Command *command;
     size_t key_ids_len;
   };
@@ -97,15 +97,15 @@ namespace hidpg
         _keymap_len = keymap_len;
       }
 
-      template <uint8_t seq_keymap_len>
-      static void setSeqKeymap(SeqKey (&seq_keymap)[seq_keymap_len])
+      template <uint8_t sequence_keymap_len>
+      static void setSequenceKeymap(SequenceKey (&sequence_keymap)[sequence_keymap_len])
       {
-        _seq_keymap = seq_keymap;
-        _seq_keymap_len = seq_keymap_len;
+        _sequence_keymap = sequence_keymap;
+        _sequence_keymap_len = sequence_keymap_len;
 
-        for (int i = 0; i < _seq_keymap_len; i++)
+        for (int i = 0; i < _sequence_keymap_len; i++)
         {
-          _seq_keymap[i].key_ids_len = getValidLength(_seq_keymap[i].key_ids, HID_ENGINE_MAX_SEQ_COUNT);
+          _sequence_keymap[i].key_ids_len = getValidLength(_sequence_keymap[i].key_ids, HID_ENGINE_MAX_SEQUENCE_COUNT);
         }
       }
 
@@ -140,36 +140,44 @@ namespace hidpg
 
     private:
       static void applyToKeymap_impl(Set &key_ids);
-      static void processSeqKeymap(Set &key_ids);
+      static void processSequenceKeymap(Set &key_ids);
       static void processKeymap(Set &key_ids);
       static void mouseMove_impl(uint8_t mouse_id);
       static void processGestureX(Gesture &gesture);
       static void processGestureY(Gesture &gesture);
       static void rotateEncoder_impl(uint8_t encoder_id);
-      static int match_with_seqKeymap(const uint8_t id_seq[], size_t len, SeqKey **matched);
+
+      enum class MatchResult
+      {
+        NoMatch,
+        PartialMatch,
+        Match,
+      };
+
+      static MatchResult matchWithSequenceKeymap(const uint8_t id_seq[], size_t len, SequenceKey **matched);
       static size_t getValidLength(const uint8_t key_ids[], size_t max_len);
 
       static Key *_keymap;
-      static SeqKey *_seq_keymap;
+      static SequenceKey *_sequence_keymap;
       static Gesture *_gesture_map;
       static Encoder *_encoder_map;
 
       static uint8_t _keymap_len;
-      static uint8_t _seq_keymap_len;
+      static uint8_t _sequence_keymap_len;
       static uint8_t _gesture_map_len;
       static uint8_t _encoder_map_len;
 
       static read_mouse_delta_callback_t _read_mouse_delta_cb;
       static read_encoder_step_callback_t _read_encoder_step_cb;
 
-      enum class SeqModeState
+      enum class SequenceModeState
       {
         Disable,
-        Running,
+        MatchProcess,
         WaitRelease,
       };
 
-      static SeqModeState _seq_mode_state;
+      static SequenceModeState _sequence_mode_state;
 
       static etl::intrusive_list<GestureID, GestureIDLink> _gesture_list;
       static int32_t _total_distance_x;

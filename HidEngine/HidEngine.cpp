@@ -34,19 +34,19 @@ namespace hidpg
   {
 
     Key *HidEngineClass::_keymap = nullptr;
-    SeqKey *HidEngineClass::_seq_keymap = nullptr;
+    SequenceKey *HidEngineClass::_sequence_keymap = nullptr;
     Gesture *HidEngineClass::_gesture_map = nullptr;
     Encoder *HidEngineClass::_encoder_map = nullptr;
 
     uint8_t HidEngineClass::_keymap_len = 0;
-    uint8_t HidEngineClass::_seq_keymap_len = 0;
+    uint8_t HidEngineClass::_sequence_keymap_len = 0;
     uint8_t HidEngineClass::_gesture_map_len = 0;
     uint8_t HidEngineClass::_encoder_map_len = 0;
 
     HidEngineClass::read_mouse_delta_callback_t HidEngineClass::_read_mouse_delta_cb = nullptr;
     HidEngineClass::read_encoder_step_callback_t HidEngineClass::_read_encoder_step_cb = nullptr;
 
-    HidEngineClass::SeqModeState HidEngineClass::_seq_mode_state = HidEngineClass::SeqModeState::Disable;
+    HidEngineClass::SequenceModeState HidEngineClass::_sequence_mode_state = HidEngineClass::SequenceModeState::Disable;
     etl::intrusive_list<GestureID, GestureIDLink> HidEngineClass::_gesture_list;
 
     int32_t HidEngineClass::_total_distance_x = 0;
@@ -114,28 +114,28 @@ namespace hidpg
     //------------------------------------------------------------------+
     void HidEngineClass::applyToKeymap_impl(Set &key_ids)
     {
-      processSeqKeymap(key_ids);
+      processSequenceKeymap(key_ids);
       processKeymap(key_ids);
     }
 
-    void HidEngineClass::processSeqKeymap(Set &key_ids)
+    void HidEngineClass::processSequenceKeymap(Set &key_ids)
     {
-      static Set prev_ids, pressed_in_seq_mode_ids;
-      static uint8_t id_seq[HID_ENGINE_MAX_SEQ_COUNT];
+      static Set prev_ids, pressed_in_sequence_mode_ids;
+      static uint8_t id_seq[HID_ENGINE_MAX_SEQUENCE_COUNT];
       static size_t id_seq_len = 0;
-      static SeqKey *matched;
+      static SequenceKey *matched;
 
       // シーケンスモード中に押されたidがリリースされるまで監視する
-      if (pressed_in_seq_mode_ids.count() != 0)
+      if (pressed_in_sequence_mode_ids.count() != 0)
       {
         // リリースされたids = 1つ前のids - 現在のids
         Set release_ids = prev_ids - key_ids;
-        pressed_in_seq_mode_ids -= release_ids;
+        pressed_in_sequence_mode_ids -= release_ids;
       }
 
-      if (_seq_mode_state == SeqModeState::Running)
+      if (_sequence_mode_state == SequenceModeState::MatchProcess)
       {
-        // 新しく押されたidを順番に保存していきseq_keymap内で一致している物があるかどうかを調べる
+        // 新しく押されたidを順番に保存していきsequence_keymap内で一致している物があるかどうかを調べる
         // 新しく押されたids = 現在のids - 1つ前のids
         Set new_press_ids = key_ids - prev_ids;
 
@@ -146,76 +146,71 @@ namespace hidpg
 
         // id_seqにシーケンスモードになってから新しく押されたidを順番に保存する
         size_t i = 0;
-        while ((id_seq_len < HID_ENGINE_MAX_SEQ_COUNT) && (i < new_press_len))
+        while ((id_seq_len < HID_ENGINE_MAX_SEQUENCE_COUNT) && (i < new_press_len))
         {
           id_seq[id_seq_len++] = new_press_arr[i++];
         }
 
-        // 順番に保存したidとseq_keymapの比較
-        int match_result = match_with_seqKeymap(id_seq, id_seq_len, &matched);
+        // 順番に保存したidとsequence_keymapの比較
+        MatchResult match_result = matchWithSequenceKeymap(id_seq, id_seq_len, &matched);
 
-        if (match_result == 0)
+        if (match_result == MatchResult::NoMatch)
         { // マッチしなければシーケンスモードを解除
           id_seq_len = 0;
-          _seq_mode_state = SeqModeState::Disable;
+          _sequence_mode_state = SequenceModeState::Disable;
         }
-        else if (match_result == 1)
+        else if (match_result == MatchResult::PartialMatch)
         { // 部分マッチならば何もしない
           // pass
         }
-        else if (match_result == 2)
+        else if (match_result == MatchResult::Match)
         { // 完全マッチしたらコマンドを実行してStateをWaitReleaseに移行
           id_seq_len = 0;
           matched->command->press();
-          _seq_mode_state = SeqModeState::WaitRelease;
+          _sequence_mode_state = SequenceModeState::WaitRelease;
         }
 
         // シーケンスモード時に押されたidは1回リリースされるまではkeymapのコマンドを実行しない
         // そのためリリースされるまで監視する必要があるのでidを追加していく
-        pressed_in_seq_mode_ids |= new_press_ids;
+        pressed_in_sequence_mode_ids |= new_press_ids;
       }
-      else if (_seq_mode_state == SeqModeState::WaitRelease)
+      else if (_sequence_mode_state == SequenceModeState::WaitRelease)
       {
         // 完全マッチ時に実行したコマンドを解除
         // key_ids内からマッチしたid列の最後のid無くなったら解除する
         if (key_ids.contains(matched->key_ids[matched->key_ids_len - 1]) == false)
         {
           matched->command->release();
-          _seq_mode_state = SeqModeState::Disable;
+          _sequence_mode_state = SequenceModeState::Disable;
         }
       }
 
       // 1つ前のidとして保存
       prev_ids = key_ids;
 
-      if (pressed_in_seq_mode_ids.count() != 0)
+      if (pressed_in_sequence_mode_ids.count() != 0)
       {
         // シーケンスモード中に押されたidはprocessKeymap()では処理しない
-        key_ids -= pressed_in_seq_mode_ids;
+        key_ids -= pressed_in_sequence_mode_ids;
       }
     }
 
-    // 引数のid_seqがseq_keymapの定義とマッチするか調べる
-    // 戻り値が
-    // 0: マッチしない
-    // 1: 部分マッチ
-    // 2: 完全にマッチ、完全にマッチした場合はmatchedにマッチしたSeqKeyを入れて返す
-    int HidEngineClass::match_with_seqKeymap(const uint8_t id_seq[], size_t len, SeqKey **matched)
+    HidEngineClass::MatchResult HidEngineClass::matchWithSequenceKeymap(const uint8_t id_seq[], size_t len, SequenceKey **matched)
     {
-      for (size_t i = 0; i < _seq_keymap_len; i++)
+      for (size_t i = 0; i < _sequence_keymap_len; i++)
       {
-        size_t min_len = min(len, _seq_keymap[i].key_ids_len);
-        if (memcmp(id_seq, _seq_keymap[i].key_ids, min_len) == 0)
+        size_t min_len = min(len, _sequence_keymap[i].key_ids_len);
+        if (memcmp(id_seq, _sequence_keymap[i].key_ids, min_len) == 0)
         {
-          if (len == _seq_keymap[i].key_ids_len)
+          if (len == _sequence_keymap[i].key_ids_len)
           {
-            *matched = &_seq_keymap[i];
-            return 2;
+            *matched = &_sequence_keymap[i];
+            return MatchResult::Match;
           }
-          return 1;
+          return MatchResult::PartialMatch;
         }
       }
-      return 0;
+      return MatchResult::NoMatch;
     }
 
     void HidEngineClass::processKeymap(Set &key_ids)
@@ -234,6 +229,14 @@ namespace hidpg
         {
           _keymap[i].command->release();
         }
+      }
+    }
+
+    void HidEngineClass::switchSequenceMode()
+    {
+      if (_sequence_mode_state == SequenceModeState::Disable)
+      {
+        _sequence_mode_state = SequenceModeState::MatchProcess;
       }
     }
 
@@ -380,6 +383,28 @@ namespace hidpg
       }
     }
 
+    void HidEngineClass::startGesture(GestureID &gesture_id)
+    {
+      if (gesture_id.is_linked() == false)
+      {
+        _gesture_list.push_back(gesture_id);
+      }
+    }
+
+    void HidEngineClass::stopGesture(GestureID &gesture_id)
+    {
+      if (gesture_id.is_linked())
+      {
+        auto i_item = etl::intrusive_list<GestureID, GestureIDLink>::iterator(gesture_id);
+        _gesture_list.erase(i_item);
+        gesture_id.clear();
+        if (_gesture_list.empty())
+        {
+          _total_distance_x = _total_distance_y = 0;
+        }
+      }
+    }
+
     //------------------------------------------------------------------+
     // RotateEncoder
     //------------------------------------------------------------------+
@@ -417,36 +442,6 @@ namespace hidpg
         else
         {
           CommandTapper.tap(_encoder_map[idx].counterclockwise_command, step_u8);
-        }
-      }
-    }
-
-    void HidEngineClass::switchSequenceMode()
-    {
-      if (_seq_mode_state == SeqModeState::Disable)
-      {
-        _seq_mode_state = SeqModeState::Running;
-      }
-    }
-
-    void HidEngineClass::startGesture(GestureID &gesture_id)
-    {
-      if (gesture_id.is_linked() == false)
-      {
-        _gesture_list.push_back(gesture_id);
-      }
-    }
-
-    void HidEngineClass::stopGesture(GestureID &gesture_id)
-    {
-      if (gesture_id.is_linked())
-      {
-        auto i_item = etl::intrusive_list<GestureID, GestureIDLink>::iterator(gesture_id);
-        _gesture_list.erase(i_item);
-        gesture_id.clear();
-        if (_gesture_list.empty())
-        {
-          _total_distance_x = _total_distance_y = 0;
         }
       }
     }
