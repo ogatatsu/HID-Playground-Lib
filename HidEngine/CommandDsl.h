@@ -258,10 +258,10 @@ namespace hidpg
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_GestureOrTap(uint8_t gesture_id, Command *command)
+    Command *new_GestureTap(uint8_t gesture_id, Command *command)
     {
-      static uint8_t buf[sizeof(GestureOrTap)];
-      return new (buf) GestureOrTap(gesture_id, command);
+      static uint8_t buf[sizeof(GestureTap)];
+      return new (buf) GestureTap(gesture_id, command);
     }
 
   } // namespace Internal
@@ -362,8 +362,8 @@ namespace hidpg
 // Gesture
 #define GST(gesture_id) (Internal::new_GestureCommand<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(gesture_id))
 
-// GestureOrTap
-#define GoT(gesture_id, command) (Internal::new_GestureOrTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(gesture_id, command))
+// GestureTap
+#define GT(gesture_id, command) (Internal::new_GestureTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(gesture_id, command))
 
 // nullptr alias (_ * 7)
 #define _______ (static_cast<Command *>(nullptr))

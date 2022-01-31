@@ -34,6 +34,7 @@
 
 #define BDRCP_EVENT_LISTENER_LINK_ID 0
 #define BMM_EVENT_LISTENER_LINK_ID 1
+#define BGST_EVENT_LISTENER_LINK_ID 2
 
 namespace hidpg
 {
@@ -115,6 +116,33 @@ namespace hidpg
     static etl::intrusive_list<BmmEventListener, BmmEventListenerLink> &_listener_list()
     {
       static etl::intrusive_list<BmmEventListener, BmmEventListenerLink> list;
+      return list;
+    };
+
+    bool _is_listen;
+  };
+
+  //------------------------------------------------------------------+
+  // BgstEventListener
+  //------------------------------------------------------------------+
+  typedef etl::bidirectional_link<BGST_EVENT_LISTENER_LINK_ID> BgstEventListenerLink;
+
+  class BgstEventListener : public BgstEventListenerLink
+  {
+  public:
+    BgstEventListener();
+    static void _notifyBeforeGesture();
+
+  protected:
+    void startListen_BeforeGesture();
+    void stopListen_BeforeGesture();
+    virtual void onBeforeGesture() = 0;
+
+  private:
+    // Construct On First Use Idiom
+    static etl::intrusive_list<BgstEventListener, BgstEventListenerLink> &_listener_list()
+    {
+      static etl::intrusive_list<BgstEventListener, BgstEventListenerLink> list;
       return list;
     };
 

@@ -149,6 +149,40 @@ namespace hidpg
     }
   }
 
+  //------------------------------------------------------------------+
+  // BgstEventListener
+  //------------------------------------------------------------------+
+  BgstEventListener::BgstEventListener() : _is_listen(false)
+  {
+  }
+
+  void BgstEventListener::startListen_BeforeGesture()
+  {
+    if (_is_listen == false)
+    {
+      _listener_list().push_back(*this);
+      _is_listen = true;
+    }
+  }
+
+  void BgstEventListener::stopListen_BeforeGesture()
+  {
+    if (_is_listen)
+    {
+      auto i_item = etl::intrusive_list<BgstEventListener, BgstEventListenerLink>::iterator(*this);
+      _listener_list().erase(i_item);
+      _is_listen = false;
+    }
+  }
+
+  void BgstEventListener::_notifyBeforeGesture()
+  {
+    for (BgstEventListener &listener : _listener_list())
+    {
+      listener.onBeforeGesture();
+    }
+  }
+
   namespace Internal
   {
 

@@ -337,6 +337,8 @@ namespace hidpg
 
       if (_total_distance_y <= -threshold) // up
       {
+        BgstEventListener::_notifyBeforeGesture();
+
         uint8_t n_times = min(abs(_total_distance_y / threshold), UINT8_MAX);
         _total_distance_y %= threshold;
         CommandTapper.tap(gesture.up_command, n_times);
@@ -347,6 +349,8 @@ namespace hidpg
       }
       else if (_total_distance_y >= threshold) // down
       {
+        BgstEventListener::_notifyBeforeGesture();
+
         uint8_t n_times = min(_total_distance_y / threshold, UINT8_MAX);
         _total_distance_y %= threshold;
         CommandTapper.tap(gesture.down_command, n_times);
@@ -363,6 +367,8 @@ namespace hidpg
 
       if (_total_distance_x <= -threshold) // left
       {
+        BgstEventListener::_notifyBeforeGesture();
+
         uint8_t n_times = min(abs(_total_distance_x / threshold), UINT8_MAX);
         _total_distance_x %= threshold;
         CommandTapper.tap(gesture.left_command, n_times);
@@ -373,6 +379,8 @@ namespace hidpg
       }
       else if (_total_distance_x >= threshold) // right
       {
+        BgstEventListener::_notifyBeforeGesture();
+
         uint8_t n_times = min(_total_distance_x / threshold, UINT8_MAX);
         _total_distance_x %= threshold;
         CommandTapper.tap(gesture.right_command, n_times);
@@ -473,27 +481,72 @@ namespace hidpg
     }
 
     //------------------------------------------------------------------+
-    // GestureOrTap
+    // GestureTap
     //------------------------------------------------------------------+
-    GestureOrTap::GestureOrTap(uint8_t gesture_id, Command *command) : _gesture_id(gesture_id), _command(command)
+    GestureTap::GestureTap(uint8_t gesture_id, Command *command)
+        : BdrcpEventListener(this), BgstEventListener(), _gesture_id(gesture_id), _command(command), _state(State::Unexecuted)
     {
       _command->setParent(this);
     }
 
-    void GestureOrTap::onPress(uint8_t n_times)
+    void GestureTap::onPress(uint8_t n_times)
     {
       HidEngine.startGesture(_gesture_id);
+      _state = State::Pressed;
+      startListen();
     }
 
-    uint8_t GestureOrTap::onRelease()
+    uint8_t GestureTap::onRelease()
     {
-      HidEngine.stopGesture(_gesture_id);
-      if (this->isLastPressed())
+      if (_state == State::Pressed)
       {
-        _command->press();
+        HidEngine.stopGesture(_gesture_id);
+        CommandTapper.tap(_command);
+        stopListen();
+      }
+      else if (_state == State::DifferentCommandPressed)
+      {
         _command->release();
       }
+      else if (_state == State::Gestured)
+      {
+        HidEngine.stopGesture(_gesture_id);
+      }
+
+      _state = State::Unexecuted;
       return 1;
+    }
+
+    void GestureTap::onBeforeDifferentRootCommandPress()
+    {
+      if (_state == State::Pressed)
+      {
+        HidEngine.stopGesture(_gesture_id);
+        _command->press();
+        _state = State::DifferentCommandPressed;
+        stopListen();
+      }
+    }
+
+    void GestureTap::onBeforeGesture()
+    {
+      if (_state == State::Pressed)
+      {
+        _state = State::Gestured;
+        stopListen();
+      }
+    }
+
+    void GestureTap::startListen()
+    {
+      startListen_BeforeDifferentRootCommandPress();
+      startListen_BeforeGesture();
+    }
+
+    void GestureTap::stopListen()
+    {
+      stopListen_BeforeDifferentRootCommandPress();
+      stopListen_BeforeGesture();
     }
 
   } // namespace Internal

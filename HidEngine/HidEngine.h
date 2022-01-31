@@ -210,20 +210,33 @@ namespace hidpg
     };
 
     //------------------------------------------------------------------+
-    // GestureOrTap
+    // GestureTap
     //------------------------------------------------------------------+
-    class GestureOrTap : public Command
+    class GestureTap : public Command, public BdrcpEventListener, public BgstEventListener
     {
     public:
-      GestureOrTap(uint8_t gesture_id, Command *command);
+      GestureTap(uint8_t gesture_id, Command *command);
 
     protected:
       void onPress(uint8_t n_times) override;
       uint8_t onRelease() override;
+      void onBeforeDifferentRootCommandPress() override;
+      void onBeforeGesture() override;
+      void startListen();
+      void stopListen();
 
     private:
+      enum class State : uint8_t
+      {
+        Unexecuted,
+        Pressed,
+        DifferentCommandPressed,
+        Gestured,
+      };
+
       GestureID _gesture_id;
       Command *_command;
+      State _state;
     };
 
   } // namespace Internal
