@@ -204,6 +204,9 @@ namespace hidpg
   // Consumer Control
   enum class ConsumerControlCode : uint16_t
   {
+    LightUp     = 111,
+    LightDown   = 112,
+
     PlayPause   = 205,
     FastForward = 179,
     Rewind      = 180,

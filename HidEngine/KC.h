@@ -188,6 +188,8 @@ namespace hidpg
   static constexpr MouseButtons BackwardButton = MouseButtons::Backward;
   static constexpr MouseButtons ForwardButton  = MouseButtons::Forward;
 
+  static constexpr ConsumerControlCode LightUp         = ConsumerControlCode::LightUp;
+  static constexpr ConsumerControlCode LightDown       = ConsumerControlCode::LightDown;
   static constexpr ConsumerControlCode PlayPause       = ConsumerControlCode::PlayPause;
   static constexpr ConsumerControlCode FastForward     = ConsumerControlCode::FastForward;
   static constexpr ConsumerControlCode Rewind          = ConsumerControlCode::Rewind;
