@@ -50,6 +50,7 @@ namespace hidpg
       static void holdOneShotModifiers(Modifiers modifiers);
       static void releaseOneShotModifiers(Modifiers modifiers);
       static void sendKeyReport(bool trigger_one_shot);
+      static bool isModifiersSet();
 
       // Consumer API
       static void consumerKeyPress(ConsumerControlCode usage_code);

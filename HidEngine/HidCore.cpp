@@ -157,6 +157,18 @@ namespace hidpg
       sendKeyReport(false);
     }
 
+    bool HidCore::isModifiersSet()
+    {
+      for (int i = 0; i < 8; i++)
+      {
+        if (_modifier_counters[i] != 0 || _one_shot_modifier_counters[i] != 0 || _triggered_one_shot_modifier_counters[i] != 0)
+        {
+          return true;
+        }
+      }
+      return false;
+    }
+
     void HidCore::sendKeyReport(bool trigger_one_shot)
     {
       // 前回送ったreportと比較して変更があるか
