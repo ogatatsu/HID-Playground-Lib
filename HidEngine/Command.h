@@ -202,12 +202,12 @@ namespace hidpg
     };
 
     //------------------------------------------------------------------+
-    // ModifierTap
+    // ModifierOrTap
     //------------------------------------------------------------------+
-    class ModifierTap : public Command
+    class ModifierOrTap : public Command
     {
     public:
-      ModifierTap(Modifiers modifiers, Command *command);
+      ModifierOrTap(Modifiers modifiers, Command *command);
 
     protected:
       void onPress(uint8_t n_times) override;
@@ -253,12 +253,12 @@ namespace hidpg
     };
 
     //------------------------------------------------------------------+
-    // LayerTap
+    // LayerOrTap
     //------------------------------------------------------------------+
-    class LayerTap : public Command
+    class LayerOrTap : public Command
     {
     public:
-      LayerTap(LayerClass *layer, uint8_t layer_number, Command *command);
+      LayerOrTap(LayerClass *layer, uint8_t layer_number, Command *command);
 
     protected:
       void onPress(uint8_t n_times) override;

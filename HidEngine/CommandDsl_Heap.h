@@ -39,7 +39,7 @@ namespace hidpg
 
   static inline Command *CK(Modifiers modifiers, KeyCode key_code) { return (new Internal::CombinationKey(modifiers, key_code)); }
 
-  static inline Command *MT(Modifiers modifiers, Command *command) { return (new Internal::ModifierTap(modifiers, command)); }
+  static inline Command *MoT(Modifiers modifiers, Command *command) { return (new Internal::ModifierOrTap(modifiers, command)); }
 
   static inline Command *OSM(Modifiers modifiers) { return (new Internal::OneShotModifier(modifiers)); }
 
@@ -82,9 +82,9 @@ namespace hidpg
     return (new Internal::Layering(&Layer2, arg));
   }
 
-  static inline Command *LT(uint8_t layer_number, Command *command) { return (new Internal::LayerTap(&Layer, layer_number, command)); }
-  static inline Command *LT1(uint8_t layer_number, Command *command) { return (new Internal::LayerTap(&Layer1, layer_number, command)); }
-  static inline Command *LT2(uint8_t layer_number, Command *command) { return (new Internal::LayerTap(&Layer2, layer_number, command)); }
+  static inline Command *LoT(uint8_t layer_number, Command *command) { return (new Internal::LayerOrTap(&Layer, layer_number, command)); }
+  static inline Command *LoT1(uint8_t layer_number, Command *command) { return (new Internal::LayerOrTap(&Layer1, layer_number, command)); }
+  static inline Command *LoT2(uint8_t layer_number, Command *command) { return (new Internal::LayerOrTap(&Layer2, layer_number, command)); }
 
   static inline Command *TL(uint8_t layer_number) { return (new Internal::ToggleLayer(&Layer, layer_number)); }
   static inline Command *TL1(uint8_t layer_number) { return (new Internal::ToggleLayer(&Layer1, layer_number)); }
@@ -160,7 +160,7 @@ namespace hidpg
 
   static inline Command *GST(uint8_t gesture_id) { return (new Internal::GestureCommand(gesture_id)); }
 
-  static inline Command *GT(uint8_t gesture_id, Command *command) { return (new Internal::GestureTap(gesture_id, command)); }
+  static inline Command *GoT(uint8_t gesture_id, Command *command) { return (new Internal::GestureOrTap(gesture_id, command)); }
 
   // nullptr alias (_ * 7)
   #define _______ (static_cast<Command *>(nullptr))

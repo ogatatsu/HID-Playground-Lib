@@ -210,12 +210,12 @@ namespace hidpg
     };
 
     //------------------------------------------------------------------+
-    // GestureTap
+    // GestureOrTap
     //------------------------------------------------------------------+
-    class GestureTap : public Command, public BdrcpEventListener, public BgstEventListener
+    class GestureOrTap : public Command, public BdrcpEventListener, public BgstEventListener
     {
     public:
-      GestureTap(uint8_t gesture_id, Command *command);
+      GestureOrTap(uint8_t gesture_id, Command *command);
 
     protected:
       void onPress(uint8_t n_times) override;

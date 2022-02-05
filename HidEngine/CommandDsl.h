@@ -60,10 +60,10 @@ namespace hidpg
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_ModifierTap(Modifiers modifiers, Command *command)
+    Command *new_ModifierOrTap(Modifiers modifiers, Command *command)
     {
-      static uint8_t buf[sizeof(ModifierTap)];
-      return new (buf) ModifierTap(modifiers, command);
+      static uint8_t buf[sizeof(ModifierOrTap)];
+      return new (buf) ModifierOrTap(modifiers, command);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
@@ -89,10 +89,10 @@ namespace hidpg
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_LayerTap(LayerClass *layer, uint8_t layer_number, Command *command)
+    Command *new_LayerOrTap(LayerClass *layer, uint8_t layer_number, Command *command)
     {
-      static uint8_t buf[sizeof(LayerTap)];
-      return new (buf) LayerTap(layer, layer_number, command);
+      static uint8_t buf[sizeof(LayerOrTap)];
+      return new (buf) LayerOrTap(layer, layer_number, command);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
@@ -258,10 +258,10 @@ namespace hidpg
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_GestureTap(uint8_t gesture_id, Command *command)
+    Command *new_GestureOrTap(uint8_t gesture_id, Command *command)
     {
-      static uint8_t buf[sizeof(GestureTap)];
-      return new (buf) GestureTap(gesture_id, command);
+      static uint8_t buf[sizeof(GestureOrTap)];
+      return new (buf) GestureOrTap(gesture_id, command);
     }
 
   } // namespace Internal
@@ -275,8 +275,8 @@ namespace hidpg
 // CombinationKey
 #define CK(modifiers, key_code) (Internal::new_CombinationKey<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(modifiers, key_code))
 
-// ModifierTap
-#define MT(modifiers, command) (Internal::new_ModifierTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(modifiers, command))
+// ModifierOrTap
+#define MoT(modifiers, command) (Internal::new_ModifierOrTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(modifiers, command))
 
 // OneShotModifier
 #define OSM(modifiers) (Internal::new_OneShotModifier<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(modifiers))
@@ -286,10 +286,10 @@ namespace hidpg
 #define LY1(...) (Internal::new_Layering<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer1, __VA_ARGS__))
 #define LY2(...) (Internal::new_Layering<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer2, __VA_ARGS__))
 
-// LayerTap
-#define LT(layer_number, command) (Internal::new_LayerTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer, layer_number, command))
-#define LT1(layer_number, command) (Internal::new_LayerTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer1, layer_number, command))
-#define LT2(layer_number, command) (Internal::new_LayerTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer2, layer_number, command))
+// LayerOrTap
+#define LoT(layer_number, command) (Internal::new_LayerOrTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer, layer_number, command))
+#define LoT1(layer_number, command) (Internal::new_LayerOrTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer1, layer_number, command))
+#define LoT2(layer_number, command) (Internal::new_LayerOrTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer2, layer_number, command))
 
 // ToggleLayer
 #define TL(layer_number) (Internal::new_ToggleLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer, layer_number))
@@ -362,8 +362,8 @@ namespace hidpg
 // Gesture
 #define GST(gesture_id) (Internal::new_GestureCommand<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(gesture_id))
 
-// GestureTap
-#define GT(gesture_id, command) (Internal::new_GestureTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(gesture_id, command))
+// GestureOrTap
+#define GoT(gesture_id, command) (Internal::new_GestureOrTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(gesture_id, command))
 
 // nullptr alias (_ * 7)
 #define _______ (static_cast<Command *>(nullptr))

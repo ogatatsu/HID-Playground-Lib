@@ -249,20 +249,20 @@ namespace hidpg
     }
 
     //------------------------------------------------------------------+
-    // ModifierTap
+    // ModifierOrTap
     //------------------------------------------------------------------+
-    ModifierTap::ModifierTap(Modifiers modifiers, Command *command)
+    ModifierOrTap::ModifierOrTap(Modifiers modifiers, Command *command)
         : _modifiers(modifiers), _command(command)
     {
       _command->setParent(this);
     }
 
-    void ModifierTap::onPress(uint8_t n_times)
+    void ModifierOrTap::onPress(uint8_t n_times)
     {
       Hid.setModifiers(_modifiers);
     }
 
-    uint8_t ModifierTap::onRelease()
+    uint8_t ModifierOrTap::onRelease()
     {
       Hid.unsetModifiers(_modifiers);
       if (this->isLastPressed())
@@ -355,20 +355,20 @@ namespace hidpg
     }
 
     //------------------------------------------------------------------+
-    // LayerTap
+    // LayerOrTap
     //------------------------------------------------------------------+
-    LayerTap::LayerTap(LayerClass *layer, uint8_t layer_number, Command *command)
+    LayerOrTap::LayerOrTap(LayerClass *layer, uint8_t layer_number, Command *command)
         : _layer(layer), _layer_number(layer_number), _command(command)
     {
       _command->setParent(this);
     }
 
-    void LayerTap::onPress(uint8_t n_times)
+    void LayerOrTap::onPress(uint8_t n_times)
     {
       _layer->on(_layer_number);
     }
 
-    uint8_t LayerTap::onRelease()
+    uint8_t LayerOrTap::onRelease()
     {
       _layer->off(_layer_number);
       if (this->isLastPressed())

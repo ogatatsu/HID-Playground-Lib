@@ -481,22 +481,22 @@ namespace hidpg
     }
 
     //------------------------------------------------------------------+
-    // GestureTap
+    // GestureOrTap
     //------------------------------------------------------------------+
-    GestureTap::GestureTap(uint8_t gesture_id, Command *command)
+    GestureOrTap::GestureOrTap(uint8_t gesture_id, Command *command)
         : BdrcpEventListener(this), BgstEventListener(), _gesture_id(gesture_id), _command(command), _state(State::Unexecuted)
     {
       _command->setParent(this);
     }
 
-    void GestureTap::onPress(uint8_t n_times)
+    void GestureOrTap::onPress(uint8_t n_times)
     {
       HidEngine.startGesture(_gesture_id);
       _state = State::Pressed;
       startListen();
     }
 
-    uint8_t GestureTap::onRelease()
+    uint8_t GestureOrTap::onRelease()
     {
       if (_state == State::Pressed)
       {
@@ -517,7 +517,7 @@ namespace hidpg
       return 1;
     }
 
-    void GestureTap::onBeforeDifferentRootCommandPress()
+    void GestureOrTap::onBeforeDifferentRootCommandPress()
     {
       if (_state == State::Pressed)
       {
@@ -528,7 +528,7 @@ namespace hidpg
       }
     }
 
-    void GestureTap::onBeforeGesture()
+    void GestureOrTap::onBeforeGesture()
     {
       if (_state == State::Pressed)
       {
@@ -537,13 +537,13 @@ namespace hidpg
       }
     }
 
-    void GestureTap::startListen()
+    void GestureOrTap::startListen()
     {
       startListen_BeforeDifferentRootCommandPress();
       startListen_BeforeGesture();
     }
 
-    void GestureTap::stopListen()
+    void GestureOrTap::stopListen()
     {
       stopListen_BeforeDifferentRootCommandPress();
       stopListen_BeforeGesture();
