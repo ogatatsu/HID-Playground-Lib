@@ -877,6 +877,41 @@ namespace hidpg
     }
 
     //------------------------------------------------------------------+
+    // TapSpacing
+    //------------------------------------------------------------------+
+    TapSpacing::TapSpacing(uint32_t reference_ms, Command *command)
+        : _reference_ms(reference_ms), _command(command), _last_press_millis(0), _has_pressed(false)
+    {
+      _command->setParent(this);
+    }
+
+    void TapSpacing::onPress(uint8_t n_times)
+    {
+      _n_times = n_times;
+
+      uint32_t ms = _reference_ms / n_times;
+
+      uint32_t current_millis = millis();
+      if (static_cast<uint32_t>(current_millis - _last_press_millis) >= ms)
+      {
+        _command->press();
+        _last_press_millis = current_millis;
+        _has_pressed = true;
+      }
+    }
+
+    uint8_t TapSpacing::onRelease()
+    {
+      if (_has_pressed)
+      {
+        _command->release();
+        _has_pressed = false;
+      }
+
+      return _n_times;
+    }
+
+    //------------------------------------------------------------------+
     // If
     //------------------------------------------------------------------+
     If::If(bool (*func)(), Command *true_command, Command *false_command)

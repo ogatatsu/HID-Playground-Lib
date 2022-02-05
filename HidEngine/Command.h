@@ -590,6 +590,24 @@ namespace hidpg
     };
 
     //------------------------------------------------------------------+
+    // TapSpacing
+    //------------------------------------------------------------------+
+    class TapSpacing : public Command
+    {
+    public:
+      TapSpacing(uint32_t reference_ms, Command *command);
+      void onPress(uint8_t n_times) override;
+      uint8_t onRelease() override;
+
+    private:
+      uint32_t _reference_ms;
+      Command *_command;
+      uint32_t _last_press_millis;
+      bool _has_pressed;
+      uint8_t _n_times;
+    };
+
+    //------------------------------------------------------------------+
     // If
     //------------------------------------------------------------------+
     class If : public Command

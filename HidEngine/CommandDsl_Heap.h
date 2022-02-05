@@ -140,6 +140,8 @@ namespace hidpg
 
   static inline Command *OE(uint32_t ms, Command *command) { return (new Internal::OnceEvery(ms, command)); }
 
+  static inline Command *TS(uint32_t ms, Command *command) { return (new Internal::TapSpacing(ms, command)); }
+
   static inline Command *IF(bool (*func)(), Command *true_command, Command *false_command) { return (new Internal::If(func, true_command, false_command)); }
 
   template <uint8_t N>

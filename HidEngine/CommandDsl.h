@@ -217,6 +217,13 @@ namespace hidpg
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
+    Command *new_TapSpacing(uint32_t ms, Command *command)
+    {
+      static uint8_t buf[sizeof(TapSpacing)];
+      return new (buf) TapSpacing(ms, command);
+    }
+
+    template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
     Command *new_If(bool (*func)(), Command *true_command, Command *false_command)
     {
       static uint8_t buf[sizeof(If)];
@@ -353,6 +360,9 @@ namespace hidpg
 
 // OnceEvery
 #define OE(ms, command) (Internal::new_OnceEvery<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(ms, command))
+
+// TapSpacing
+#define TS(ms, command) (Internal::new_TapSpacing<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(ms, command))
 
 // If
 #define IF(func, true_command, false_command) (Internal::new_If<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(func, true_command, false_command))
