@@ -162,6 +162,8 @@ namespace hidpg
 
   static inline Command *GoT(uint8_t gesture_id, Command *command) { return (new Internal::GestureOrTap(gesture_id, command)); }
 
+  static inline Command *GoTK(uint8_t gesture_id, KeyCode key_code) { return (new Internal::GestureOrTapKey(gesture_id, key_code)); }
+
   // nullptr alias (_ * 7)
   #define _______ (static_cast<Command *>(nullptr))
 

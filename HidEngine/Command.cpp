@@ -849,6 +849,7 @@ namespace hidpg
     OnceEvery::OnceEvery(uint32_t ms, Command *command)
         : _ms(ms), _command(command), _last_press_millis(0), _has_pressed(false)
     {
+      _command->setParent(this);
     }
 
     void OnceEvery::onPress(uint8_t n_times)

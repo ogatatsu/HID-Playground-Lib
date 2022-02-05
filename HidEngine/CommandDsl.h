@@ -264,6 +264,13 @@ namespace hidpg
       return new (buf) GestureOrTap(gesture_id, command);
     }
 
+    template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
+    Command *new_GestureOrTapKey(uint8_t gesture_id, KeyCode key_code)
+    {
+      static uint8_t buf[sizeof(GestureOrTapKey)];
+      return new (buf) GestureOrTapKey(gesture_id, key_code);
+    }
+
   } // namespace Internal
 
 // NormalKey
@@ -364,6 +371,9 @@ namespace hidpg
 
 // GestureOrTap
 #define GoT(gesture_id, command) (Internal::new_GestureOrTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(gesture_id, command))
+
+// GestureOrTapKey
+#define GoTK(gesture_id, key_code) (Internal::new_GestureOrTapKey<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(gesture_id, key_code))
 
 // nullptr alias (_ * 7)
 #define _______ (static_cast<Command *>(nullptr))

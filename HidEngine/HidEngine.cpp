@@ -492,8 +492,8 @@ namespace hidpg
     void GestureOrTap::onPress(uint8_t n_times)
     {
       HidEngine.startGesture(_gesture_id);
-      _state = State::Pressed;
       startListen();
+      _state = State::Pressed;
     }
 
     uint8_t GestureOrTap::onRelease()
@@ -501,8 +501,8 @@ namespace hidpg
       if (_state == State::Pressed)
       {
         HidEngine.stopGesture(_gesture_id);
-        CommandTapper.tap(_command);
         stopListen();
+        CommandTapper.tap(_command);
       }
       else if (_state == State::DifferentCommandPressed)
       {
@@ -522,9 +522,9 @@ namespace hidpg
       if (_state == State::Pressed)
       {
         HidEngine.stopGesture(_gesture_id);
+        stopListen();
         _command->press();
         _state = State::DifferentCommandPressed;
-        stopListen();
       }
     }
 
@@ -532,8 +532,8 @@ namespace hidpg
     {
       if (_state == State::Pressed)
       {
-        _state = State::Gestured;
         stopListen();
+        _state = State::Gestured;
       }
     }
 
@@ -544,6 +544,83 @@ namespace hidpg
     }
 
     void GestureOrTap::stopListen()
+    {
+      stopListen_BeforeDifferentRootCommandPress();
+      stopListen_BeforeGesture();
+    }
+
+    //------------------------------------------------------------------+
+    // GestureOrTapKey
+    //------------------------------------------------------------------+
+    GestureOrTapKey::GestureOrTapKey(uint8_t gesture_id, KeyCode key_code)
+        : BdrcpEventListener(this), BgstEventListener(), _gesture_id(gesture_id), _nk_command(key_code), _state(State::Unexecuted)
+    {
+      _nk_command.setParent(this);
+    }
+
+    void GestureOrTapKey::onPress(uint8_t n_times)
+    {
+      if (Hid.isModifiersSet())
+      {
+        _nk_command.press();
+        _state = State::PressedWithModifiers;
+      }
+      else
+      {
+        HidEngine.startGesture(_gesture_id);
+        startListen();
+        _state = State::Pressed;
+      }
+    }
+
+    uint8_t GestureOrTapKey::onRelease()
+    {
+      if (_state == State::Pressed)
+      {
+        HidEngine.stopGesture(_gesture_id);
+        stopListen();
+        CommandTapper.tap(&_nk_command);
+      }
+      else if (_state == State::DifferentCommandPressed || _state == State::PressedWithModifiers)
+      {
+        _nk_command.release();
+      }
+      else if (_state == State::Gestured)
+      {
+        HidEngine.stopGesture(_gesture_id);
+      }
+
+      _state = State::Unexecuted;
+      return 1;
+    }
+
+    void GestureOrTapKey::onBeforeDifferentRootCommandPress()
+    {
+      if (_state == State::Pressed)
+      {
+        HidEngine.stopGesture(_gesture_id);
+        stopListen();
+        _nk_command.press();
+        _state = State::DifferentCommandPressed;
+      }
+    }
+
+    void GestureOrTapKey::onBeforeGesture()
+    {
+      if (_state == State::Pressed)
+      {
+        stopListen();
+        _state = State::Gestured;
+      }
+    }
+
+    void GestureOrTapKey::startListen()
+    {
+      startListen_BeforeDifferentRootCommandPress();
+      startListen_BeforeGesture();
+    }
+
+    void GestureOrTapKey::stopListen()
     {
       stopListen_BeforeDifferentRootCommandPress();
       stopListen_BeforeGesture();

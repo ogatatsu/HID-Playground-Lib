@@ -239,6 +239,37 @@ namespace hidpg
       State _state;
     };
 
+    //------------------------------------------------------------------+
+    // GestureOrTapKey
+    //------------------------------------------------------------------+
+    class GestureOrTapKey : public Command, public BdrcpEventListener, public BgstEventListener
+    {
+    public:
+      GestureOrTapKey(uint8_t gesture_id, KeyCode key_code);
+
+    protected:
+      void onPress(uint8_t n_times) override;
+      uint8_t onRelease() override;
+      void onBeforeDifferentRootCommandPress() override;
+      void onBeforeGesture() override;
+      void startListen();
+      void stopListen();
+
+    private:
+      enum class State : uint8_t
+      {
+        Unexecuted,
+        Pressed,
+        PressedWithModifiers,
+        DifferentCommandPressed,
+        Gestured,
+      };
+
+      GestureID _gesture_id;
+      NormalKey _nk_command;
+      State _state;
+    };
+
   } // namespace Internal
 
   extern Internal::HidEngineClass HidEngine;
