@@ -124,10 +124,17 @@ namespace hidpg
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_Tap(Command *command, uint8_t n_times, uint16_t tap_speed_ms = HID_ENGINE_TAP_SPEED_MS)
+    Command *new_Tap(Command *command, uint8_t n_times = 1, uint16_t tap_speed_ms = HID_ENGINE_TAP_SPEED_MS)
     {
       static uint8_t buf[sizeof(Tap)];
       return new (buf) Tap(command, n_times, tap_speed_ms);
+    }
+
+    template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
+    Command *new_TapWhenReleased(Command *command, uint8_t n_times = 1, uint16_t tap_speed_ms = HID_ENGINE_TAP_SPEED_MS)
+    {
+      static uint8_t buf[sizeof(TapWhenReleased)];
+      return new (buf) TapWhenReleased(command, n_times, tap_speed_ms);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3, size_t N>
@@ -327,6 +334,9 @@ namespace hidpg
 
 // Tap
 #define TAP(...) (Internal::new_Tap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(__VA_ARGS__))
+
+// TapWhenReleased
+#define TAP_R(...) (Internal::new_TapWhenReleased<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(__VA_ARGS__))
 
 // TapDance
 #define TD(...) (Internal::new_TapDance<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(__VA_ARGS__))

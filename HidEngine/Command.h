@@ -355,6 +355,23 @@ namespace hidpg
       const uint16_t _tap_speed_ms;
     };
 
+    // ------------------------------------------------------------------+
+    // TapWhenReleased
+    // ------------------------------------------------------------------+
+    class TapWhenReleased : public Command
+    {
+    public:
+      TapWhenReleased(Command *command, uint8_t n_times, uint16_t tap_speed_ms);
+
+    protected:
+      uint8_t onRelease() override;
+
+    private:
+      Command *_command;
+      const uint8_t _n_times;
+      const uint16_t _tap_speed_ms;
+    };
+
     //------------------------------------------------------------------+
     // TapDance
     //------------------------------------------------------------------+

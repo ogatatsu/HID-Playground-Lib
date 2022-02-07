@@ -474,6 +474,21 @@ namespace hidpg
     }
 
     //------------------------------------------------------------------+
+    // TapWhenReleased
+    //------------------------------------------------------------------+
+    TapWhenReleased::TapWhenReleased(Command *command, uint8_t n_times, uint16_t tap_speed_ms)
+        : _command(command), _n_times(n_times), _tap_speed_ms(tap_speed_ms)
+    {
+      _command->setParent(this);
+    }
+
+    uint8_t TapWhenReleased::onRelease()
+    {
+      CommandTapper.tap(_command, _n_times, _tap_speed_ms);
+      return 1;
+    }
+
+    //------------------------------------------------------------------+
     // TapDance
     //------------------------------------------------------------------+
     TapDance::TapDance(Pair pairs[], int8_t len, bool determine_with_mouse_move)

@@ -102,7 +102,9 @@ namespace hidpg
   static inline Command *UPL1(uint8_t i) { return (new Internal::UpBaseLayer(&Layer1, i)); }
   static inline Command *UPL2(uint8_t i) { return (new Internal::UpBaseLayer(&Layer2, i)); }
 
-  static inline Command *TAP(Command *command, uint8_t n_times, uint16_t tap_speed_ms = HID_ENGINE_TAP_SPEED_MS) { return (new Internal::Tap(command, n_times, tap_speed_ms)); }
+  static inline Command *TAP(Command *command, uint8_t n_times = 1, uint16_t tap_speed_ms = HID_ENGINE_TAP_SPEED_MS) { return (new Internal::Tap(command, n_times, tap_speed_ms)); }
+
+  static inline Command *TAP_R(Command *command, uint8_t n_times = 1, uint16_t tap_speed_ms = HID_ENGINE_TAP_SPEED_MS) { return (new Internal::TapWhenReleased(command, n_times, tap_speed_ms)); }
 
   template <int8_t N>
   static Command *TD(const Internal::TapDance::Pair (&arr)[N], bool determine_with_mouse_move = false)
@@ -166,7 +168,7 @@ namespace hidpg
 
   static inline Command *GoTK(uint8_t gesture_id, KeyCode key_code) { return (new Internal::GestureOrTapKey(gesture_id, key_code)); }
 
-  // nullptr alias (_ * 7)
-  #define _______ (static_cast<Command *>(nullptr))
+// nullptr alias (_ * 7)
+#define _______ (static_cast<Command *>(nullptr))
 
 } // namespace hidpg

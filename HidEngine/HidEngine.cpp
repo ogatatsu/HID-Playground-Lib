@@ -250,8 +250,7 @@ namespace hidpg
 
       BmmEventListener::_notifyBeforeMouseMove();
 
-      Gesture gesture;
-      bool is_gesturing = false;
+      int gesture_idx = -1;
 
       if (_gesture_list.size() > 0)
       {
@@ -263,15 +262,16 @@ namespace hidpg
         {
           if ((_gesture_map[i].gesture_id == gesture_id) && (_gesture_map[i].mouse_id == mouse_id))
           {
-            gesture = _gesture_map[i];
-            is_gesturing = true;
+            gesture_idx = i;
             break;
           }
         }
       }
 
-      if (is_gesturing)
+      if (gesture_idx != -1)
       {
+        Gesture &gesture = _gesture_map[gesture_idx];
+
         // 前回のidと違うなら距離をリセット
         if ((gesture.gesture_id != prev_gesture_id) || (mouse_id != prev_mouse_id))
         {
