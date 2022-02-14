@@ -76,8 +76,8 @@ namespace hidpg
   static constexpr KeyCode Space           = KeyCode::Space;
   static constexpr KeyCode Minus           = KeyCode::Minus;
   static constexpr KeyCode Equal           = KeyCode::Equal;
-  static constexpr KeyCode BracketLeft     = KeyCode::BracketLeft;
-  static constexpr KeyCode BracketRight    = KeyCode::BracketRight;
+  static constexpr KeyCode LeftBracket     = KeyCode::LeftBracket;
+  static constexpr KeyCode RightBracket    = KeyCode::RightBracket;
   static constexpr KeyCode Backslash       = KeyCode::Backslash;
   static constexpr KeyCode NonUsNumberSign = KeyCode::NonUsNumberSign;
   static constexpr KeyCode Semicolon       = KeyCode::Semicolon;
@@ -110,10 +110,10 @@ namespace hidpg
   static constexpr KeyCode Delete          = KeyCode::Delete;
   static constexpr KeyCode End             = KeyCode::End;
   static constexpr KeyCode PageDown        = KeyCode::PageDown;
-  static constexpr KeyCode ArrowRight      = KeyCode::ArrowRight;
-  static constexpr KeyCode ArrowLeft       = KeyCode::ArrowLeft;
-  static constexpr KeyCode ArrowDown       = KeyCode::ArrowDown;
-  static constexpr KeyCode ArrowUp         = KeyCode::ArrowUp;
+  static constexpr KeyCode Right           = KeyCode::RightArrow;
+  static constexpr KeyCode Left            = KeyCode::LeftArrow;
+  static constexpr KeyCode Down            = KeyCode::DownArrow;
+  static constexpr KeyCode Up              = KeyCode::UpArrow;
   static constexpr KeyCode NumLock         = KeyCode::NumLock;
   static constexpr KeyCode KeypadDivide    = KeyCode::KeypadDivide;
   static constexpr KeyCode KeypadMultiply  = KeyCode::KeypadMultiply;
