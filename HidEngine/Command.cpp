@@ -141,11 +141,11 @@ namespace hidpg
     }
   }
 
-  void BmmEventListener::_notifyBeforeMouseMove()
+  void BmmEventListener::_notifyBeforeMouseMove(uint8_t mouse_id)
   {
     for (BmmEventListener &listener : _listener_list())
     {
-      listener.onBeforeMouseMove();
+      listener.onBeforeMouseMove(mouse_id);
     }
   }
 
@@ -175,11 +175,11 @@ namespace hidpg
     }
   }
 
-  void BgstEventListener::_notifyBeforeGesture()
+  void BgstEventListener::_notifyBeforeGesture(uint8_t gesture_id, uint8_t mouse_id)
   {
     for (BgstEventListener &listener : _listener_list())
     {
-      listener.onBeforeGesture();
+      listener.onBeforeGesture(gesture_id, mouse_id);
     }
   }
 
@@ -584,7 +584,7 @@ namespace hidpg
       onBeforeInput();
     }
 
-    void TapDance::onBeforeMouseMove()
+    void TapDance::onBeforeMouseMove(uint8_t mouse_id)
     {
       onBeforeInput();
     }

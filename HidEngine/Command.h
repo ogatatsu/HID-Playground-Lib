@@ -104,12 +104,12 @@ namespace hidpg
   {
   public:
     BmmEventListener();
-    static void _notifyBeforeMouseMove();
+    static void _notifyBeforeMouseMove(uint8_t mouse_id);
 
   protected:
     void startListen_BeforeMouseMove();
     void stopListen_BeforeMouseMove();
-    virtual void onBeforeMouseMove() = 0;
+    virtual void onBeforeMouseMove(uint8_t mouse_id) = 0;
 
   private:
     // Construct On First Use Idiom
@@ -131,12 +131,12 @@ namespace hidpg
   {
   public:
     BgstEventListener();
-    static void _notifyBeforeGesture();
+    static void _notifyBeforeGesture(uint8_t gesture_id, uint8_t mouse_id);
 
   protected:
     void startListen_BeforeGesture();
     void stopListen_BeforeGesture();
-    virtual void onBeforeGesture() = 0;
+    virtual void onBeforeGesture(uint8_t gesture_id, uint8_t mouse_id) = 0;
 
   private:
     // Construct On First Use Idiom
@@ -391,7 +391,7 @@ namespace hidpg
       uint8_t onRelease() override;
       void onTimer() override;
       void onBeforeDifferentRootCommandPress() override;
-      void onBeforeMouseMove() override;
+      void onBeforeMouseMove(uint8_t mouse_id) override;
       void onBeforeInput();
       void startListen();
       void stopListen();

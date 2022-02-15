@@ -248,7 +248,7 @@ namespace hidpg
       static uint8_t prev_gesture_id;
       static uint8_t prev_mouse_id;
 
-      BmmEventListener::_notifyBeforeMouseMove();
+      BmmEventListener::_notifyBeforeMouseMove(mouse_id);
 
       int gesture_idx = -1;
 
@@ -337,7 +337,7 @@ namespace hidpg
 
       if (_total_distance_y <= -threshold) // up
       {
-        BgstEventListener::_notifyBeforeGesture();
+        BgstEventListener::_notifyBeforeGesture(gesture.gesture_id, gesture.mouse_id);
 
         uint8_t n_times = min(abs(_total_distance_y / threshold), UINT8_MAX);
         _total_distance_y %= threshold;
@@ -349,7 +349,7 @@ namespace hidpg
       }
       else if (_total_distance_y >= threshold) // down
       {
-        BgstEventListener::_notifyBeforeGesture();
+        BgstEventListener::_notifyBeforeGesture(gesture.gesture_id, gesture.mouse_id);
 
         uint8_t n_times = min(_total_distance_y / threshold, UINT8_MAX);
         _total_distance_y %= threshold;
@@ -367,7 +367,7 @@ namespace hidpg
 
       if (_total_distance_x <= -threshold) // left
       {
-        BgstEventListener::_notifyBeforeGesture();
+        BgstEventListener::_notifyBeforeGesture(gesture.gesture_id, gesture.mouse_id);
 
         uint8_t n_times = min(abs(_total_distance_x / threshold), UINT8_MAX);
         _total_distance_x %= threshold;
@@ -379,7 +379,7 @@ namespace hidpg
       }
       else if (_total_distance_x >= threshold) // right
       {
-        BgstEventListener::_notifyBeforeGesture();
+        BgstEventListener::_notifyBeforeGesture(gesture.gesture_id, gesture.mouse_id);
 
         uint8_t n_times = min(_total_distance_x / threshold, UINT8_MAX);
         _total_distance_x %= threshold;
@@ -528,7 +528,7 @@ namespace hidpg
       }
     }
 
-    void GestureOrTap::onBeforeGesture()
+    void GestureOrTap::onBeforeGesture(uint8_t gesture_id, uint8_t mouse_id)
     {
       if (_state == State::Pressed)
       {
@@ -605,7 +605,7 @@ namespace hidpg
       }
     }
 
-    void GestureOrTapKey::onBeforeGesture()
+    void GestureOrTapKey::onBeforeGesture(uint8_t gesture_id, uint8_t mouse_id)
     {
       if (_state == State::Pressed)
       {

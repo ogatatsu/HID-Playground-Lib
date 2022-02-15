@@ -221,7 +221,7 @@ namespace hidpg
       void onPress(uint8_t n_times) override;
       uint8_t onRelease() override;
       void onBeforeDifferentRootCommandPress() override;
-      void onBeforeGesture() override;
+      void onBeforeGesture(uint8_t gesture_id, uint8_t mouse_id) override;
       void startListen();
       void stopListen();
 
@@ -251,7 +251,7 @@ namespace hidpg
       void onPress(uint8_t n_times) override;
       uint8_t onRelease() override;
       void onBeforeDifferentRootCommandPress() override;
-      void onBeforeGesture() override;
+      void onBeforeGesture(uint8_t gesture_id, uint8_t mouse_id) override;
       void startListen();
       void stopListen();
 
