@@ -137,8 +137,8 @@ namespace hidpg
       return new (buf) TapWhenReleased(command, n_times, tap_speed_ms);
     }
 
-    template <uint64_t ID1, uint64_t ID2, uint64_t ID3, size_t N>
-    Command *new_TapDance(const TapDance::Pair (&arr)[N], bool determine_with_mouse_move = false)
+    template <uint64_t ID1, uint64_t ID2, uint64_t ID3, uint8_t N>
+    Command *new_TapDance(const TapDance::Pair (&arr)[N])
     {
       static TapDance::Pair arg[N];
       static uint8_t buf[sizeof(TapDance)];
@@ -148,7 +148,28 @@ namespace hidpg
         arg[i].tap_command = arr[i].tap_command;
         arg[i].hold_command = arr[i].hold_command;
       }
-      return new (buf) TapDance(arg, N, determine_with_mouse_move);
+      return new (buf) TapDance(arg, N);
+    }
+
+    template <uint64_t ID1, uint64_t ID2, uint64_t ID3, uint8_t N1, uint8_t N2>
+    Command *new_TapDanceDetermineWithMouseMove(const TapDanceDetermineWithMouseMove::Pair (&arr)[N1], const uint8_t (&mouse_ids)[N2])
+    {
+      static TapDanceDetermineWithMouseMove::Pair arg1[N1];
+      static uint8_t arg2[N2];
+      static uint8_t buf[sizeof(TapDanceDetermineWithMouseMove)];
+
+      for (size_t i = 0; i < N1; i++)
+      {
+        arg1[i].tap_command = arr[i].tap_command;
+        arg1[i].hold_command = arr[i].hold_command;
+      }
+
+      for (size_t i = 0; i < N2; i++)
+      {
+        arg2[i] = mouse_ids[i];
+      }
+
+      return new (buf) TapDanceDetermineWithMouseMove(arg1, N1, arg2, N2);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
@@ -340,6 +361,9 @@ namespace hidpg
 
 // TapDance
 #define TD(...) (Internal::new_TapDance<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(__VA_ARGS__))
+
+// TapDanceDetermineWithMouseMove
+#define TDDM(...) (Internal::new_TapDanceDetermineWithMouseMove<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(__VA_ARGS__))
 
 // TapOrHold
 #define ToH(tap_command, ms, hold_command) (Internal::new_TapOrHold<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(tap_command, ms, hold_command))

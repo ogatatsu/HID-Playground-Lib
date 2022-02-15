@@ -106,8 +106,8 @@ namespace hidpg
 
   static inline Command *TAP_R(Command *command, uint8_t n_times = 1, uint16_t tap_speed_ms = HID_ENGINE_TAP_SPEED_MS) { return (new Internal::TapWhenReleased(command, n_times, tap_speed_ms)); }
 
-  template <int8_t N>
-  static Command *TD(const Internal::TapDance::Pair (&arr)[N], bool determine_with_mouse_move = false)
+  template <uint8_t N>
+  static Command *TD(const Internal::TapDance::Pair (&arr)[N])
   {
     Internal::TapDance::Pair *arg = new Internal::TapDance::Pair[N];
     for (int i = 0; i < N; i++)
@@ -115,7 +115,26 @@ namespace hidpg
       arg[i].tap_command = arr[i].tap_command;
       arg[i].hold_command = arr[i].hold_command;
     }
-    return (new Internal::TapDance(arg, N, determine_with_mouse_move));
+    return (new Internal::TapDance(arg, N));
+  }
+
+  template <uint8_t N1, uint8_t N2>
+  static Command *TDDM(const Internal::TapDanceDetermineWithMouseMove::Pair (&arr)[N1], const uint8_t (&mouse_ids)[N2])
+  {
+    Internal::TapDanceDetermineWithMouseMove::Pair *arg1 = new Internal::TapDanceDetermineWithMouseMove::Pair[N1];
+    uint8_t *arg2 = new uint8_t[N2];
+
+    for (int i = 0; i < N1; i++)
+    {
+      arg1[i].tap_command = arr[i].tap_command;
+      arg1[i].hold_command = arr[i].hold_command;
+    }
+
+    for (int i = 0; i < N2; i++)
+    {
+      arg2[i] = mouse_ids[i];
+    }
+    return (new Internal::TapDanceDetermineWithMouseMove(arg1, N1, arg2, N2));
   }
 
   static inline Command *ToH(Command *tap_command, unsigned int ms, Command *hold_command) { return (new Internal::TapOrHold(tap_command, ms, hold_command)); }

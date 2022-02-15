@@ -375,7 +375,7 @@ namespace hidpg
     //------------------------------------------------------------------+
     // TapDance
     //------------------------------------------------------------------+
-    class TapDance : public Command, public TimerMixin, public BdrcpEventListener, public BmmEventListener
+    class TapDance : public Command, public TimerMixin, public BdrcpEventListener
     {
     public:
       struct Pair
@@ -384,7 +384,43 @@ namespace hidpg
         Command *hold_command;
       };
 
-      TapDance(Pair pairs[], int8_t len, bool determine_with_mouse_move);
+      TapDance(Pair pairs[], uint8_t len);
+
+    protected:
+      void onPress(uint8_t n_times) override;
+      uint8_t onRelease() override;
+      void onTimer() override;
+      void onBeforeDifferentRootCommandPress() override;
+
+    private:
+      enum class State : uint8_t
+      {
+        Unexecuted,
+        Pressed,
+        Tap_or_NextCommand,
+        FixedToHold,
+      };
+
+      Command *_running_command;
+      Pair *const _pairs;
+      const uint8_t _len;
+      int16_t _idx_count;
+      State _state;
+    };
+
+    //------------------------------------------------------------------+
+    // TapDanceDetermineWithMouseMove
+    //------------------------------------------------------------------+
+    class TapDanceDetermineWithMouseMove : public Command, public TimerMixin, public BdrcpEventListener, public BmmEventListener
+    {
+    public:
+      struct Pair
+      {
+        Command *tap_command;
+        Command *hold_command;
+      };
+
+      TapDanceDetermineWithMouseMove(Pair pairs[], uint8_t len, uint8_t mouse_ids[], uint8_t mouse_ids_len);
 
     protected:
       void onPress(uint8_t n_times) override;
@@ -405,11 +441,12 @@ namespace hidpg
         FixedToHold,
       };
 
-      Pair *const _pairs;
       Command *_running_command;
-      const int8_t _len;
-      bool _determine_with_mouse_move;
-      int8_t _idx_count;
+      Pair *const _pairs;
+      const uint8_t _len;
+      uint8_t *_mouse_ids;
+      const uint8_t _mouse_ids_len;
+      int16_t _idx_count;
       State _state;
     };
 
