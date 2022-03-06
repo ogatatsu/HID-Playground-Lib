@@ -22,13 +22,13 @@
   THE SOFTWARE.
 */
 
-#include "BleClientTrackpointKeyboard2.h"
+#include "BleClientTrackPointKeyboard2.h"
 #include "bluefruit.h"
 
 namespace hidpg
 {
 
-  BleClientTrackpointKeyboard2::BleClientTrackpointKeyboard2(void)
+  BleClientTrackPointKeyboard2::BleClientTrackPointKeyboard2(void)
       : BLEClientService(UUID16_SVC_HUMAN_INTERFACE_DEVICE),
         _keyboard_cb(nullptr),
         _trackpoint_cb(nullptr),
@@ -39,7 +39,7 @@ namespace hidpg
   {
   }
 
-  bool BleClientTrackpointKeyboard2::begin()
+  bool BleClientTrackPointKeyboard2::begin()
   {
     // Invoke base class begin()
     BLEClientService::begin();
@@ -56,22 +56,22 @@ namespace hidpg
     return true;
   }
 
-  void BleClientTrackpointKeyboard2::setKeyboardReportCallback(keyboard_callback_t fp)
+  void BleClientTrackPointKeyboard2::setKeyboardReportCallback(keyboard_callback_t fp)
   {
     _keyboard_cb = fp;
   }
 
-  void BleClientTrackpointKeyboard2::setTrackpointReportCallback(trackpoint_callback_t fp)
+  void BleClientTrackPointKeyboard2::setTrackpointReportCallback(trackpoint_callback_t fp)
   {
     _trackpoint_cb = fp;
   }
 
-  void BleClientTrackpointKeyboard2::setConsumerReportCallback(consumer_callback_t fp)
+  void BleClientTrackPointKeyboard2::setConsumerReportCallback(consumer_callback_t fp)
   {
     _consumer_cb = fp;
   }
 
-  bool BleClientTrackpointKeyboard2::discover(uint16_t conn_handle)
+  bool BleClientTrackPointKeyboard2::discover(uint16_t conn_handle)
   {
     // Call Base class discover
     VERIFY(BLEClientService::discover(conn_handle));
@@ -89,17 +89,17 @@ namespace hidpg
   //------------------------------------------------------------------+
   // Keyboard
   //------------------------------------------------------------------+
-  bool BleClientTrackpointKeyboard2::enableKeyboard()
+  bool BleClientTrackPointKeyboard2::enableKeyboard()
   {
     return _keyboard_input.enableNotify();
   }
 
-  bool BleClientTrackpointKeyboard2::disableKeyboard()
+  bool BleClientTrackPointKeyboard2::disableKeyboard()
   {
     return _keyboard_input.disableNotify();
   }
 
-  void BleClientTrackpointKeyboard2::_handle_keyboard_input(uint8_t *data, uint16_t len)
+  void BleClientTrackPointKeyboard2::_handle_keyboard_input(uint8_t *data, uint16_t len)
   {
     if (_keyboard_cb && (len == sizeof(trackpoint_keyboard_2_keyboard_report_t)))
     {
@@ -107,26 +107,26 @@ namespace hidpg
     }
   }
 
-  void BleClientTrackpointKeyboard2::keyboard_client_notify_cb(BLEClientCharacteristic *chr, uint8_t *data, uint16_t len)
+  void BleClientTrackPointKeyboard2::keyboard_client_notify_cb(BLEClientCharacteristic *chr, uint8_t *data, uint16_t len)
   {
-    BleClientTrackpointKeyboard2 &svc = (BleClientTrackpointKeyboard2 &)chr->parentService();
+    BleClientTrackPointKeyboard2 &svc = (BleClientTrackPointKeyboard2 &)chr->parentService();
     svc._handle_keyboard_input(data, len);
   }
 
   //------------------------------------------------------------------+
-  // Trackpoint
+  // TrackPoint
   //------------------------------------------------------------------+
-  bool BleClientTrackpointKeyboard2::enableTrackpoint()
+  bool BleClientTrackPointKeyboard2::enableTrackpoint()
   {
     return _trackpoint_input.enableNotify();
   }
 
-  bool BleClientTrackpointKeyboard2::disableTrackpoint()
+  bool BleClientTrackPointKeyboard2::disableTrackpoint()
   {
     return _trackpoint_input.disableNotify();
   }
 
-  void BleClientTrackpointKeyboard2::_handle_trackpoint_input(uint8_t *data, uint16_t len)
+  void BleClientTrackPointKeyboard2::_handle_trackpoint_input(uint8_t *data, uint16_t len)
   {
     if (_trackpoint_cb && (len == sizeof(trackpoint_keyboard_2_trackpoint_report_t)))
     {
@@ -134,26 +134,26 @@ namespace hidpg
     }
   }
 
-  void BleClientTrackpointKeyboard2::trackpoint_client_notify_cb(BLEClientCharacteristic *chr, uint8_t *data, uint16_t len)
+  void BleClientTrackPointKeyboard2::trackpoint_client_notify_cb(BLEClientCharacteristic *chr, uint8_t *data, uint16_t len)
   {
-    BleClientTrackpointKeyboard2 &svc = (BleClientTrackpointKeyboard2 &)chr->parentService();
+    BleClientTrackPointKeyboard2 &svc = (BleClientTrackPointKeyboard2 &)chr->parentService();
     svc._handle_trackpoint_input(data, len);
   }
 
   //------------------------------------------------------------------+
   // Consumer
   //------------------------------------------------------------------+
-  bool BleClientTrackpointKeyboard2::enableConsumer()
+  bool BleClientTrackPointKeyboard2::enableConsumer()
   {
     return _consumer_input.enableNotify();
   }
 
-  bool BleClientTrackpointKeyboard2::disableConsumer()
+  bool BleClientTrackPointKeyboard2::disableConsumer()
   {
     return _consumer_input.disableNotify();
   }
 
-  void BleClientTrackpointKeyboard2::_handle_consumer_input(uint8_t *data, uint16_t len)
+  void BleClientTrackPointKeyboard2::_handle_consumer_input(uint8_t *data, uint16_t len)
   {
     if (_consumer_cb && (len == sizeof(trackpoint_keyboard_2_consumer_report_t)))
     {
@@ -161,9 +161,9 @@ namespace hidpg
     }
   }
 
-  void BleClientTrackpointKeyboard2::consumer_client_notify_cb(BLEClientCharacteristic *chr, uint8_t *data, uint16_t len)
+  void BleClientTrackPointKeyboard2::consumer_client_notify_cb(BLEClientCharacteristic *chr, uint8_t *data, uint16_t len)
   {
-    BleClientTrackpointKeyboard2 &svc = (BleClientTrackpointKeyboard2 &)chr->parentService();
+    BleClientTrackPointKeyboard2 &svc = (BleClientTrackPointKeyboard2 &)chr->parentService();
     svc._handle_consumer_input(data, len);
   }
 

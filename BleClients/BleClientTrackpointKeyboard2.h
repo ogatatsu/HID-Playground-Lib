@@ -52,7 +52,7 @@ namespace hidpg
   };
 #pragma pack()
 
-  class BleClientTrackpointKeyboard2 : public BLEClientService
+  class BleClientTrackPointKeyboard2 : public BLEClientService
   {
   public:
     // Callback Signatures
@@ -60,7 +60,7 @@ namespace hidpg
     using trackpoint_callback_t = void (*)(trackpoint_keyboard_2_trackpoint_report_t *report);
     using consumer_callback_t = void (*)(trackpoint_keyboard_2_consumer_report_t *report);
 
-    BleClientTrackpointKeyboard2();
+    BleClientTrackPointKeyboard2();
 
     virtual bool begin();
     virtual bool discover(uint16_t conn_handle);
