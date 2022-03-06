@@ -1,0 +1,10 @@
+{
+  "name": "HID-Playground Bluefruit_ConnectionController",
+  "frameworks": "arduino",
+  "platforms": "nordicnrf52",
+  "dependencies": [
+    {
+      "name": "Adafruit Bluefruit nRF52 Libraries"
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 /*
   The MIT License (MIT)
 
-  Copyright (c) 2021 ogatatsu.
+  Copyright (c) 2022 ogatatsu.
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -24,26 +24,47 @@
 
 #pragma once
 
-#include "BleCommand.h"
-#include "consthash/cityhash64.hxx"
-#include "consthash/crc64.hxx"
-#include <new>
+#include "BLEClientCharacteristic.h"
+#include "BLEClientService.h"
 
 namespace hidpg
 {
 
-  namespace Internal
+  class BLEClientBTTB179Hid : public BLEClientService
   {
-    template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_ResetConnection()
+  public:
+    // Callback Signatures
+    using trackball_callback_t = void (*)(uint8_t buttons, int16_t x, int16_t y, int8_t wheel, int8_t pan);
+
+    BLEClientBTTB179Hid();
+
+    bool begin() override;
+    bool discover(uint16_t conn_handle) override;
+
+    // Trackball API
+    bool enableTrackball();
+    bool disableTrackball();
+
+    // Report callback
+    void setTrackballReportCallback(trackball_callback_t fp);
+
+  private:
+    trackball_callback_t _trackball_cb;
+    BLEClientCharacteristic _trackball_input;
+
+    void _handle_trackball_input(uint8_t *data, uint16_t len);
+    static void trackball_client_notify_cb(BLEClientCharacteristic *chr, uint8_t *data, uint16_t len);
+
+#pragma pack(1)
+    struct trackball_report_t
     {
-      static uint8_t buf[sizeof(ResetConnection)];
-      return new (buf) ResetConnection();
-    }
-
-  } // namespace Internal
-
-// ResetConnection
-#define RESET() (Internal::new_ResetConnection<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>())
+      uint8_t buttons;
+      int16_t x;
+      int16_t y;
+      int8_t wheel;
+      int8_t pan;
+    };
+#pragma pack()
+  };
 
 } // namespace hidpg

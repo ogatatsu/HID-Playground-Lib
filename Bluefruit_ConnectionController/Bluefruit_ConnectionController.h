@@ -1,7 +1,7 @@
 /*
   The MIT License (MIT)
 
-  Copyright (c) 2021 ogatatsu.
+  Copyright (c) 2022 ogatatsu.
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -24,26 +24,29 @@
 
 #pragma once
 
-#include "BleCommand.h"
-#include "consthash/cityhash64.hxx"
-#include "consthash/crc64.hxx"
-#include <new>
+#include "Bluefruit_ConnectionControllerCentral.h"
+#include "Bluefruit_ConnectionControllerPeripheral.h"
 
 namespace hidpg
 {
-
   namespace Internal
   {
-    template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_ResetConnection()
+
+    class Bluefruit_ConnectionControllerClass
     {
-      static uint8_t buf[sizeof(ResetConnection)];
-      return new (buf) ResetConnection();
-    }
+    public:
+      static void begin()
+      {
+        Central.begin();
+        Periph.begin();
+      };
+
+      static Bluefruit_ConnectionControllerCentral Central;
+      static Bluefruit_ConnectionControllerPeripheral Periph;
+    };
 
   } // namespace Internal
 
-// ResetConnection
-#define RESET() (Internal::new_ResetConnection<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>())
+  extern Internal::Bluefruit_ConnectionControllerClass Bluefruit_ConnectionController;
 
 } // namespace hidpg

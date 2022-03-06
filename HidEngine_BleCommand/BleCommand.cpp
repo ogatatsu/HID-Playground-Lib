@@ -23,29 +23,16 @@
 */
 
 #include "BleCommand.h"
-#include "BleController.h"
+#include "bluefruit.h"
 
 namespace hidpg::Internal
 {
-  //------------------------------------------------------------------+
-  // ConnectBluetooth
-  //------------------------------------------------------------------+
-  ConnectBluetooth::ConnectBluetooth(uint8_t slot) : _slot(slot)
-  {
-  }
-
-  void ConnectBluetooth::onPress(uint8_t n_times)
-  {
-    BleController.Periph.startConnection(_slot);
-  }
-
   //------------------------------------------------------------------+
   // ResetConnection
   //------------------------------------------------------------------+
   void ResetConnection::onPress(uint8_t n_times)
   {
-    BleController.Periph.stopConnection();
-    BleController.Periph.clearBonds();
+    bond_clear_all();
     NVIC_SystemReset();
   }
 

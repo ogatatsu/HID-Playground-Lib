@@ -1,7 +1,7 @@
 /*
   The MIT License (MIT)
 
-  Copyright (c) 2021 ogatatsu.
+  Copyright (c) 2022 ogatatsu.
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -24,26 +24,27 @@
 
 #pragma once
 
-#include "BleCommand.h"
-#include "consthash/cityhash64.hxx"
-#include "consthash/crc64.hxx"
-#include <new>
+#include "BLECentralProfile.h"
+#include "clients/BLEClientBTTB179Hid.h"
+#include "clients/BLEClientBas.h"
+#include "clients/BLEClientDis.h"
 
 namespace hidpg
 {
 
-  namespace Internal
+  class BLECentralProfileBTTB179 : public BLECentralProfile
   {
-    template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_ResetConnection()
-    {
-      static uint8_t buf[sizeof(ResetConnection)];
-      return new (buf) ResetConnection();
-    }
+  public:
+    BLEClientDis Dis;
+    BLEClientBas Bas;
+    BLEClientBTTB179Hid Hid;
 
-  } // namespace Internal
-
-// ResetConnection
-#define RESET() (Internal::new_ResetConnection<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>())
+    virtual bool begin() override;
+    virtual bool canConnect(ble_gap_evt_adv_report_t *report) override;
+    virtual uint16_t connHandle() override;
+    virtual bool discover(uint16_t conn_handle) override;
+    virtual bool discovered() override;
+    virtual bool enable() override;
+  };
 
 } // namespace hidpg

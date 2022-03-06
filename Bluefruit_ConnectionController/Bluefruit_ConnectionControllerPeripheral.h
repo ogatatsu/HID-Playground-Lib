@@ -1,7 +1,7 @@
 /*
   The MIT License (MIT)
 
-  Copyright (c) 2021 ogatatsu.
+  Copyright (c) 2022 ogatatsu.
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -24,26 +24,47 @@
 
 #pragma once
 
-#include "BleCommand.h"
-#include "consthash/cityhash64.hxx"
-#include "consthash/crc64.hxx"
-#include <new>
+#include "BLEPeripheralProfile.h"
+#include "BlinkLed.h"
+#include "peripherals/BLEPeripheralProfileHid.h"
+#include "peripherals/BLEPeripheralProfileUart.h"
 
 namespace hidpg
 {
-
   namespace Internal
   {
-    template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_ResetConnection()
+
+    class Bluefruit_ConnectionControllerPeripheral
     {
-      static uint8_t buf[sizeof(ResetConnection)];
-      return new (buf) ResetConnection();
-    }
+      friend class Bluefruit_ConnectionControllerClass;
+
+    public:
+      using cannotConnectCallback_t = void (*)(void);
+
+      static void setProfile(BLEPeripheralProfile *profile);
+      static void start();
+      static void stop();
+      static bool isRunning();
+      static bool waitReady();
+      static void setCannnotConnectCallback(cannotConnectCallback_t callback);
+      static void setAdvLed(BlinkLed *adv_led);
+
+    private:
+      static void begin();
+      static void _start();
+      static void _stop();
+      static bool startAdv();
+      static void makeAdvData();
+      static void adv_stop_callback();
+      static void connect_callback(uint16_t conn_handle);
+      static void disconnect_callback(uint16_t conn_handle, uint8_t reason);
+
+      static BLEPeripheralProfile *_profile;
+      static BlinkLed *_adv_led;
+      static cannotConnectCallback_t _cannot_connect_cb;
+      static bool _is_running;
+    };
 
   } // namespace Internal
-
-// ResetConnection
-#define RESET() (Internal::new_ResetConnection<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>())
 
 } // namespace hidpg

@@ -29,21 +29,6 @@ namespace hidpg::Internal
 {
 
   //------------------------------------------------------------------+
-  // ConnectBluetooth
-  //------------------------------------------------------------------+
-  class ConnectBluetooth : public Command
-  {
-  public:
-    ConnectBluetooth(uint8_t slot);
-
-  protected:
-    void onPress(uint8_t n_times) override;
-
-  private:
-    const uint8_t _slot;
-  };
-
-  //------------------------------------------------------------------+
   // ResetConnection
   //------------------------------------------------------------------+
   class ResetConnection : public Command
@@ -51,6 +36,5 @@ namespace hidpg::Internal
   protected:
     void onPress(uint8_t n_times) override;
   };
-
 
 } // namespace hidpg::Internal

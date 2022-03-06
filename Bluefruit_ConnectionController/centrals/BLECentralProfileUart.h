@@ -1,7 +1,7 @@
 /*
   The MIT License (MIT)
 
-  Copyright (c) 2021 ogatatsu.
+  Copyright (c) 2022 ogatatsu.
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -24,26 +24,37 @@
 
 #pragma once
 
-#include "BleCommand.h"
-#include "consthash/cityhash64.hxx"
-#include "consthash/crc64.hxx"
-#include <new>
+#include "BLECentralProfile.h"
+#include "clients/BLEClientBas.h"
+#include "clients/BLEClientDis.h"
+#include "clients/BLEClientUartNonStream.h"
 
 namespace hidpg
 {
-
-  namespace Internal
+  class BLECentralProfileUart : public BLECentralProfile
   {
-    template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_ResetConnection()
+  public:
+    BLEClientDis Dis;
+    BLEClientBas Bas;
+    BLEClientUartNonStream Uart;
+
+    struct ble_addr_t
     {
-      static uint8_t buf[sizeof(ResetConnection)];
-      return new (buf) ResetConnection();
-    }
+      uint8_t addr[6];
+    };
 
-  } // namespace Internal
+    BLECentralProfileUart(uint8_t peer_addr[6]);
+    BLECentralProfileUart(ble_addr_t peer_addr);
 
-// ResetConnection
-#define RESET() (Internal::new_ResetConnection<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>())
+    bool begin() override;
+    bool canConnect(ble_gap_evt_adv_report_t *report) override;
+    uint16_t connHandle() override;
+    bool discover(uint16_t conn_handle) override;
+    bool discovered() override;
+    bool enable() override;
+
+  private:
+    uint8_t _peer_addr[6];
+  };
 
 } // namespace hidpg
