@@ -56,7 +56,7 @@ namespace hidpg
     {
       _info_buffers[i].cls = nullptr;
       _info_buffers[i].timer_number = 0;
-      _info_buffers[i].timer_handle = xTimerCreateStatic("TimerMixin", 0, false, &(_info_buffers[i]), timer_callback, &(_timer_buffers[i]));
+      _info_buffers[i].timer_handle = xTimerCreateStatic("TimerMixin", 1, pdFALSE, &(_info_buffers[i]), timer_callback, &(_timer_buffers[i]));
       _pool.push_front(&(_info_buffers[i]));
     }
   }

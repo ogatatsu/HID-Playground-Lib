@@ -40,7 +40,7 @@ namespace hidpg
 
     void CommandTapperClass::begin()
     {
-      _timer_handle = xTimerCreateStatic("CommandTapper", 0, false, nullptr, timer_callback, &_timer_buffer);
+      _timer_handle = xTimerCreateStatic("CommandTapper", 1, pdFALSE, nullptr, timer_callback, &_timer_buffer);
     }
 
     bool CommandTapperClass::tap(Command *command, uint8_t n_times, uint16_t tap_speed_ms)
