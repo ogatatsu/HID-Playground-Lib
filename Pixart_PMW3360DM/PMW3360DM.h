@@ -24,11 +24,33 @@
 
 #pragma once
 
+#include "PMW3360DM_config.h"
 #include "ThreadSafeSPI.h"
-#include "timers.h"
 
 namespace hidpg
 {
+
+  namespace Internal
+  {
+    template <uint8_t ID>
+    class PMW3360DM_InterruptCallback
+    {
+    public:
+      static void interrupt_callback()
+      {
+        if (_task_handle != nullptr)
+        {
+          xTaskNotifyFromISR(_task_handle, 1, eSetValueWithOverwrite, nullptr);
+        }
+      }
+
+      static TaskHandle_t _task_handle;
+    };
+
+    template <uint8_t ID>
+    TaskHandle_t PMW3360DM_InterruptCallback<ID>::_task_handle = nullptr;
+
+  } // namespace Internal
 
   class PMW3360DM
   {
@@ -74,19 +96,13 @@ namespace hidpg
     template <uint8_t ID>
     static PMW3360DM &create(ThreadSafeSPIClass &spi, uint8_t ncs_pin, uint8_t interrupt_pin)
     {
-      static_assert(ID < 2, "Two or more PMW3360DM can not be created.");
-      if (instances[ID] == nullptr)
-      {
-        instances[ID] = new PMW3360DM(spi, ncs_pin, interrupt_pin, ID);
-      }
-      return *instances[ID];
-    }
+      static PMW3360DM instance(spi,
+                                ncs_pin,
+                                interrupt_pin,
+                                Internal::PMW3360DM_InterruptCallback<ID>::_task_handle,
+                                Internal::PMW3360DM_InterruptCallback<ID>::interrupt_callback);
 
-    template <uint8_t ID>
-    static PMW3360DM *getInstance()
-    {
-      static_assert(ID < 2, "Two or more PMW3360DM can not be created.");
-      return instances[ID];
+      return instance;
     }
 
     void setCallback(callback_t callback);
@@ -122,13 +138,13 @@ namespace hidpg
       };
     };
 
-    PMW3360DM(ThreadSafeSPIClass &spi, uint8_t ncs_pin, uint8_t interrupt_pin, uint8_t id);
+    PMW3360DM(ThreadSafeSPIClass &spi,
+              uint8_t ncs_pin,
+              uint8_t interrupt_pin,
+              TaskHandle_t &task_handle,
+              voidFuncPtr interrupt_callback);
 
     static void task(void *pvParameters);
-    static void interrupt_callback_0();
-    static void interrupt_callback_1();
-    static TaskHandle_t _task_handles[2];
-    static PMW3360DM *instances[2];
 
     void writeRegister(uint8_t addr, uint8_t data);
     uint8_t readRegister(uint8_t addr);
@@ -140,7 +156,12 @@ namespace hidpg
     ThreadSafeSPIClass &_spi;
     const uint8_t _ncs_pin;
     const uint8_t _interrupt_pin;
-    const uint8_t _id;
+    TaskHandle_t &_task_handle;
+    StackType_t _task_stack[PMW3360DM_TASK_STACK_SIZE];
+    StaticTask_t _task_tcb;
+    SemaphoreHandle_t _mutex;
+    StaticSemaphore_t _mutex_buffer;
+    voidFuncPtr _interrupt_callback;
     callback_t _callback;
   };
 

@@ -24,7 +24,6 @@
 
 #include "PMW3360DM.h"
 #include "PMW3360DM_Firmware.h"
-#include "PMW3360DM_config.h"
 
 namespace hidpg
 {
@@ -82,47 +81,17 @@ namespace hidpg
   // spi parameter
   static SPISettings SpiSettings(2000000, MSBFIRST, SPI_MODE3);
 
-  //------------------------------------------------------------------+
-  // static member
-  //------------------------------------------------------------------+
-  TaskHandle_t PMW3360DM::_task_handles[2] = {nullptr, nullptr};
-  PMW3360DM *PMW3360DM::instances[2] = {nullptr, nullptr};
-
-  void PMW3360DM::interrupt_callback_0()
-  {
-    if (_task_handles[0] != nullptr)
-    {
-      xTaskNotifyFromISR(_task_handles[0], 1, eSetValueWithOverwrite, nullptr);
-    }
-  }
-
-  void PMW3360DM::interrupt_callback_1()
-  {
-    if (_task_handles[1] != nullptr)
-    {
-      xTaskNotifyFromISR(_task_handles[1], 1, eSetValueWithOverwrite, nullptr);
-    }
-  }
-
-  void PMW3360DM::task(void *pvParameters)
-  {
-    PMW3360DM *that = static_cast<PMW3360DM *>(pvParameters);
-
-    while (true)
-    {
-      ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-      if (that->_callback != nullptr)
-      {
-        that->_callback();
-      }
-    }
-  }
-
-  //------------------------------------------------------------------+
-  // instance member
-  //------------------------------------------------------------------+
-  PMW3360DM::PMW3360DM(ThreadSafeSPIClass &spi, uint8_t ncs_pin, uint8_t interrupt_pin, uint8_t id)
-      : _spi(spi), _ncs_pin(ncs_pin), _interrupt_pin(interrupt_pin), _id(id), _callback(nullptr)
+  PMW3360DM::PMW3360DM(ThreadSafeSPIClass &spi,
+                       uint8_t ncs_pin,
+                       uint8_t interrupt_pin,
+                       TaskHandle_t &task_handle,
+                       voidFuncPtr interrupt_callback)
+      : _spi(spi),
+        _ncs_pin(ncs_pin),
+        _interrupt_pin(interrupt_pin),
+        _task_handle(task_handle),
+        _interrupt_callback(interrupt_callback),
+        _callback(nullptr)
   {
   }
 
@@ -139,14 +108,26 @@ namespace hidpg
     pinMode(_ncs_pin, OUTPUT);
     pinMode(_interrupt_pin, INPUT_PULLUP);
 
-    void (*interrupt_callback)() = (_id == 0) ? interrupt_callback_0 : interrupt_callback_1;
-    attachInterrupt(digitalPinToInterrupt(_interrupt_pin), interrupt_callback, FALLING);
+    attachInterrupt(digitalPinToInterrupt(_interrupt_pin), _interrupt_callback, FALLING);
 
-    char name[] = "3360_0";
-    name[5] += _id;
-    xTaskCreate(task, name, PMW3360DM_TASK_STACK_SIZE, this, PMW3360DM_TASK_PRIO, &_task_handles[_id]);
+    _mutex = xSemaphoreCreateMutexStatic(&_mutex_buffer);
+    _task_handle = xTaskCreateStatic(task, "3360", PMW3360DM_TASK_STACK_SIZE, this, PMW3360DM_TASK_PRIO, _task_stack, &_task_tcb);
 
     powerUp();
+  }
+
+  void PMW3360DM::task(void *pvParameters)
+  {
+    PMW3360DM *that = static_cast<PMW3360DM *>(pvParameters);
+
+    while (true)
+    {
+      ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+      if (that->_callback != nullptr)
+      {
+        that->_callback();
+      }
+    }
   }
 
   void PMW3360DM::writeRegister(uint8_t addr, uint8_t data)
@@ -309,56 +290,46 @@ namespace hidpg
   void PMW3360DM::readDelta(int16_t *delta_x, int16_t *delta_y)
   {
     MotionBurstData mb_data;
+    xSemaphoreTake(_mutex, portMAX_DELAY);
     readMotionBurst(&mb_data, 6);
+    xSemaphoreGive(_mutex);
     *delta_x = mb_data.delta_x;
     *delta_y = mb_data.delta_y;
   }
 
   void PMW3360DM::changeMode(Mode mode)
   {
-    if (_task_handles[_id] == nullptr)
-    {
-      return;
-    }
-
     uint8_t data = (mode == Mode::Run) ? 0b00000000 : 0b00100000;
+    xSemaphoreTake(_mutex, portMAX_DELAY);
     writeRegister(Config2, data);
+    xSemaphoreGive(_mutex);
   }
 
   void PMW3360DM::changeCpi(Cpi cpi)
   {
-    if (_task_handles[_id] == nullptr)
-    {
-      return;
-    }
-
+    xSemaphoreTake(_mutex, portMAX_DELAY);
     writeRegister(Config1, static_cast<uint8_t>(cpi));
+    xSemaphoreGive(_mutex);
   }
 
   void PMW3360DM::enableAngleSnap()
   {
-    if (_task_handles[_id] == nullptr)
-    {
-      return;
-    }
-
+    xSemaphoreTake(_mutex, portMAX_DELAY);
     writeRegister(Angle_Snap, 0b10000000);
+    xSemaphoreGive(_mutex);
   }
 
   void PMW3360DM::disableAngleSnap()
   {
-    if (_task_handles[_id] == nullptr)
-    {
-      return;
-    }
-
+    xSemaphoreTake(_mutex, portMAX_DELAY);
     writeRegister(Angle_Snap, 0b00000000);
+    xSemaphoreGive(_mutex);
   }
 
 #ifdef ARDUINO_ARCH_NRF52
   void PMW3360DM::stop_and_setWakeUpInterrupt()
   {
-    vTaskSuspend(_task_handles[_id]);
+    vTaskSuspend(_task_handle);
 
     NRF_GPIO->PIN_CNF[_interrupt_pin] |= ((uint32_t)(GPIO_PIN_CNF_SENSE_Low) << GPIO_PIN_CNF_SENSE_Pos);
   }
