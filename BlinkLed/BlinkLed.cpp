@@ -28,7 +28,7 @@ namespace hidpg
 {
 
   BlinkLed::BlinkLed(uint8_t pin, uint8_t active_state)
-      : _pin(pin), _active_state(active_state), _is_blink(false), _n_times(0)
+      : _pin(pin), _active_state(active_state), _is_blink(false), _n_times(0), _is_suspend(false)
   {
   }
 
@@ -48,6 +48,7 @@ namespace hidpg
     task_name[4] += _pin % 100 / 10;
     task_name[5] += _pin % 10;
 
+    _mutex = xSemaphoreCreateMutexStatic(&_mutex_buffer);
     _task_handle = xTaskCreateStatic(task, task_name, BLINK_LED_TASK_STACK_SIZE, this, BLINK_LED_TASK_PRIO, _task_stack, &_task_tcb);
   }
 
@@ -57,46 +58,103 @@ namespace hidpg
 
     while (true)
     {
+    EARLY_STOP:
       that->_is_blink = false;
       ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-      while (that->_n_times != 0)
+
+      while (that->_n_times != 0 && that->_is_suspend == false)
       {
         that->_is_blink = true;
         for (int i = 0; i < that->_n_times; i++)
         {
           digitalWrite(that->_pin, that->_active_state);
-          delay(BLINK_LED_INTERVAL_MS);
+          vTaskDelay(pdMS_TO_TICKS(BLINK_LED_INTERVAL_MS));
           digitalWrite(that->_pin, !that->_active_state);
-          delay(BLINK_LED_INTERVAL_MS);
+          if (that->_n_times == 0 || that->_is_suspend)
+          {
+            goto EARLY_STOP;
+          }
+          vTaskDelay(pdMS_TO_TICKS(BLINK_LED_INTERVAL_MS));
+          if (that->_n_times == 0 || that->_is_suspend)
+          {
+            goto EARLY_STOP;
+          }
         }
-        delay(BLINK_LED_INTERVAL_MS * 3);
+        vTaskDelay(pdMS_TO_TICKS(BLINK_LED_INTERVAL_MS));
+        if (that->_n_times == 0 || that->_is_suspend)
+        {
+          goto EARLY_STOP;
+        }
+        vTaskDelay(pdMS_TO_TICKS(BLINK_LED_INTERVAL_MS));
+        if (that->_n_times == 0 || that->_is_suspend)
+        {
+          goto EARLY_STOP;
+        }
+        vTaskDelay(pdMS_TO_TICKS(BLINK_LED_INTERVAL_MS));
       }
     }
   }
 
   void BlinkLed::blink(uint8_t n_times)
   {
+    xSemaphoreTake(_mutex, portMAX_DELAY);
     _n_times = n_times;
     xTaskNotify(_task_handle, 1, eSetValueWithOverwrite);
+    xSemaphoreGive(_mutex);
   }
 
   void BlinkLed::off()
   {
+    xSemaphoreTake(_mutex, portMAX_DELAY);
     _n_times = 0;
+    xSemaphoreGive(_mutex);
   }
 
-  void BlinkLed::syncOff()
+  void BlinkLed::waitSyncOff()
   {
-    _n_times = 0;
     while (_is_blink)
     {
-      delay(1);
+      vTaskDelay(pdMS_TO_TICKS(1));
     }
   }
 
   bool BlinkLed::isBlink() const
   {
-    return _is_blink;
+    xSemaphoreTake(_mutex, portMAX_DELAY);
+    bool result = _is_blink;
+    xSemaphoreGive(_mutex);
+
+    return result;
+  }
+
+  void BlinkLed::suspend()
+  {
+    xSemaphoreTake(_mutex, portMAX_DELAY);
+    _is_suspend = true;
+    xSemaphoreGive(_mutex);
+  }
+
+  void BlinkLed::resume()
+  {
+    xSemaphoreTake(_mutex, portMAX_DELAY);
+    if (_is_suspend)
+    {
+      _is_suspend = false;
+      if (_n_times != 0)
+      {
+        xTaskNotify(_task_handle, 1, eSetValueWithOverwrite);
+      }
+    }
+    xSemaphoreGive(_mutex);
+  }
+
+  bool BlinkLed::isSuspended() const
+  {
+    xSemaphoreTake(_mutex, portMAX_DELAY);
+    bool result = _is_suspend;
+    xSemaphoreGive(_mutex);
+
+    return result;
   }
 
 } // namespace hidpg

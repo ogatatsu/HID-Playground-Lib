@@ -27,6 +27,8 @@
 #include "Arduino.h"
 #include "BlinkLed_config.h"
 #include "FreeRTOS.h"
+#include "task.h"
+#include "semphr.h"
 
 namespace hidpg
 {
@@ -39,8 +41,11 @@ namespace hidpg
     void begin();
     void blink(uint8_t n_times = 1);
     void off();
-    void syncOff();
+    void waitSyncOff();
     bool isBlink() const;
+    void suspend();
+    void resume();
+    bool isSuspended() const;
 
   private:
     static void task(void *pvParameters);
@@ -49,9 +54,12 @@ namespace hidpg
     const uint8_t _active_state;
     volatile bool _is_blink;
     volatile uint8_t _n_times;
+    volatile bool _is_suspend;
     TaskHandle_t _task_handle;
     StackType_t _task_stack[BLINK_LED_TASK_STACK_SIZE];
     StaticTask_t _task_tcb;
+    SemaphoreHandle_t _mutex;
+    StaticSemaphore_t _mutex_buffer;
   };
 
 } // namespace hidpg
