@@ -24,7 +24,40 @@
 
 #include "UsbHid.h"
 #include "Arduino.h"
+#include "FreeRTOS.h"
 #include "HidReportDescriptor.h"
+#include "semphr.h"
+
+namespace
+{
+  SemaphoreHandle_t report_ready_sem;
+  StaticSemaphore_t report_ready_sem_buf;
+
+  void init_report_ready_sem()
+  {
+    report_ready_sem = xSemaphoreCreateBinaryStatic(&report_ready_sem_buf);
+    xSemaphoreGive(report_ready_sem);
+  }
+
+  bool wait_report_ready()
+  {
+    if (xSemaphoreTake(report_ready_sem, pdMS_TO_TICKS(10)) == pdTRUE)
+    {
+      return true;
+    }
+    return false;
+  }
+
+  bool notify_report_complete()
+  {
+    return xSemaphoreGive(report_ready_sem) == pdTRUE;
+  }
+}
+
+void tud_hid_report_complete_cb(uint8_t instance, uint8_t const *report, uint8_t len)
+{
+  notify_report_complete();
+}
 
 namespace hidpg
 {
@@ -45,71 +78,98 @@ namespace hidpg
 
     bool UsbHidReporter::keyboardReport(uint8_t modifiers, uint8_t key_codes[6])
     {
-      if (waitReady())
+      if (tud_ready() == false)
       {
-        return _usb_hid->keyboardReport(REPORT_ID_KEYBOARD, modifiers, key_codes);
+        return false;
       }
-      return false;
+
+      hid_keyboard_report_t report = {
+          .modifier = modifiers,
+          .reserved = 0,
+          .keycode = {
+              key_codes[0],
+              key_codes[1],
+              key_codes[2],
+              key_codes[3],
+              key_codes[4],
+              key_codes[5],
+          },
+      };
+
+      wait_report_ready();
+      return _usb_hid->sendReport(REPORT_ID_KEYBOARD, &report, sizeof(hid_keyboard_report_t));
     }
 
     bool UsbHidReporter::consumerReport(uint16_t usage_code)
     {
-      if (waitReady())
+      if (tud_ready() == false)
       {
-        return _usb_hid->sendReport(REPORT_ID_CONSUMER_CONTROL, &usage_code, sizeof(usage_code));
+        return false;
       }
-      return false;
+
+      wait_report_ready();
+      return _usb_hid->sendReport(REPORT_ID_CONSUMER_CONTROL, &usage_code, sizeof(usage_code));
     }
 
     bool UsbHidReporter::mouseReport(uint8_t buttons, int16_t x, int16_t y, int8_t wheel, int8_t horiz)
     {
-      hid_mouse_report_ex_t report;
-      report.buttons = buttons;
-      report.x = x;
-      report.y = y;
-      report.wheel = wheel;
-      report.pan = horiz;
-
-      if (waitReady())
+      if (tud_ready() == false)
       {
-        return _usb_hid->sendReport(REPORT_ID_MOUSE, &report, sizeof(hid_mouse_report_ex_t));
+        return false;
       }
-      return false;
+
+      hid_mouse_report_ex_t report = {
+          buttons = buttons,
+          .x = x,
+          .y = y,
+          .wheel = wheel,
+          .pan = horiz,
+      };
+
+      wait_report_ready();
+      return _usb_hid->sendReport(REPORT_ID_MOUSE, &report, sizeof(hid_mouse_report_ex_t));
     }
 
     bool UsbHidReporter::radialControllerReport(bool button, int16_t dial)
     {
-      hid_radial_controller_report_t report;
-      report.button = button;
-      report.dial = dial;
-
-      if (waitReady())
+      if (tud_ready() == false)
       {
-        return _usb_hid->sendReport(REPORT_ID_RADIAL_CONTROLLER, &report, sizeof(hid_radial_controller_report_t));
+        return false;
       }
-      return false;
+
+      hid_radial_controller_report_t report = {
+          .button = button,
+          .dial = dial,
+      };
+
+      wait_report_ready();
+      return _usb_hid->sendReport(REPORT_ID_RADIAL_CONTROLLER, &report, sizeof(hid_radial_controller_report_t));
     }
 
     bool UsbHidReporter::systemControlReport(uint8_t usage_code)
     {
-      if (waitReady())
+      if (tud_ready() == false)
       {
-        return _usb_hid->sendReport(REPORT_ID_SYSTEM_CONTROL, &usage_code, sizeof(usage_code));
+        return false;
       }
-      return false;
+
+      wait_report_ready();
+      return _usb_hid->sendReport(REPORT_ID_SYSTEM_CONTROL, &usage_code, sizeof(usage_code));
     }
 
     bool UsbHidReporter::waitReady()
     {
-      int count = 0;
-      while (_usb_hid->ready() == false)
+      if (tud_ready() == false)
       {
-        count++;
-        if (count > 10)
-          return false;
-        delay(1);
+        return false;
       }
 
+      if (wait_report_ready() == false)
+      {
+        return false;
+      }
+
+      notify_report_complete();
       return true;
     }
 
@@ -120,14 +180,18 @@ namespace hidpg
 
     bool UsbHidClass::begin()
     {
-      _usb_hid.setPollInterval(2);
+      init_report_ready_sem();
+
+      _usb_hid.setPollInterval(1);
       _usb_hid.setReportDescriptor(hid_report_descriptor, sizeof(hid_report_descriptor));
       _usb_hid.setReportCallback(NULL, UsbHidClass::hid_report_callback);
-      bool result = _usb_hid.begin();
-
+      if (_usb_hid.begin() == false)
+      {
+        return false;
+      }
       _reporter.setUsbHid(&_usb_hid);
 
-      return result;
+      return true;
     }
 
     void UsbHidClass::hid_report_callback(uint8_t report_id, hid_report_type_t report_type, uint8_t const *buffer, uint16_t bufsize)
