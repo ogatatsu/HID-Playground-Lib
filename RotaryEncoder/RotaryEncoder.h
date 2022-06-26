@@ -25,153 +25,125 @@
 #pragma once
 
 #include "Arduino.h"
+#include "FreeRTOS.h"
 #include "RotaryEncoder_config.h"
 #include "qdec.h"
+#include "task.h"
 
 namespace hidpg
 {
 
-  template <uint8_t ID>
+  namespace Internal
+  {
+    template <uint8_t ID>
+    class RotaryEncoder_InterruptCallback
+    {
+    public:
+      static void interrupt_callback()
+      {
+        if (_task_handle != nullptr)
+        {
+          using namespace ::SimpleHacks;
+          QDECODER_EVENT event = _qdec().update();
+          if (event & QDECODER_EVENT_CW)
+          {
+#if configNUM_CORES > 1
+            taskENTER_CRITICAL_FROM_ISR();
+#endif
+            _step++;
+            if (_needs_call == true)
+            {
+              xTaskNotifyFromISR(_task_handle, 1, eSetValueWithOverwrite, nullptr);
+              _needs_call = false;
+            }
+#if configNUM_CORES > 1
+            taskEXIT_CRITICAL_FROM_ISR();
+#endif
+          }
+          else if (event & QDECODER_EVENT_CCW)
+          {
+#if configNUM_CORES > 1
+            taskENTER_CRITICAL_FROM_ISR();
+#endif
+            _step--;
+            if (_needs_call == true)
+            {
+              xTaskNotifyFromISR(_task_handle, 1, eSetValueWithOverwrite, nullptr);
+              _needs_call = false;
+            }
+#if configNUM_CORES > 1
+            taskEXIT_CRITICAL_FROM_ISR();
+#endif
+          }
+        }
+      }
+
+      static SimpleHacks::QDecoder &_qdec()
+      {
+        static SimpleHacks::QDecoder qdec;
+        return qdec;
+      };
+
+      static TaskHandle_t _task_handle;
+      static int32_t _step;
+      static bool _needs_call;
+    };
+
+    template <uint8_t ID>
+    TaskHandle_t RotaryEncoder_InterruptCallback<ID>::_task_handle = nullptr;
+
+    template <uint8_t ID>
+    int32_t RotaryEncoder_InterruptCallback<ID>::_step = 0;
+
+    template <uint8_t ID>
+    bool RotaryEncoder_InterruptCallback<ID>::_needs_call = true;
+
+  } // namespace Internal
+
   class RotaryEncoder
   {
   public:
     using callback_t = void (*)(void);
 
-    void setPins(uint16_t pin_a, uint16_t pin_b)
+    template <uint8_t ID>
+    static RotaryEncoder &create(uint16_t pin_a, uint16_t pin_b)
     {
-      _qdec.setPinA(pin_a);
-      _qdec.setPinB(pin_b);
+      static RotaryEncoder instance(pin_a,
+                                    pin_b,
+                                    Internal::RotaryEncoder_InterruptCallback<ID>::_task_handle,
+                                    Internal::RotaryEncoder_InterruptCallback<ID>::interrupt_callback,
+                                    Internal::RotaryEncoder_InterruptCallback<ID>::_qdec(),
+                                    Internal::RotaryEncoder_InterruptCallback<ID>::_step,
+                                    Internal::RotaryEncoder_InterruptCallback<ID>::_needs_call);
+
+      return instance;
     }
 
-    void useFullStep(bool is_full_step)
-    {
-      _qdec.setFullStep(is_full_step);
-    }
-
-    void start()
-    {
-      if (_qdec.getIsStarted())
-      {
-        return;
-      }
-
-      _qdec.begin();
-
-      attachInterrupt(digitalPinToInterrupt(_qdec.getPinA()), interrupt_callback, CHANGE);
-      attachInterrupt(digitalPinToInterrupt(_qdec.getPinB()), interrupt_callback, CHANGE);
-
-      if (_task_handle == nullptr)
-      {
-        _task_handle = xTaskCreateStatic(task, "RotaryEncoder", ROTARY_ENCODER_TASK_STACK_SIZE, nullptr, ROTARY_ENCODER_TASK_PRIO, _task_stack, &_task_tcb);
-      }
-      else
-      {
-        vTaskResume(_task_handle);
-      }
-    }
-
-    void setCallback(callback_t cb)
-    {
-      _callback = cb;
-    }
-
-    int32_t readStep()
-    {
-      taskENTER_CRITICAL();
-      int32_t result = _step;
-      _step = 0;
-      _needs_call = true;
-      taskEXIT_CRITICAL();
-
-      return result;
-    }
-
-    void stop()
-    {
-      if (_qdec.getIsStarted() == false)
-      {
-        return;
-      }
-
-      vTaskSuspend(_task_handle);
-
-      detachInterrupt(digitalPinToInterrupt(_qdec.getPinA()));
-      detachInterrupt(digitalPinToInterrupt(_qdec.getPinB()));
-
-      pinMode(_qdec.getPinA(), INPUT);
-      pinMode(_qdec.getPinB(), INPUT);
-
-      _qdec.end();
-    }
+    void useFullStep(bool is_full_step);
+    void start();
+    void setCallback(callback_t cb);
+    int32_t readStep();
+    void stop();
 
   private:
-    static void task(void *pvParameters)
-    {
-      while (true)
-      {
-        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-        if (_callback != nullptr)
-        {
-          _callback();
-        }
-      }
-    };
+    RotaryEncoder(uint16_t pin_a,
+                  uint16_t pin_b,
+                  TaskHandle_t &task_handle,
+                  voidFuncPtr interrupt_callback,
+                  SimpleHacks::QDecoder &qdec,
+                  int32_t &step,
+                  bool &_needs_call);
 
-    static void interrupt_callback()
-    {
-      if (_task_handle != nullptr)
-      {
-        using namespace ::SimpleHacks;
-        QDECODER_EVENT event = _qdec.update();
-        if (event & QDECODER_EVENT_CW)
-        {
-          _step++;
-          if (_needs_call == true)
-          {
-            xTaskNotifyFromISR(_task_handle, 1, eSetValueWithOverwrite, nullptr);
-            _needs_call = false;
-          }
-        }
-        else if (event & QDECODER_EVENT_CCW)
-        {
-          _step--;
-          if (_needs_call == true)
-          {
-            xTaskNotifyFromISR(_task_handle, 1, eSetValueWithOverwrite, nullptr);
-            _needs_call = false;
-          }
-        }
-      }
-    }
+    static void task(void *pvParameters);
 
-    static callback_t _callback;
-    static bool _needs_call;
-    static SimpleHacks::QDecoder _qdec;
-    static int32_t _step;
-    static TaskHandle_t _task_handle;
-    static StackType_t _task_stack[];
-    static StaticTask_t _task_tcb;
+    TaskHandle_t &_task_handle;
+    StackType_t _task_stack[ROTARY_ENCODER_TASK_STACK_SIZE];
+    StaticTask_t _task_tcb;
+    voidFuncPtr _interrupt_callback;
+    SimpleHacks::QDecoder &_qdec;
+    int32_t &_step;
+    bool &_needs_call;
+    callback_t _callback;
   };
-
-  template <uint8_t ID>
-  typename RotaryEncoder<ID>::callback_t RotaryEncoder<ID>::_callback = nullptr;
-
-  template <uint8_t ID>
-  bool RotaryEncoder<ID>::_needs_call = true;
-
-  template <uint8_t ID>
-  SimpleHacks::QDecoder RotaryEncoder<ID>::_qdec;
-
-  template <uint8_t ID>
-  int32_t RotaryEncoder<ID>::_step = 0;
-
-  template <uint8_t ID>
-  TaskHandle_t RotaryEncoder<ID>::_task_handle = nullptr;
-
-  template <uint8_t ID>
-  StackType_t RotaryEncoder<ID>::_task_stack[ROTARY_ENCODER_TASK_STACK_SIZE];
-
-  template <uint8_t ID>
-  StaticTask_t RotaryEncoder<ID>::_task_tcb;
 
 } // namespace hidpg
