@@ -23,7 +23,6 @@
 */
 
 #include "HidEngineTask.h"
-#include "Arduino.h"
 #include "CommandTapper.h"
 #include "HidEngine.h"
 

@@ -23,10 +23,15 @@
 */
 
 #include "Command.h"
-#include "Arduino.h"
+#include "ArduinoMacro.h"
 #include "CommandTapper.h"
 #include "HidCore.h"
 #include "MouseSpeedController.h"
+
+extern "C"
+{
+  uint32_t millis();
+}
 
 namespace hidpg
 {
@@ -830,13 +835,13 @@ namespace hidpg
     // MouseScroll
     //------------------------------------------------------------------+
     MouseScroll::MouseScroll(int8_t scroll, int8_t horiz)
-        : _scroll(scroll), _horiz(horiz), _max_n_times(127 / max(abs(_scroll), abs(_horiz)))
+        : _scroll(scroll), _horiz(horiz), _max_n_times(127 / std::max(abs(_scroll), abs(_horiz)))
     {
     }
 
     void MouseScroll::onPress(uint8_t n_times)
     {
-      _actual_n_times = min(n_times, _max_n_times);
+      _actual_n_times = std::min(n_times, _max_n_times);
       Hid.mouseScroll(_scroll * _actual_n_times, _horiz * _actual_n_times);
     }
 
@@ -882,13 +887,13 @@ namespace hidpg
     // RadialRotate
     //------------------------------------------------------------------+
     RadialRotate::RadialRotate(int16_t deci_degree)
-        : _deci_degree(deci_degree), _max_n_times(min(3600 / abs(_deci_degree), UINT8_MAX))
+        : _deci_degree(deci_degree), _max_n_times(std::min(3600 / abs(_deci_degree), UINT8_MAX))
     {
     }
 
     void RadialRotate::onPress(uint8_t n_times)
     {
-      _actual_n_times = min(n_times, _max_n_times);
+      _actual_n_times = std::min(n_times, _max_n_times);
       Hid.radialControllerDialRotate(_deci_degree * _actual_n_times);
     }
 

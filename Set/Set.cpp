@@ -23,7 +23,8 @@
 */
 
 #include "Set.h"
-#include "Arduino.h"
+#include "ArduinoMacro.h"
+#include <string.h>
 
 namespace hidpg
 {

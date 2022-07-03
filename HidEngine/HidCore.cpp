@@ -23,8 +23,9 @@
 */
 
 #include "HidCore.h"
-#include "Arduino.h"
+#include "ArduinoMacro.h"
 #include "Set.h"
+#include <string.h>
 
 namespace hidpg
 {

@@ -24,7 +24,6 @@
 
 #pragma once
 
-#include "Arduino.h"
 #include "FreeRTOS.h"
 #include "HidEngine_config.h"
 #include "etl/forward_list.h"

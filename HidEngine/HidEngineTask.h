@@ -67,7 +67,7 @@ namespace hidpg
 
     struct CommandTapperEventData
     {
-      //empty
+      // empty
     };
 
     struct EventData

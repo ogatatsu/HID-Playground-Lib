@@ -23,10 +23,11 @@
 */
 
 #include "HidEngine.h"
-#include "Arduino.h"
+#include "ArduinoMacro.h"
 #include "CommandTapper.h"
 #include "HidCore.h"
 #include "HidEngineTask.h"
+#include <stdint.h>
 
 namespace hidpg
 {
@@ -199,7 +200,7 @@ namespace hidpg
     {
       for (size_t i = 0; i < _sequence_keymap_len; i++)
       {
-        size_t min_len = min(len, _sequence_keymap[i].key_ids_len);
+        size_t min_len = std::min(len, _sequence_keymap[i].key_ids_len);
         if (memcmp(id_seq, _sequence_keymap[i].key_ids, min_len) == 0)
         {
           if (len == _sequence_keymap[i].key_ids_len)
@@ -339,7 +340,7 @@ namespace hidpg
       {
         BgstEventListener::_notifyBeforeGesture(gesture.gesture_id, gesture.mouse_id);
 
-        uint8_t n_times = min(abs(_total_distance_y / threshold), UINT8_MAX);
+        uint8_t n_times = static_cast<uint8_t>(std::min(abs(_total_distance_y / threshold), static_cast<long>(UINT8_MAX)));
         _total_distance_y %= threshold;
         CommandTapper.tap(gesture.up_command, n_times);
         if (gesture.angle_snap == AngleSnap::Enable)
@@ -351,7 +352,7 @@ namespace hidpg
       {
         BgstEventListener::_notifyBeforeGesture(gesture.gesture_id, gesture.mouse_id);
 
-        uint8_t n_times = min(_total_distance_y / threshold, UINT8_MAX);
+        uint8_t n_times = static_cast<uint8_t>(std::min(_total_distance_y / threshold, static_cast<long>(UINT8_MAX)));
         _total_distance_y %= threshold;
         CommandTapper.tap(gesture.down_command, n_times);
         if (gesture.angle_snap == AngleSnap::Enable)
@@ -369,7 +370,7 @@ namespace hidpg
       {
         BgstEventListener::_notifyBeforeGesture(gesture.gesture_id, gesture.mouse_id);
 
-        uint8_t n_times = min(abs(_total_distance_x / threshold), UINT8_MAX);
+        uint8_t n_times = static_cast<uint8_t>(std::min(abs(_total_distance_x / threshold), static_cast<long>(UINT8_MAX)));
         _total_distance_x %= threshold;
         CommandTapper.tap(gesture.left_command, n_times);
         if (gesture.angle_snap == AngleSnap::Enable)
@@ -381,7 +382,7 @@ namespace hidpg
       {
         BgstEventListener::_notifyBeforeGesture(gesture.gesture_id, gesture.mouse_id);
 
-        uint8_t n_times = min(_total_distance_x / threshold, UINT8_MAX);
+        uint8_t n_times = static_cast<uint8_t>(std::min(_total_distance_x / threshold, static_cast<long>(UINT8_MAX)));
         _total_distance_x %= threshold;
         CommandTapper.tap(gesture.right_command, n_times);
         if (gesture.angle_snap == AngleSnap::Enable)

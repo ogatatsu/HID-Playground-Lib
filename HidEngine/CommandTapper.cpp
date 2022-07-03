@@ -23,7 +23,7 @@
 */
 
 #include "CommandTapper.h"
-#include "Arduino.h"
+#include "ArduinoMacro.h"
 #include "FreeRTOS.h"
 #include "HidEngineTask.h"
 

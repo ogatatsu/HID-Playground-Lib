@@ -23,8 +23,7 @@
 */
 
 #include "Layer.h"
-#include "Arduino.h"
-#include <string.h>
+#include "ArduinoMacro.h"
 
 namespace hidpg
 {

@@ -1,6 +1,5 @@
 {
   "name": "HID-Playground HidEngine",
-  "frameworks": "arduino",
   "dependencies": [
     {
       "name": "HID-Playground HidReporter"
