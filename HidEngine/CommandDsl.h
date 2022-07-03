@@ -66,13 +66,6 @@ namespace hidpg
       return new (buf) ModifierOrTap(modifiers, command);
     }
 
-    template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_OneShotModifier(Modifiers modifiers)
-    {
-      static uint8_t buf[sizeof(OneShotModifier)];
-      return new (buf) OneShotModifier(modifiers);
-    }
-
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3, size_t N>
     Command *new_Layering(LayerClass *layer, const CommandPtr (&arr)[N])
     {
@@ -107,13 +100,6 @@ namespace hidpg
     {
       static uint8_t buf[sizeof(SwitchLayer)];
       return new (buf) SwitchLayer(layer, layer_number);
-    }
-
-    template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_OneShotLayer(LayerClass *layer, uint8_t layer_number)
-    {
-      static uint8_t buf[sizeof(OneShotLayer)];
-      return new (buf) OneShotLayer(layer, layer_number);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
@@ -320,9 +306,6 @@ namespace hidpg
 // ModifierOrTap
 #define MoT(modifiers, command) (Internal::new_ModifierOrTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(modifiers, command))
 
-// OneShotModifier
-#define OSM(modifiers) (Internal::new_OneShotModifier<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(modifiers))
-
 // Layering
 #define LY(...) (Internal::new_Layering<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer, __VA_ARGS__))
 #define LY1(...) (Internal::new_Layering<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer1, __VA_ARGS__))
@@ -342,11 +325,6 @@ namespace hidpg
 #define SL(layer_number) (Internal::new_SwitchLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer, layer_number))
 #define SL1(layer_number) (Internal::new_SwitchLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer1, layer_number))
 #define SL2(layer_number) (Internal::new_SwitchLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer2, layer_number))
-
-// OneShotLayer
-#define OSL(layer_number) (Internal::new_OneShotLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer, layer_number))
-#define OSL1(layer_number) (Internal::new_OneShotLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer1, layer_number))
-#define OSL2(layer_number) (Internal::new_OneShotLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer2, layer_number))
 
 // UpBaseLayer
 #define UPL(i) (Internal::new_UpBaseLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer, i))

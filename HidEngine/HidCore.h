@@ -47,9 +47,7 @@ namespace hidpg
       static void unsetKey(KeyCode key_code);
       static void setModifiers(Modifiers modifiers);
       static void unsetModifiers(Modifiers modifiers);
-      static void holdOneShotModifiers(Modifiers modifiers);
-      static void releaseOneShotModifiers(Modifiers modifiers);
-      static void sendKeyReport(bool trigger_one_shot);
+      static void sendKeyReport();
       static bool isModifiersSet();
 
       // Consumer API
@@ -83,11 +81,8 @@ namespace hidpg
       static uint8_t _prev_sent_keys[6];
       static uint8_t _key_counters[256];
 
-      static uint8_t _modifier_counters[8];
-      static int32_t _one_shot_modifier_counters[8];
-      static int32_t _triggered_one_shot_modifier_counters[8];
-
       static uint8_t _prev_sent_modifiers;
+      static uint8_t _modifier_counters[8];
 
       static uint8_t _prev_sent_mouse_buttons;
       static uint8_t _mouse_button_counters[5];

@@ -29,7 +29,7 @@
 namespace hidpg
 {
 
-  LayerClass::LayerClass() : _base(0), _on_counters(), _toggle(0), _one_shot(0), _callback(nullptr)
+  LayerClass::LayerClass() : _base(0), _on_counters(), _toggle(0), _callback(nullptr)
   {
   }
 
@@ -124,59 +124,11 @@ namespace hidpg
     }
   }
 
-  void LayerClass::setOneShot(uint8_t number)
-  {
-    if (number >= HID_ENGINE_LAYER_SIZE)
-    {
-      return;
-    }
-
-    if (_callback != nullptr)
-    {
-      layer_bitmap_t prev_state = getState();
-      bitSet(_one_shot, number);
-      layer_bitmap_t state = getState();
-
-      if (prev_state != state)
-      {
-        _callback(prev_state, state);
-      }
-    }
-    else
-    {
-      bitSet(_one_shot, number);
-    }
-  }
-
-  layer_bitmap_t LayerClass::getOneShotState()
-  {
-    return _one_shot;
-  }
-
-  void LayerClass::clearOneShot()
-  {
-    if (_callback != nullptr)
-    {
-      layer_bitmap_t prev_state = getState();
-      _one_shot = 0;
-      layer_bitmap_t state = getState();
-
-      if (prev_state != state)
-      {
-        _callback(prev_state, state);
-      }
-    }
-    else
-    {
-      _one_shot = 0;
-    }
-  }
-
   layer_bitmap_t LayerClass::getState()
   {
     uint8_t base = constrain(_base, 0, HID_ENGINE_LAYER_SIZE - 1);
 
-    layer_bitmap_t result = (1UL << base) | _toggle | _one_shot;
+    layer_bitmap_t result = (1UL << base) | _toggle;
 
     for (int i = 0; i < HID_ENGINE_LAYER_SIZE; i++)
     {

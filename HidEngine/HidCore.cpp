@@ -35,10 +35,8 @@ namespace hidpg
     uint8_t HidCore::_pressed_keys[7] = {};
     uint8_t HidCore::_prev_sent_keys[6] = {};
     uint8_t HidCore::_key_counters[256] = {};
-    uint8_t HidCore::_modifier_counters[8] = {};
-    int32_t HidCore::_one_shot_modifier_counters[8] = {};
-    int32_t HidCore::_triggered_one_shot_modifier_counters[8] = {};
     uint8_t HidCore::_prev_sent_modifiers = 0;
+    uint8_t HidCore::_modifier_counters[8] = {};
     uint8_t HidCore::_prev_sent_mouse_buttons = 0;
     uint8_t HidCore::_mouse_button_counters[5] = {};
     bool HidCore::_prev_sent_radial_button = false;
@@ -146,22 +144,11 @@ namespace hidpg
       countDown(_modifier_counters, static_cast<uint8_t>(modifiers));
     }
 
-    void HidCore::holdOneShotModifiers(Modifiers modifiers)
-    {
-      countUp(_one_shot_modifier_counters, static_cast<uint8_t>(modifiers));
-    }
-
-    void HidCore::releaseOneShotModifiers(Modifiers modifiers)
-    {
-      countDown(_triggered_one_shot_modifier_counters, static_cast<uint8_t>(modifiers));
-      sendKeyReport(false);
-    }
-
     bool HidCore::isModifiersSet()
     {
       for (int i = 0; i < 8; i++)
       {
-        if (_modifier_counters[i] != 0 || _one_shot_modifier_counters[i] != 0 || _triggered_one_shot_modifier_counters[i] != 0)
+        if (_modifier_counters[i] != 0)
         {
           return true;
         }
@@ -169,7 +156,7 @@ namespace hidpg
       return false;
     }
 
-    void HidCore::sendKeyReport(bool trigger_one_shot)
+    void HidCore::sendKeyReport()
     {
       // 前回送ったreportと比較して変更があるか
       bool is_changed = false;
@@ -195,29 +182,6 @@ namespace hidpg
         if (_modifier_counters[i] > 0)
         {
           modifiers |= bit(i);
-        }
-      }
-
-      // one_shotは発動した後も押され続けている場合は機能し続ける、有るならばmodifierに追加
-      for (int i = 0; i < 8; i++)
-      {
-        if (_triggered_one_shot_modifier_counters[i] > 0)
-        {
-          modifiers |= bit(i);
-        }
-      }
-
-      // one_shotをmodifierに追加
-      if (trigger_one_shot)
-      {
-        for (int i = 0; i < 8; i++)
-        {
-          if (_one_shot_modifier_counters[i] > 0)
-          {
-            modifiers |= bit(i);
-            _triggered_one_shot_modifier_counters[i] += _one_shot_modifier_counters[i];
-            _one_shot_modifier_counters[i] = 0;
-          }
         }
       }
 
@@ -297,25 +261,23 @@ namespace hidpg
 
     void HidCore::mouseScroll(int8_t scroll, int8_t horiz)
     {
-      sendKeyReport(true);
+      sendKeyReport();
       if (_hid_reporter != nullptr)
       {
         _hid_reporter->mouseReport(_prev_sent_mouse_buttons, 0, 0, scroll, horiz);
       }
-      sendKeyReport(false);
     }
 
     void HidCore::mouseButtonsPress(MouseButtons buttons)
     {
       countUp(_mouse_button_counters, static_cast<uint8_t>(buttons));
-      sendKeyReport(true);
+      sendKeyReport();
       sendMouseButtonsReport();
     }
 
     void HidCore::mouseButtonsRelease(MouseButtons buttons)
     {
       countDown(_mouse_button_counters, static_cast<uint8_t>(buttons));
-      sendKeyReport(false);
       sendMouseButtonsReport();
     }
 

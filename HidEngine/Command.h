@@ -219,22 +219,6 @@ namespace hidpg
     };
 
     //------------------------------------------------------------------+
-    // OneShotModifier
-    //------------------------------------------------------------------+
-    class OneShotModifier : public Command
-    {
-    public:
-      OneShotModifier(Modifiers modifiers);
-
-    protected:
-      void onPress(uint8_t n_times) override;
-      uint8_t onRelease() override;
-
-    private:
-      const Modifiers _modifiers;
-    };
-
-    //------------------------------------------------------------------+
     // Layering
     //------------------------------------------------------------------+
     class Layering : public Command
@@ -301,24 +285,6 @@ namespace hidpg
     private:
       LayerClass *_layer;
       const uint8_t _layer_number;
-    };
-
-    //------------------------------------------------------------------+
-    // OneShotLayer
-    //------------------------------------------------------------------+
-    class OneShotLayer : public Command
-    {
-    public:
-      OneShotLayer(LayerClass *layer, uint8_t layer_number);
-
-    protected:
-      void onPress(uint8_t n_times) override;
-      uint8_t onRelease() override;
-
-    private:
-      LayerClass *_layer;
-      const uint8_t _layer_number;
-      layer_bitmap_t _chained_osl;
     };
 
     //------------------------------------------------------------------+

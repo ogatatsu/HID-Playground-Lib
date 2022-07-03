@@ -196,13 +196,13 @@ namespace hidpg
     void NormalKey::onPress(uint8_t n_times)
     {
       Hid.setKey(_key_code);
-      Hid.sendKeyReport(true);
+      Hid.sendKeyReport();
     }
 
     uint8_t NormalKey::onRelease()
     {
       Hid.unsetKey(_key_code);
-      Hid.sendKeyReport(false);
+      Hid.sendKeyReport();
       return 1;
     }
 
@@ -216,13 +216,13 @@ namespace hidpg
     void ModifierKey::onPress(uint8_t n_times)
     {
       Hid.setModifiers(_modifiers);
-      Hid.sendKeyReport(true);
+      Hid.sendKeyReport();
     }
 
     uint8_t ModifierKey::onRelease()
     {
       Hid.unsetModifiers(_modifiers);
-      Hid.sendKeyReport(false);
+      Hid.sendKeyReport();
       return 1;
     }
 
@@ -237,14 +237,14 @@ namespace hidpg
     {
       Hid.setKey(_key_code);
       Hid.setModifiers(_modifiers);
-      Hid.sendKeyReport(true);
+      Hid.sendKeyReport();
     }
 
     uint8_t CombinationKey::onRelease()
     {
       Hid.unsetKey(_key_code);
       Hid.unsetModifiers(_modifiers);
-      Hid.sendKeyReport(false);
+      Hid.sendKeyReport();
       return 1;
     }
 
@@ -271,26 +271,8 @@ namespace hidpg
       }
       else
       {
-        Hid.sendKeyReport(false);
+        Hid.sendKeyReport();
       }
-      return 1;
-    }
-
-    //------------------------------------------------------------------+
-    // OneShotModifier
-    //------------------------------------------------------------------+
-    OneShotModifier::OneShotModifier(Modifiers modifiers) : _modifiers(modifiers)
-    {
-    }
-
-    void OneShotModifier::onPress(uint8_t n_times)
-    {
-      Hid.holdOneShotModifiers(_modifiers);
-    }
-
-    uint8_t OneShotModifier::onRelease()
-    {
-      Hid.releaseOneShotModifiers(_modifiers);
       return 1;
     }
 
@@ -312,7 +294,6 @@ namespace hidpg
     {
       // 現在のレイヤーの状態を取得
       layer_bitmap_t layer_state = _layer->getState();
-      _layer->clearOneShot();
 
       _running_command = nullptr;
 
@@ -405,39 +386,6 @@ namespace hidpg
     uint8_t SwitchLayer::onRelease()
     {
       _layer->off(_layer_number);
-      return 1;
-    }
-
-    //------------------------------------------------------------------+
-    // OneShotLayer
-    //------------------------------------------------------------------+
-    OneShotLayer::OneShotLayer(LayerClass *layer, uint8_t layer_number) : _layer(layer), _layer_number(layer_number)
-    {
-    }
-
-    void OneShotLayer::onPress(uint8_t n_times)
-    {
-      _layer->setOneShot(_layer_number);
-      _chained_osl = _layer->getOneShotState();
-
-      for (int i = 0; i < HID_ENGINE_LAYER_SIZE; i++)
-      {
-        if (bitRead(_chained_osl, i))
-        {
-          _layer->on(i);
-        }
-      }
-    }
-
-    uint8_t OneShotLayer::onRelease()
-    {
-      for (int i = 0; i < HID_ENGINE_LAYER_SIZE; i++)
-      {
-        if (bitRead(_chained_osl, i))
-        {
-          _layer->off(i);
-        }
-      }
       return 1;
     }
 

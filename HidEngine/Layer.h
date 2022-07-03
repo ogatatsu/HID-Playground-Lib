@@ -43,11 +43,6 @@ namespace hidpg
     void toggle(uint8_t number);
     void addToBase(int8_t i);
 
-    // OneShot
-    void setOneShot(uint8_t number);
-    layer_bitmap_t getOneShotState();
-    void clearOneShot();
-
     // 状態を取得
     layer_bitmap_t getState();
     void setCallback(callback_t callback);
@@ -56,7 +51,6 @@ namespace hidpg
     int16_t _base;
     uint8_t _on_counters[HID_ENGINE_LAYER_SIZE];
     layer_bitmap_t _toggle;
-    layer_bitmap_t _one_shot;
     callback_t _callback;
   };
 

@@ -41,8 +41,6 @@ namespace hidpg
 
   static inline Command *MoT(Modifiers modifiers, Command *command) { return (new Internal::ModifierOrTap(modifiers, command)); }
 
-  static inline Command *OSM(Modifiers modifiers) { return (new Internal::OneShotModifier(modifiers)); }
-
   template <size_t N>
   static Command *LY(const CommandPtr (&arr)[N])
   {
@@ -93,10 +91,6 @@ namespace hidpg
   static inline Command *SL(uint8_t layer_number) { return (new Internal::SwitchLayer(&Layer, layer_number)); }
   static inline Command *SL1(uint8_t layer_number) { return (new Internal::SwitchLayer(&Layer1, layer_number)); }
   static inline Command *SL2(uint8_t layer_number) { return (new Internal::SwitchLayer(&Layer2, layer_number)); }
-
-  static inline Command *OSL(uint8_t layer_number) { return (new Internal::OneShotLayer(&Layer, layer_number)); }
-  static inline Command *OSL1(uint8_t layer_number) { return (new Internal::OneShotLayer(&Layer1, layer_number)); }
-  static inline Command *OSL2(uint8_t layer_number) { return (new Internal::OneShotLayer(&Layer2, layer_number)); }
 
   static inline Command *UPL(uint8_t i) { return (new Internal::UpBaseLayer(&Layer, i)); }
   static inline Command *UPL1(uint8_t i) { return (new Internal::UpBaseLayer(&Layer1, i)); }
