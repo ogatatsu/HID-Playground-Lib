@@ -201,10 +201,9 @@ namespace hidpg
         return;
       }
 
-      if (_reporter._kbd_led_cb != nullptr && bufsize == 2)
+      if (_reporter._kbd_led_cb != nullptr)
       {
-        // bufferの１バイト目はReportID
-        _reporter._kbd_led_cb(buffer[1]);
+        _reporter._kbd_led_cb(buffer[0]);
       }
     }
 
