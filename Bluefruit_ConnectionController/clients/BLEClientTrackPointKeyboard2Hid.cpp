@@ -33,9 +33,15 @@ namespace hidpg
         _keyboard_cb(nullptr),
         _trackpoint_cb(nullptr),
         _consumer_cb(nullptr),
+        _vendor_cb(nullptr),
         _keyboard_input(UUID16_CHR_REPORT),
         _trackpoint_input(UUID16_CHR_REPORT),
-        _consumer_input(UUID16_CHR_REPORT)
+        _consumer_input(UUID16_CHR_REPORT),
+        _unknown1(UUID16_CHR_REPORT),
+        _unknown2(UUID16_CHR_REPORT),
+        _vendor_input(UUID16_CHR_REPORT),
+        _unknown3(UUID16_CHR_REPORT),
+        _keyboard_output(UUID16_CHR_REPORT)
   {
   }
 
@@ -47,11 +53,17 @@ namespace hidpg
     _keyboard_input.begin(this);
     _trackpoint_input.begin(this);
     _consumer_input.begin(this);
+    _unknown1.begin(this);
+    _unknown2.begin(this);
+    _vendor_input.begin(this);
+    _unknown3.begin(this);
+    _keyboard_output.begin(this);
 
     // set notify callback
     _keyboard_input.setNotifyCallback(keyboard_client_notify_cb);
     _trackpoint_input.setNotifyCallback(trackpoint_client_notify_cb);
     _consumer_input.setNotifyCallback(consumer_client_notify_cb);
+    _vendor_input.setNotifyCallback(vendor_client_notify_cb);
 
     return true;
   }
@@ -71,6 +83,11 @@ namespace hidpg
     _consumer_cb = fp;
   }
 
+  void BLEClientTrackPointKeyboard2Hid::setVendorReportCallback(vendor_callback_t fp)
+  {
+    _vendor_cb = fp;
+  }
+
   bool BLEClientTrackPointKeyboard2Hid::discover(uint16_t conn_handle)
   {
     // Call Base class discover
@@ -78,9 +95,19 @@ namespace hidpg
     _conn_hdl = BLE_CONN_HANDLE_INVALID; // make as invalid until we found all chars
 
     // Discover all characteristics
-    Bluefruit.Discovery.discoverCharacteristic(conn_handle, _keyboard_input, _trackpoint_input, _consumer_input);
+    BLEClientCharacteristic *chrs[8] = {
+        &_keyboard_input,
+        &_trackpoint_input,
+        &_consumer_input,
+        &_unknown1,
+        &_unknown2,
+        &_vendor_input,
+        &_unknown3,
+        &_keyboard_output,
+    };
+    uint8_t cnt = Bluefruit.Discovery.discoverCharacteristic(conn_handle, chrs, 8);
 
-    VERIFY(_keyboard_input.discovered() && _trackpoint_input.discovered() && _consumer_input.discovered());
+    VERIFY(cnt == 8);
 
     _conn_hdl = conn_handle;
     return true;
@@ -113,6 +140,11 @@ namespace hidpg
     BLEClientTrackPointKeyboard2Hid &svc = (BLEClientTrackPointKeyboard2Hid &)chr->parentService();
     svc._handle_keyboard_input(data, len);
   }
+
+  bool BLEClientTrackPointKeyboard2Hid::setKeyboardLed(uint8_t leds_bitmap)
+  {
+    return (_keyboard_output.write8(leds_bitmap) == 1);
+  };
 
   //------------------------------------------------------------------+
   // TrackPoint
@@ -168,6 +200,34 @@ namespace hidpg
   {
     BLEClientTrackPointKeyboard2Hid &svc = (BLEClientTrackPointKeyboard2Hid &)chr->parentService();
     svc._handle_consumer_input(data, len);
+  }
+
+  //------------------------------------------------------------------+
+  // Vendor
+  //------------------------------------------------------------------+
+  bool BLEClientTrackPointKeyboard2Hid::enableVendor()
+  {
+    return _vendor_input.enableNotify();
+  }
+
+  bool BLEClientTrackPointKeyboard2Hid::disableVendor()
+  {
+    return _vendor_input.disableNotify();
+  }
+
+  void BLEClientTrackPointKeyboard2Hid::_handle_vendor_input(uint8_t *data, uint16_t len)
+  {
+    if (_vendor_cb && (len == sizeof(vendor_report_t)))
+    {
+      vendor_report_t *report = (vendor_report_t *)data;
+      _vendor_cb(report->usage_code);
+    }
+  }
+
+  void BLEClientTrackPointKeyboard2Hid::vendor_client_notify_cb(BLEClientCharacteristic *chr, uint8_t *data, uint16_t len)
+  {
+    BLEClientTrackPointKeyboard2Hid &svc = (BLEClientTrackPointKeyboard2Hid &)chr->parentService();
+    svc._handle_vendor_input(data, len);
   }
 
 } // namespace hidpg

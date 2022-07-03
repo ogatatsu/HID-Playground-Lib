@@ -81,6 +81,7 @@ namespace hidpg
     VERIFY(Hid.enableKeyboard());
     VERIFY(Hid.enableTrackpoint());
     VERIFY(Hid.enableConsumer());
+    VERIFY(Hid.enableVendor());
 
     return true;
   }
