@@ -28,7 +28,7 @@
 namespace hidpg
 {
 
-  LayerClass::LayerClass() : _base(0), _on_counters(), _toggle(0), _callback(nullptr)
+  LayerClass::LayerClass() : _default(0), _on_counters(), _toggle(0), _callback(nullptr)
   {
   }
 
@@ -104,12 +104,12 @@ namespace hidpg
     }
   }
 
-  void LayerClass::addToBase(int8_t i)
+  void LayerClass::addToDefaultLayer(int8_t i)
   {
     if (_callback != nullptr)
     {
       layer_bitmap_t prev_state = getState();
-      _base += i;
+      _default += i;
       layer_bitmap_t state = getState();
 
       if (prev_state != state)
@@ -119,15 +119,15 @@ namespace hidpg
     }
     else
     {
-      _base += i;
+      _default += i;
     }
   }
 
   layer_bitmap_t LayerClass::getState()
   {
-    uint8_t base = constrain(_base, 0, HID_ENGINE_LAYER_SIZE - 1);
+    uint8_t dflt = constrain(_default, 0, HID_ENGINE_LAYER_SIZE - 1);
 
-    layer_bitmap_t result = (1UL << base) | _toggle;
+    layer_bitmap_t result = (1UL << dflt) | _toggle;
 
     for (int i = 0; i < HID_ENGINE_LAYER_SIZE; i++)
     {

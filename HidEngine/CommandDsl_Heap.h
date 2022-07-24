@@ -125,9 +125,9 @@ namespace hidpg
   static inline Command *SL1(uint8_t layer_number) { return (new Internal::SwitchLayer(&Layer1, layer_number)); }
   static inline Command *SL2(uint8_t layer_number) { return (new Internal::SwitchLayer(&Layer2, layer_number)); }
 
-  static inline Command *UPL(uint8_t i) { return (new Internal::UpBaseLayer(&Layer, i)); }
-  static inline Command *UPL1(uint8_t i) { return (new Internal::UpBaseLayer(&Layer1, i)); }
-  static inline Command *UPL2(uint8_t i) { return (new Internal::UpBaseLayer(&Layer2, i)); }
+  static inline Command *UPL(uint8_t i) { return (new Internal::UpDefaultLayer(&Layer, i)); }
+  static inline Command *UPL1(uint8_t i) { return (new Internal::UpDefaultLayer(&Layer1, i)); }
+  static inline Command *UPL2(uint8_t i) { return (new Internal::UpDefaultLayer(&Layer2, i)); }
 
   static inline Command *TAP(Command *command, uint8_t n_times = 1, uint16_t tap_speed_ms = HID_ENGINE_TAP_SPEED_MS) { return (new Internal::Tap(command, n_times, tap_speed_ms)); }
 

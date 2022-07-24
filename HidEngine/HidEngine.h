@@ -212,7 +212,7 @@ namespace hidpg
     //------------------------------------------------------------------+
     // GestureOrTap
     //------------------------------------------------------------------+
-    class GestureOrTap : public Command, public BdrcpEventListener, public BgstEventListener
+    class GestureOrTap : public Command, public BeforeDifferentRootCommandPressEventListener, public BeforeGestureEventListener
     {
     public:
       GestureOrTap(uint8_t gesture_id, Command *command);
@@ -242,7 +242,7 @@ namespace hidpg
     //------------------------------------------------------------------+
     // GestureOrTapKey
     //------------------------------------------------------------------+
-    class GestureOrTapKey : public Command, public BdrcpEventListener, public BgstEventListener
+    class GestureOrTapKey : public Command, public BeforeDifferentRootCommandPressEventListener, public BeforeGestureEventListener
     {
     public:
       GestureOrTapKey(uint8_t gesture_id, KeyCode key_code);

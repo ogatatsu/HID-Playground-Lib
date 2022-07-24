@@ -48,7 +48,7 @@ namespace hidpg
     if (_state == State::Released && _notified == false && CommandHook::_isHooked(*this) == false)
     {
       _notified = true;
-      BdrcpEventListener::_notifyBeforeDifferentRootCommandPress(*this);
+      BeforeDifferentRootCommandPressEventListener::_notifyBeforeDifferentRootCommandPress(*this);
     }
 
     if (CommandHook::_tryHookPress(*this) == false)
@@ -80,34 +80,42 @@ namespace hidpg
   }
 
   //------------------------------------------------------------------+
-  // BdrcpEventListener
+  // BeforeDifferentRootCommandPressEventListener
   //------------------------------------------------------------------+
-  BdrcpEventListener::BdrcpEventListener(Command *command) : _command(command), _is_listen(false)
+  BeforeDifferentRootCommandPressEventListener::BeforeDifferentRootCommandPressEventListener(Command *command) : _command(command), _is_listen(false)
   {
   }
 
-  void BdrcpEventListener::startListen_BeforeDifferentRootCommandPress()
-  {
-    if (_is_listen == false)
-    {
-      _listener_list().push_back(*this);
-      _is_listen = true;
-    }
-  }
-
-  void BdrcpEventListener::stopListen_BeforeDifferentRootCommandPress()
+  bool BeforeDifferentRootCommandPressEventListener::startListenBeforeDifferentRootCommandPress()
   {
     if (_is_listen)
     {
-      auto i_item = etl::intrusive_list<BdrcpEventListener, BdrcpEventListenerLink>::iterator(*this);
-      _listener_list().erase(i_item);
-      _is_listen = false;
+      return false;
     }
+
+    _listener_list().push_back(*this);
+    _is_listen = true;
+
+    return true;
   }
 
-  void BdrcpEventListener::_notifyBeforeDifferentRootCommandPress(Command &press_command)
+  bool BeforeDifferentRootCommandPressEventListener::stopListenBeforeDifferentRootCommandPress()
   {
-    for (BdrcpEventListener &listener : _listener_list())
+    if (_is_listen == false)
+    {
+      return false;
+    }
+
+    auto i_item = etl::intrusive_list<BeforeDifferentRootCommandPressEventListener, BeforeDifferentRootCommandPressEventListenerLink>::iterator(*this);
+    _listener_list().erase(i_item);
+    _is_listen = false;
+
+    return true;
+  }
+
+  void BeforeDifferentRootCommandPressEventListener::_notifyBeforeDifferentRootCommandPress(Command &press_command)
+  {
+    for (BeforeDifferentRootCommandPressEventListener &listener : _listener_list())
     {
       if (getRootCommand(listener._command) != getRootCommand(&press_command))
       {
@@ -116,7 +124,7 @@ namespace hidpg
     }
   }
 
-  Command *BdrcpEventListener::getRootCommand(Command *command)
+  Command *BeforeDifferentRootCommandPressEventListener::getRootCommand(Command *command)
   {
     while (command->getParent() != nullptr)
     {
@@ -126,68 +134,84 @@ namespace hidpg
   }
 
   //------------------------------------------------------------------+
-  // BmmEventListener
+  // BeforeMouseMoveEventListener
   //------------------------------------------------------------------+
-  BmmEventListener::BmmEventListener() : _is_listen(false)
+  BeforeMouseMoveEventListener::BeforeMouseMoveEventListener() : _is_listen(false)
   {
   }
 
-  void BmmEventListener::startListen_BeforeMouseMove()
-  {
-    if (_is_listen == false)
-    {
-      _listener_list().push_back(*this);
-      _is_listen = true;
-    }
-  }
-
-  void BmmEventListener::stopListen_BeforeMouseMove()
+  bool BeforeMouseMoveEventListener::startListenBeforeMouseMove()
   {
     if (_is_listen)
     {
-      auto i_item = etl::intrusive_list<BmmEventListener, BmmEventListenerLink>::iterator(*this);
-      _listener_list().erase(i_item);
-      _is_listen = false;
+      return false;
     }
+
+    _listener_list().push_back(*this);
+    _is_listen = true;
+
+    return true;
   }
 
-  void BmmEventListener::_notifyBeforeMouseMove(uint8_t mouse_id)
+  bool BeforeMouseMoveEventListener::stopListenBeforeMouseMove()
   {
-    for (BmmEventListener &listener : _listener_list())
+    if (_is_listen == false)
+    {
+      return false;
+    }
+
+    auto i_item = etl::intrusive_list<BeforeMouseMoveEventListener, BeforeMouseMoveEventListenerLink>::iterator(*this);
+    _listener_list().erase(i_item);
+    _is_listen = false;
+
+    return true;
+  }
+
+  void BeforeMouseMoveEventListener::_notifyBeforeMouseMove(uint8_t mouse_id)
+  {
+    for (BeforeMouseMoveEventListener &listener : _listener_list())
     {
       listener.onBeforeMouseMove(mouse_id);
     }
   }
 
   //------------------------------------------------------------------+
-  // BgstEventListener
+  // BeforeGestureEventListener
   //------------------------------------------------------------------+
-  BgstEventListener::BgstEventListener() : _is_listen(false)
+  BeforeGestureEventListener::BeforeGestureEventListener() : _is_listen(false)
   {
   }
 
-  void BgstEventListener::startListen_BeforeGesture()
-  {
-    if (_is_listen == false)
-    {
-      _listener_list().push_back(*this);
-      _is_listen = true;
-    }
-  }
-
-  void BgstEventListener::stopListen_BeforeGesture()
+  bool BeforeGestureEventListener::startListenBeforeGesture()
   {
     if (_is_listen)
     {
-      auto i_item = etl::intrusive_list<BgstEventListener, BgstEventListenerLink>::iterator(*this);
-      _listener_list().erase(i_item);
-      _is_listen = false;
+      return false;
     }
+
+    _listener_list().push_back(*this);
+    _is_listen = true;
+
+    return true;
   }
 
-  void BgstEventListener::_notifyBeforeGesture(uint8_t gesture_id, uint8_t mouse_id)
+  bool BeforeGestureEventListener::stopListenBeforeGesture()
   {
-    for (BgstEventListener &listener : _listener_list())
+    if (_is_listen == false)
+    {
+      return false;
+    }
+
+    auto i_item = etl::intrusive_list<BeforeGestureEventListener, BeforeGestureEventListenerLink>::iterator(*this);
+    _listener_list().erase(i_item);
+    _is_listen = false;
+
+    return true;
+  }
+
+  void BeforeGestureEventListener::_notifyBeforeGesture(uint8_t gesture_id, uint8_t mouse_id)
+  {
+    for (BeforeGestureEventListener &listener : _listener_list())
     {
       listener.onBeforeGesture(gesture_id, mouse_id);
     }
@@ -435,20 +459,20 @@ namespace hidpg
     }
 
     //------------------------------------------------------------------+
-    // UpBaseLayer
+    // UpDefaultLayer
     //------------------------------------------------------------------+
-    UpBaseLayer::UpBaseLayer(LayerClass *layer, uint8_t i) : _layer(layer), _i(i)
+    UpDefaultLayer::UpDefaultLayer(LayerClass *layer, uint8_t i) : _layer(layer), _i(i)
     {
     }
 
-    void UpBaseLayer::onPress(uint8_t n_times)
+    void UpDefaultLayer::onPress(uint8_t n_times)
     {
-      _layer->addToBase(_i);
+      _layer->addToDefaultLayer(_i);
     }
 
-    uint8_t UpBaseLayer::onRelease()
+    uint8_t UpDefaultLayer::onRelease()
     {
-      _layer->addToBase(-_i);
+      _layer->addToDefaultLayer(-_i);
       return 1;
     }
 
@@ -485,7 +509,7 @@ namespace hidpg
     // TapDance
     //------------------------------------------------------------------+
     TapDance::TapDance(Pair pairs[], uint8_t len, TapHoldBehavior behavior)
-        : TimerMixin(), BdrcpEventListener(this), CommandHook(),
+        : TimerMixin(), BeforeDifferentRootCommandPressEventListener(this), CommandHook(),
           _pairs(pairs), _len(len), _behavior(behavior), _idx_count(-1), _state(State::Unexecuted)
     {
       for (int i = 0; i < len; i++)
@@ -502,7 +526,7 @@ namespace hidpg
       cmd->release();
       _idx_count = -1;
       _state = State::Unexecuted;
-      stopListen_BeforeDifferentRootCommandPress();
+      stopListenBeforeDifferentRootCommandPress();
     }
 
     void TapDance::processHoldPress()
@@ -517,14 +541,14 @@ namespace hidpg
     {
       _running_command->release();
       _state = State::Unexecuted;
-      stopListen_BeforeDifferentRootCommandPress();
+      stopListenBeforeDifferentRootCommandPress();
     }
 
     void TapDance::onPress(uint8_t n_times)
     {
       if (_state == State::Unexecuted)
       {
-        startListen_BeforeDifferentRootCommandPress();
+        startListenBeforeDifferentRootCommandPress();
       }
 
       if (_state == State::Unexecuted || _state == State::Tap_or_NextCommand)
@@ -628,7 +652,7 @@ namespace hidpg
     // TapDanceDetermineWithMouseMove
     //------------------------------------------------------------------+
     TapDanceDetermineWithMouseMove::TapDanceDetermineWithMouseMove(Pair pairs[], uint8_t len, uint8_t mouse_ids[], uint8_t mouse_ids_len, TapHoldBehavior behavior)
-        : TimerMixin(), BdrcpEventListener(this), BmmEventListener(), CommandHook(),
+        : TimerMixin(), BeforeDifferentRootCommandPressEventListener(this), BeforeMouseMoveEventListener(), CommandHook(),
           _pairs(pairs), _len(len), _mouse_ids(mouse_ids), _mouse_ids_len(mouse_ids_len), _behavior(behavior), _idx_count(-1), _state(State::Unexecuted)
     {
       for (int i = 0; i < len; i++)
@@ -645,8 +669,8 @@ namespace hidpg
       cmd->release();
       _idx_count = -1;
       _state = State::Unexecuted;
-      stopListen_BeforeDifferentRootCommandPress();
-      stopListen_BeforeMouseMove();
+      stopListenBeforeDifferentRootCommandPress();
+      stopListenBeforeMouseMove();
     }
 
     void TapDanceDetermineWithMouseMove::processHoldPress()
@@ -661,16 +685,16 @@ namespace hidpg
     {
       _running_command->release();
       _state = State::Unexecuted;
-      stopListen_BeforeDifferentRootCommandPress();
-      stopListen_BeforeMouseMove();
+      stopListenBeforeDifferentRootCommandPress();
+      stopListenBeforeMouseMove();
     }
 
     void TapDanceDetermineWithMouseMove::onPress(uint8_t n_times)
     {
       if (_state == State::Unexecuted)
       {
-        startListen_BeforeDifferentRootCommandPress();
-        startListen_BeforeMouseMove();
+        startListenBeforeDifferentRootCommandPress();
+        startListenBeforeMouseMove();
       }
 
       if (_state == State::Unexecuted || _state == State::Tap_or_NextCommand)

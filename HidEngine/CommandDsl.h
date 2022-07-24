@@ -115,10 +115,10 @@ namespace hidpg
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_UpBaseLayer(LayerClass *layer, uint8_t i)
+    Command *new_UpDefaultLayer(LayerClass *layer, uint8_t i)
     {
-      static uint8_t buf[sizeof(UpBaseLayer)];
-      return new (buf) UpBaseLayer(layer, i);
+      static uint8_t buf[sizeof(UpDefaultLayer)];
+      return new (buf) UpDefaultLayer(layer, i);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
@@ -338,10 +338,10 @@ namespace hidpg
 #define SL1(layer_number) (Internal::new_SwitchLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer1, layer_number))
 #define SL2(layer_number) (Internal::new_SwitchLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer2, layer_number))
 
-// UpBaseLayer
-#define UPL(i) (Internal::new_UpBaseLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer, i))
-#define UPL1(i) (Internal::new_UpBaseLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer1, i))
-#define UPL2(i) (Internal::new_UpBaseLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer2, i))
+// UpDefaultLayer
+#define UPL(i) (Internal::new_UpDefaultLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer, i))
+#define UPL1(i) (Internal::new_UpDefaultLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer1, i))
+#define UPL2(i) (Internal::new_UpDefaultLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer2, i))
 
 // Tap
 #define TAP(...) (Internal::new_Tap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(__VA_ARGS__))

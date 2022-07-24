@@ -32,9 +32,9 @@
 #include "etl/intrusive_list.h"
 #include <stddef.h>
 
-#define BDRCP_EVENT_LISTENER_LINK_ID 0
-#define BMM_EVENT_LISTENER_LINK_ID 1
-#define BGST_EVENT_LISTENER_LINK_ID 2
+#define BEFORE_DIFFERENT_ROOT_COMMAND_PRESS_EVENT_LISTENER_LINK_ID 0
+#define BEFORE_MOUSE_MOVE_EVENT_LISTENER_LINK_ID 1
+#define BEFORE_GESTURE_EVENT_LISTENER_LINK_ID 2
 #define COMMAND_HOOK_LINK_ID 3
 
 namespace hidpg
@@ -69,30 +69,30 @@ namespace hidpg
   };
 
   //------------------------------------------------------------------+
-  // BdrcpEventListener
+  // BeforeDifferentRootCommandPressEventListener
   //------------------------------------------------------------------+
-  typedef etl::bidirectional_link<BDRCP_EVENT_LISTENER_LINK_ID> BdrcpEventListenerLink;
+  typedef etl::bidirectional_link<BEFORE_DIFFERENT_ROOT_COMMAND_PRESS_EVENT_LISTENER_LINK_ID> BeforeDifferentRootCommandPressEventListenerLink;
 
-  class BdrcpEventListener : public BdrcpEventListenerLink
+  class BeforeDifferentRootCommandPressEventListener : public BeforeDifferentRootCommandPressEventListenerLink
   {
   public:
-    BdrcpEventListener(Command *command);
+    BeforeDifferentRootCommandPressEventListener(Command *command);
     static void _notifyBeforeDifferentRootCommandPress(Command &press_command);
 
   protected:
-    void startListen_BeforeDifferentRootCommandPress();
-    void stopListen_BeforeDifferentRootCommandPress();
+    bool startListenBeforeDifferentRootCommandPress();
+    bool stopListenBeforeDifferentRootCommandPress();
     virtual void onBeforeDifferentRootCommandPress(Command &command) = 0;
 
   private:
     static Command *getRootCommand(Command *command);
 
-    // keymap(グローバル変数)の定義で特定のコマンドがnewされたときにコンストラクタ内でstartListen_BeforeDifferentRootCommandPress()が呼ばれる、
+    // keymap(グローバル変数)の定義で特定のコマンドがnewされたときにコンストラクタ内でstartListenBeforeDifferentRootCommandPress()が呼ばれる、
     // _listener_listはその内部で使用するので単純なstatic変数にすると初期化順序が問題となる可能性がある。
     // https://isocpp.org/wiki/faq/ctors#static-init-order-on-first-use
-    static etl::intrusive_list<BdrcpEventListener, BdrcpEventListenerLink> &_listener_list()
+    static etl::intrusive_list<BeforeDifferentRootCommandPressEventListener, BeforeDifferentRootCommandPressEventListenerLink> &_listener_list()
     {
-      static etl::intrusive_list<BdrcpEventListener, BdrcpEventListenerLink> list;
+      static etl::intrusive_list<BeforeDifferentRootCommandPressEventListener, BeforeDifferentRootCommandPressEventListenerLink> list;
       return list;
     };
 
@@ -101,26 +101,26 @@ namespace hidpg
   };
 
   //------------------------------------------------------------------+
-  // BmmEventListener
+  // BeforeMouseMoveEventListener
   //------------------------------------------------------------------+
-  typedef etl::bidirectional_link<BMM_EVENT_LISTENER_LINK_ID> BmmEventListenerLink;
+  typedef etl::bidirectional_link<BEFORE_MOUSE_MOVE_EVENT_LISTENER_LINK_ID> BeforeMouseMoveEventListenerLink;
 
-  class BmmEventListener : public BmmEventListenerLink
+  class BeforeMouseMoveEventListener : public BeforeMouseMoveEventListenerLink
   {
   public:
-    BmmEventListener();
+    BeforeMouseMoveEventListener();
     static void _notifyBeforeMouseMove(uint8_t mouse_id);
 
   protected:
-    void startListen_BeforeMouseMove();
-    void stopListen_BeforeMouseMove();
+    bool startListenBeforeMouseMove();
+    bool stopListenBeforeMouseMove();
     virtual void onBeforeMouseMove(uint8_t mouse_id) = 0;
 
   private:
     // Construct On First Use Idiom
-    static etl::intrusive_list<BmmEventListener, BmmEventListenerLink> &_listener_list()
+    static etl::intrusive_list<BeforeMouseMoveEventListener, BeforeMouseMoveEventListenerLink> &_listener_list()
     {
-      static etl::intrusive_list<BmmEventListener, BmmEventListenerLink> list;
+      static etl::intrusive_list<BeforeMouseMoveEventListener, BeforeMouseMoveEventListenerLink> list;
       return list;
     };
 
@@ -128,26 +128,26 @@ namespace hidpg
   };
 
   //------------------------------------------------------------------+
-  // BgstEventListener
+  // BeforeGestureEventListener
   //------------------------------------------------------------------+
-  typedef etl::bidirectional_link<BGST_EVENT_LISTENER_LINK_ID> BgstEventListenerLink;
+  typedef etl::bidirectional_link<BEFORE_GESTURE_EVENT_LISTENER_LINK_ID> BeforeGestureEventListenerLink;
 
-  class BgstEventListener : public BgstEventListenerLink
+  class BeforeGestureEventListener : public BeforeGestureEventListenerLink
   {
   public:
-    BgstEventListener();
+    BeforeGestureEventListener();
     static void _notifyBeforeGesture(uint8_t gesture_id, uint8_t mouse_id);
 
   protected:
-    void startListen_BeforeGesture();
-    void stopListen_BeforeGesture();
+    bool startListenBeforeGesture();
+    bool stopListenBeforeGesture();
     virtual void onBeforeGesture(uint8_t gesture_id, uint8_t mouse_id) = 0;
 
   private:
     // Construct On First Use Idiom
-    static etl::intrusive_list<BgstEventListener, BgstEventListenerLink> &_listener_list()
+    static etl::intrusive_list<BeforeGestureEventListener, BeforeGestureEventListenerLink> &_listener_list()
     {
-      static etl::intrusive_list<BgstEventListener, BgstEventListenerLink> list;
+      static etl::intrusive_list<BeforeGestureEventListener, BeforeGestureEventListenerLink> list;
       return list;
     };
 
@@ -320,12 +320,12 @@ namespace hidpg
     };
 
     //------------------------------------------------------------------+
-    // UpBaseLayer
+    // UpDefaultLayer
     //------------------------------------------------------------------+
-    class UpBaseLayer : public Command
+    class UpDefaultLayer : public Command
     {
     public:
-      UpBaseLayer(LayerClass *layer, uint8_t i);
+      UpDefaultLayer(LayerClass *layer, uint8_t i);
 
     protected:
       void onPress(uint8_t n_times) override;
@@ -375,7 +375,7 @@ namespace hidpg
     //------------------------------------------------------------------+
     class TapDance : public Command,
                      public TimerMixin,
-                     public BdrcpEventListener,
+                     public BeforeDifferentRootCommandPressEventListener,
                      public CommandHook
     {
     public:
@@ -423,8 +423,8 @@ namespace hidpg
     //------------------------------------------------------------------+
     class TapDanceDetermineWithMouseMove : public Command,
                                            public TimerMixin,
-                                           public BdrcpEventListener,
-                                           public BmmEventListener,
+                                           public BeforeDifferentRootCommandPressEventListener,
+                                           public BeforeMouseMoveEventListener,
                                            public CommandHook
     {
     public:

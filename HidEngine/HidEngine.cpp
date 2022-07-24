@@ -249,7 +249,7 @@ namespace hidpg
       static uint8_t prev_gesture_id;
       static uint8_t prev_mouse_id;
 
-      BmmEventListener::_notifyBeforeMouseMove(mouse_id);
+      BeforeMouseMoveEventListener::_notifyBeforeMouseMove(mouse_id);
 
       int gesture_idx = -1;
 
@@ -338,7 +338,7 @@ namespace hidpg
 
       if (_total_distance_y <= -threshold) // up
       {
-        BgstEventListener::_notifyBeforeGesture(gesture.gesture_id, gesture.mouse_id);
+        BeforeGestureEventListener::_notifyBeforeGesture(gesture.gesture_id, gesture.mouse_id);
 
         uint8_t n_times = static_cast<uint8_t>(std::min(abs(_total_distance_y / threshold), static_cast<long>(UINT8_MAX)));
         _total_distance_y %= threshold;
@@ -350,7 +350,7 @@ namespace hidpg
       }
       else if (_total_distance_y >= threshold) // down
       {
-        BgstEventListener::_notifyBeforeGesture(gesture.gesture_id, gesture.mouse_id);
+        BeforeGestureEventListener::_notifyBeforeGesture(gesture.gesture_id, gesture.mouse_id);
 
         uint8_t n_times = static_cast<uint8_t>(std::min(_total_distance_y / threshold, static_cast<long>(UINT8_MAX)));
         _total_distance_y %= threshold;
@@ -368,7 +368,7 @@ namespace hidpg
 
       if (_total_distance_x <= -threshold) // left
       {
-        BgstEventListener::_notifyBeforeGesture(gesture.gesture_id, gesture.mouse_id);
+        BeforeGestureEventListener::_notifyBeforeGesture(gesture.gesture_id, gesture.mouse_id);
 
         uint8_t n_times = static_cast<uint8_t>(std::min(abs(_total_distance_x / threshold), static_cast<long>(UINT8_MAX)));
         _total_distance_x %= threshold;
@@ -380,7 +380,7 @@ namespace hidpg
       }
       else if (_total_distance_x >= threshold) // right
       {
-        BgstEventListener::_notifyBeforeGesture(gesture.gesture_id, gesture.mouse_id);
+        BeforeGestureEventListener::_notifyBeforeGesture(gesture.gesture_id, gesture.mouse_id);
 
         uint8_t n_times = static_cast<uint8_t>(std::min(_total_distance_x / threshold, static_cast<long>(UINT8_MAX)));
         _total_distance_x %= threshold;
@@ -485,7 +485,7 @@ namespace hidpg
     // GestureOrTap
     //------------------------------------------------------------------+
     GestureOrTap::GestureOrTap(uint8_t gesture_id, Command *command)
-        : BdrcpEventListener(this), BgstEventListener(), _gesture_id(gesture_id), _command(command), _state(State::Unexecuted)
+        : BeforeDifferentRootCommandPressEventListener(this), BeforeGestureEventListener(), _gesture_id(gesture_id), _command(command), _state(State::Unexecuted)
     {
       _command->setParent(this);
     }
@@ -540,21 +540,21 @@ namespace hidpg
 
     void GestureOrTap::startListen()
     {
-      startListen_BeforeDifferentRootCommandPress();
-      startListen_BeforeGesture();
+      startListenBeforeDifferentRootCommandPress();
+      startListenBeforeGesture();
     }
 
     void GestureOrTap::stopListen()
     {
-      stopListen_BeforeDifferentRootCommandPress();
-      stopListen_BeforeGesture();
+      stopListenBeforeDifferentRootCommandPress();
+      stopListenBeforeGesture();
     }
 
     //------------------------------------------------------------------+
     // GestureOrTapKey
     //------------------------------------------------------------------+
     GestureOrTapKey::GestureOrTapKey(uint8_t gesture_id, KeyCode key_code)
-        : BdrcpEventListener(this), BgstEventListener(), _gesture_id(gesture_id), _nk_command(key_code), _state(State::Unexecuted)
+        : BeforeDifferentRootCommandPressEventListener(this), BeforeGestureEventListener(), _gesture_id(gesture_id), _nk_command(key_code), _state(State::Unexecuted)
     {
       _nk_command.setParent(this);
     }
@@ -617,14 +617,14 @@ namespace hidpg
 
     void GestureOrTapKey::startListen()
     {
-      startListen_BeforeDifferentRootCommandPress();
-      startListen_BeforeGesture();
+      startListenBeforeDifferentRootCommandPress();
+      startListenBeforeGesture();
     }
 
     void GestureOrTapKey::stopListen()
     {
-      stopListen_BeforeDifferentRootCommandPress();
-      stopListen_BeforeGesture();
+      stopListenBeforeDifferentRootCommandPress();
+      stopListenBeforeGesture();
     }
 
   } // namespace Internal
