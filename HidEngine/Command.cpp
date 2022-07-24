@@ -167,11 +167,11 @@ namespace hidpg
     return true;
   }
 
-  void BeforeMouseMoveEventListener::_notifyBeforeMouseMove(uint8_t mouse_id)
+  void BeforeMouseMoveEventListener::_notifyBeforeMouseMove(uint8_t mouse_id, int16_t delta_x, int16_t delta_y)
   {
     for (BeforeMouseMoveEventListener &listener : _listener_list())
     {
-      listener.onBeforeMouseMove(mouse_id);
+      listener.onBeforeMouseMove(mouse_id, delta_x, delta_y);
     }
   }
 
@@ -651,9 +651,26 @@ namespace hidpg
     //------------------------------------------------------------------+
     // TapDanceDetermineWithMouseMove
     //------------------------------------------------------------------+
-    TapDanceDetermineWithMouseMove::TapDanceDetermineWithMouseMove(Pair pairs[], uint8_t len, uint8_t mouse_ids[], uint8_t mouse_ids_len, TapHoldBehavior behavior)
-        : TimerMixin(), BeforeDifferentRootCommandPressEventListener(this), BeforeMouseMoveEventListener(), CommandHook(),
-          _pairs(pairs), _len(len), _mouse_ids(mouse_ids), _mouse_ids_len(mouse_ids_len), _behavior(behavior), _idx_count(-1), _state(State::Unexecuted)
+    TapDanceDetermineWithMouseMove::TapDanceDetermineWithMouseMove(Pair pairs[],
+                                                                   uint8_t len,
+                                                                   uint8_t mouse_ids[],
+                                                                   uint8_t mouse_ids_len,
+                                                                   uint16_t determine_threshold,
+                                                                   TapHoldBehavior behavior)
+        : TimerMixin(),
+          BeforeDifferentRootCommandPressEventListener(this),
+          BeforeMouseMoveEventListener(),
+          CommandHook(),
+          _pairs(pairs),
+          _len(len),
+          _mouse_ids(mouse_ids),
+          _mouse_ids_len(mouse_ids_len),
+          _behavior(behavior),
+          _idx_count(-1),
+          _state(State::Unexecuted),
+          _determine_threshold(determine_threshold),
+          _delta_x_sum(0),
+          _delta_y_sum(0)
     {
       for (int i = 0; i < len; i++)
       {
@@ -694,6 +711,8 @@ namespace hidpg
       if (_state == State::Unexecuted)
       {
         startListenBeforeDifferentRootCommandPress();
+        _delta_x_sum = 0;
+        _delta_y_sum = 0;
         startListenBeforeMouseMove();
       }
 
@@ -779,19 +798,24 @@ namespace hidpg
       }
     }
 
-    void TapDanceDetermineWithMouseMove::onBeforeMouseMove(uint8_t mouse_id)
+    void TapDanceDetermineWithMouseMove::onBeforeMouseMove(uint8_t mouse_id, int16_t delta_x, int16_t delta_y)
     {
       for (int i = 0; i < _mouse_ids_len; i++)
       {
         if (_mouse_ids[i] == mouse_id)
         {
-          if (_state == State::Pressed)
+          _delta_x_sum += delta_x;
+          _delta_y_sum += delta_y;
+          if (abs(_delta_x_sum) >= _determine_threshold || abs(_delta_y_sum) >= _determine_threshold)
           {
-            processHoldPress();
-          }
-          else if (_state == State::Tap_or_NextCommand)
-          {
-            processTap();
+            if (_state == State::Pressed)
+            {
+              processHoldPress();
+            }
+            else if (_state == State::Tap_or_NextCommand)
+            {
+              processTap();
+            }
           }
         }
       }

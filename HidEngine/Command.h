@@ -109,12 +109,12 @@ namespace hidpg
   {
   public:
     BeforeMouseMoveEventListener();
-    static void _notifyBeforeMouseMove(uint8_t mouse_id);
+    static void _notifyBeforeMouseMove(uint8_t mouse_id, int16_t delta_x, int16_t delta_y);
 
   protected:
     bool startListenBeforeMouseMove();
     bool stopListenBeforeMouseMove();
-    virtual void onBeforeMouseMove(uint8_t mouse_id) = 0;
+    virtual void onBeforeMouseMove(uint8_t mouse_id, int16_t delta_x, int16_t delta_y) = 0;
 
   private:
     // Construct On First Use Idiom
@@ -413,7 +413,7 @@ namespace hidpg
       Command *_hooked_command;
       Pair *const _pairs;
       const uint8_t _len;
-      TapHoldBehavior _behavior;
+      const TapHoldBehavior _behavior;
       int16_t _idx_count;
       State _state;
     };
@@ -434,7 +434,7 @@ namespace hidpg
         Command *hold_command;
       };
 
-      TapDanceDetermineWithMouseMove(Pair pairs[], uint8_t len, uint8_t mouse_ids[], uint8_t mouse_ids_len, TapHoldBehavior behavior);
+      TapDanceDetermineWithMouseMove(Pair pairs[], uint8_t len, uint8_t mouse_ids[], uint8_t mouse_ids_len, uint16_t determine_threshold, TapHoldBehavior behavior);
 
     protected:
       void onPress(uint8_t n_times) override;
@@ -443,7 +443,7 @@ namespace hidpg
     protected:
       void onTimer() override;
       void onBeforeDifferentRootCommandPress(Command &command) override;
-      void onBeforeMouseMove(uint8_t mouse_id) override;
+      void onBeforeMouseMove(uint8_t mouse_id, int16_t delta_x, int16_t delta_y) override;
       void onBeforeInput();
       void onHookPress() override;
       void onHookRelease() override;
@@ -468,9 +468,12 @@ namespace hidpg
       const uint8_t _len;
       uint8_t *_mouse_ids;
       const uint8_t _mouse_ids_len;
-      TapHoldBehavior _behavior;
+      const TapHoldBehavior _behavior;
       int16_t _idx_count;
       State _state;
+      const uint16_t _determine_threshold;
+      int32_t _delta_x_sum;
+      int32_t _delta_y_sum;
     };
 
     //------------------------------------------------------------------+

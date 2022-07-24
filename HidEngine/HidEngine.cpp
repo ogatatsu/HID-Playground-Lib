@@ -249,7 +249,14 @@ namespace hidpg
       static uint8_t prev_gesture_id;
       static uint8_t prev_mouse_id;
 
-      BeforeMouseMoveEventListener::_notifyBeforeMouseMove(mouse_id);
+      Hid.waitReady();
+      int16_t delta_x = 0, delta_y = 0;
+      if (_read_mouse_delta_cb != nullptr)
+      {
+        _read_mouse_delta_cb(mouse_id, delta_x, delta_y);
+      }
+
+      BeforeMouseMoveEventListener::_notifyBeforeMouseMove(mouse_id, delta_x, delta_y);
 
       int gesture_idx = -1;
 
@@ -281,27 +288,19 @@ namespace hidpg
           prev_mouse_id = mouse_id;
         }
 
-        int16_t delta_x = 0, delta_y = 0;
-
-        if (_read_mouse_delta_cb != nullptr)
+        // 逆方向に動いたら距離をリセット
+        if (bitRead(_total_distance_x ^ delta_x, 15))
         {
-          // 距離を取得
-          _read_mouse_delta_cb(mouse_id, delta_x, delta_y);
-
-          // 逆方向に動いたら距離をリセット
-          if (bitRead(_total_distance_x ^ delta_x, 15))
-          {
-            _total_distance_x = 0;
-          }
-          if (bitRead(_total_distance_y ^ delta_y, 15))
-          {
-            _total_distance_y = 0;
-          }
-
-          //距離を足す
-          _total_distance_x += delta_x;
-          _total_distance_y += delta_y;
+          _total_distance_x = 0;
         }
+        if (bitRead(_total_distance_y ^ delta_y, 15))
+        {
+          _total_distance_y = 0;
+        }
+
+        //距離を足す
+        _total_distance_x += delta_x;
+        _total_distance_y += delta_y;
 
         // 距離の大きさによって実行する順序を変える
         if (abs(delta_x) >= abs(delta_y))
@@ -317,17 +316,9 @@ namespace hidpg
       }
       else
       {
-        if (_read_mouse_delta_cb != nullptr)
+        if (!(delta_x == 0 && delta_y == 0))
         {
-          int16_t delta_x, delta_y;
-
-          Hid.waitReady();
-          _read_mouse_delta_cb(mouse_id, delta_x, delta_y);
-
-          if (!(delta_x == 0 && delta_y == 0))
-          {
-            Hid.mouseMove(delta_x, delta_y);
-          }
+          Hid.mouseMove(delta_x, delta_y);
         }
       }
     }

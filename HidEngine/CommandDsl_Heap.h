@@ -146,7 +146,10 @@ namespace hidpg
   }
 
   template <uint8_t N1, uint8_t N2>
-  static Command *TDDM(const Internal::TapDanceDetermineWithMouseMove::Pair (&arr)[N1], const uint8_t (&mouse_ids)[N2], TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
+  static Command *TDDM(const Internal::TapDanceDetermineWithMouseMove::Pair (&arr)[N1],
+                       const uint8_t (&mouse_ids)[N2],
+                       uint16_t determine_threshold = 4,
+                       TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
   {
     Internal::TapDanceDetermineWithMouseMove::Pair *arg1 = new Internal::TapDanceDetermineWithMouseMove::Pair[N1];
     uint8_t *arg2 = new uint8_t[N2];
@@ -161,7 +164,7 @@ namespace hidpg
     {
       arg2[i] = mouse_ids[i];
     }
-    return (new Internal::TapDanceDetermineWithMouseMove(arg1, N1, arg2, N2, behavior));
+    return (new Internal::TapDanceDetermineWithMouseMove(arg1, N1, arg2, N2, determine_threshold, behavior));
   }
 
   static inline Command *ToH(Command *tap_command, unsigned int ms, Command *hold_command) { return (new Internal::TapOrHold(tap_command, ms, hold_command)); }

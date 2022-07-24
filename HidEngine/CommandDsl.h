@@ -150,7 +150,10 @@ namespace hidpg
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3, uint8_t N1, uint8_t N2>
-    Command *new_TapDanceDetermineWithMouseMove(const TapDanceDetermineWithMouseMove::Pair (&arr)[N1], const uint8_t (&mouse_ids)[N2], TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
+    Command *new_TapDanceDetermineWithMouseMove(const TapDanceDetermineWithMouseMove::Pair (&arr)[N1],
+                                                const uint8_t (&mouse_ids)[N2],
+                                                uint16_t determine_threshold = 4,
+                                                TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
     {
       static TapDanceDetermineWithMouseMove::Pair arg1[N1];
       static uint8_t arg2[N2];
@@ -167,7 +170,7 @@ namespace hidpg
         arg2[i] = mouse_ids[i];
       }
 
-      return new (buf) TapDanceDetermineWithMouseMove(arg1, N1, arg2, N2, behavior);
+      return new (buf) TapDanceDetermineWithMouseMove(arg1, N1, arg2, N2, determine_threshold, behavior);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
