@@ -35,6 +35,7 @@
 #define BDRCP_EVENT_LISTENER_LINK_ID 0
 #define BMM_EVENT_LISTENER_LINK_ID 1
 #define BGST_EVENT_LISTENER_LINK_ID 2
+#define COMMAND_HOOK_LINK_ID 3
 
 namespace hidpg
 {
@@ -52,15 +53,19 @@ namespace hidpg
     Command *getParent() { return _parent; }
 
   protected:
-    bool isLastPressed();
     virtual void onPress(uint8_t n_times) {}
     virtual uint8_t onRelease() { return 1; }
 
   private:
-    static Command *_last_pressed_command;
+    enum class State
+    {
+      Pressed,
+      Released,
+    };
 
     Command *_parent;
-    bool _prev_state;
+    State _state;
+    bool _notified;
   };
 
   //------------------------------------------------------------------+
@@ -77,7 +82,7 @@ namespace hidpg
   protected:
     void startListen_BeforeDifferentRootCommandPress();
     void stopListen_BeforeDifferentRootCommandPress();
-    virtual void onBeforeDifferentRootCommandPress() = 0;
+    virtual void onBeforeDifferentRootCommandPress(Command &command) = 0;
 
   private:
     static Command *getRootCommand(Command *command);
@@ -147,6 +152,51 @@ namespace hidpg
     };
 
     bool _is_listen;
+  };
+
+  //------------------------------------------------------------------+
+  // CommandHook
+  //------------------------------------------------------------------+
+  typedef etl::bidirectional_link<COMMAND_HOOK_LINK_ID> CommandHookLink;
+
+  class CommandHook : public CommandHookLink
+  {
+  public:
+    CommandHook();
+    static bool _tryHookPress(Command &command);
+    static bool _tryHookRelease(Command &command);
+    static bool _isHooked(Command &command);
+
+  protected:
+    bool startHook(Command &command);
+    bool stopHook();
+    virtual void onHookPress() = 0;
+    virtual void onHookRelease() = 0;
+
+  private:
+    // Construct On First Use Idiom
+    static etl::intrusive_list<CommandHook, CommandHookLink> &_hooker_list()
+    {
+      static etl::intrusive_list<CommandHook, CommandHookLink> list;
+      return list;
+    };
+
+    enum class State
+    {
+      Invalid,
+      Pressed,
+      Released,
+    };
+
+    bool _is_hook;
+    Command *_hooked_command;
+    State _state;
+  };
+
+  enum class TapHoldBehavior
+  {
+    HoldPreferred,
+    Balanced,
   };
 
   namespace Internal
@@ -237,24 +287,6 @@ namespace hidpg
     };
 
     //------------------------------------------------------------------+
-    // LayerOrTap
-    //------------------------------------------------------------------+
-    class LayerOrTap : public Command
-    {
-    public:
-      LayerOrTap(LayerClass *layer, uint8_t layer_number, Command *command);
-
-    protected:
-      void onPress(uint8_t n_times) override;
-      uint8_t onRelease() override;
-
-    private:
-      LayerClass *_layer;
-      const uint8_t _layer_number;
-      Command *_command;
-    };
-
-    //------------------------------------------------------------------+
     // ToggleLayer
     //------------------------------------------------------------------+
     class ToggleLayer : public Command
@@ -341,7 +373,10 @@ namespace hidpg
     //------------------------------------------------------------------+
     // TapDance
     //------------------------------------------------------------------+
-    class TapDance : public Command, public TimerMixin, public BdrcpEventListener
+    class TapDance : public Command,
+                     public TimerMixin,
+                     public BdrcpEventListener,
+                     public CommandHook
     {
     public:
       struct Pair
@@ -350,26 +385,35 @@ namespace hidpg
         Command *hold_command;
       };
 
-      TapDance(Pair pairs[], uint8_t len);
+      TapDance(Pair pairs[], uint8_t len, TapHoldBehavior behavior);
 
     protected:
       void onPress(uint8_t n_times) override;
       uint8_t onRelease() override;
       void onTimer() override;
-      void onBeforeDifferentRootCommandPress() override;
+      void onBeforeDifferentRootCommandPress(Command &command) override;
+      void onHookPress() override;
+      void onHookRelease() override;
 
     private:
+      void processTap();
+      void processHoldPress();
+      void processHoldRelease();
+
       enum class State : uint8_t
       {
         Unexecuted,
         Pressed,
+        Hook,
         Tap_or_NextCommand,
         FixedToHold,
       };
 
       Command *_running_command;
+      Command *_hooked_command;
       Pair *const _pairs;
       const uint8_t _len;
+      TapHoldBehavior _behavior;
       int16_t _idx_count;
       State _state;
     };
@@ -377,7 +421,11 @@ namespace hidpg
     //------------------------------------------------------------------+
     // TapDanceDetermineWithMouseMove
     //------------------------------------------------------------------+
-    class TapDanceDetermineWithMouseMove : public Command, public TimerMixin, public BdrcpEventListener, public BmmEventListener
+    class TapDanceDetermineWithMouseMove : public Command,
+                                           public TimerMixin,
+                                           public BdrcpEventListener,
+                                           public BmmEventListener,
+                                           public CommandHook
     {
     public:
       struct Pair
@@ -386,32 +434,41 @@ namespace hidpg
         Command *hold_command;
       };
 
-      TapDanceDetermineWithMouseMove(Pair pairs[], uint8_t len, uint8_t mouse_ids[], uint8_t mouse_ids_len);
+      TapDanceDetermineWithMouseMove(Pair pairs[], uint8_t len, uint8_t mouse_ids[], uint8_t mouse_ids_len, TapHoldBehavior behavior);
 
     protected:
       void onPress(uint8_t n_times) override;
       uint8_t onRelease() override;
+
+    protected:
       void onTimer() override;
-      void onBeforeDifferentRootCommandPress() override;
+      void onBeforeDifferentRootCommandPress(Command &command) override;
       void onBeforeMouseMove(uint8_t mouse_id) override;
       void onBeforeInput();
-      void startListen();
-      void stopListen();
+      void onHookPress() override;
+      void onHookRelease() override;
 
     private:
+      void processTap();
+      void processHoldPress();
+      void processHoldRelease();
+
       enum class State : uint8_t
       {
         Unexecuted,
         Pressed,
+        Hook,
         Tap_or_NextCommand,
         FixedToHold,
       };
 
       Command *_running_command;
+      Command *_hooked_command;
       Pair *const _pairs;
       const uint8_t _len;
       uint8_t *_mouse_ids;
       const uint8_t _mouse_ids_len;
+      TapHoldBehavior _behavior;
       int16_t _idx_count;
       State _state;
     };

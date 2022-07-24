@@ -60,10 +60,16 @@ namespace hidpg
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_ModifierOrTap(Modifiers modifiers, Command *command)
+    Command *new_ModifierTap(Modifiers modifiers, Command *command, TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
     {
-      static uint8_t buf[sizeof(ModifierOrTap)];
-      return new (buf) ModifierOrTap(modifiers, command);
+      static TapDance::Pair arg[1];
+      static uint8_t buf[sizeof(TapDance)];
+      static uint8_t mod_cmd_buf[sizeof(ModifierKey)];
+
+      arg[0].tap_command = command;
+      arg[0].hold_command = new (mod_cmd_buf) ModifierKey(modifiers);
+
+      return new (buf) TapDance(arg, 1, behavior);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3, size_t N>
@@ -82,10 +88,16 @@ namespace hidpg
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_LayerOrTap(LayerClass *layer, uint8_t layer_number, Command *command)
+    Command *new_LayerTap(LayerClass *layer, uint8_t layer_number, Command *command, TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
     {
-      static uint8_t buf[sizeof(LayerOrTap)];
-      return new (buf) LayerOrTap(layer, layer_number, command);
+      static TapDance::Pair arg[1];
+      static uint8_t buf[sizeof(TapDance)];
+      static uint8_t ly_cmd_buf[sizeof(SwitchLayer)];
+
+      arg[0].tap_command = command;
+      arg[0].hold_command = new (ly_cmd_buf) SwitchLayer(layer, layer_number);
+
+      return new (buf) TapDance(arg, 1, behavior);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
@@ -124,7 +136,7 @@ namespace hidpg
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3, uint8_t N>
-    Command *new_TapDance(const TapDance::Pair (&arr)[N])
+    Command *new_TapDance(const TapDance::Pair (&arr)[N], TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
     {
       static TapDance::Pair arg[N];
       static uint8_t buf[sizeof(TapDance)];
@@ -134,11 +146,11 @@ namespace hidpg
         arg[i].tap_command = arr[i].tap_command;
         arg[i].hold_command = arr[i].hold_command;
       }
-      return new (buf) TapDance(arg, N);
+      return new (buf) TapDance(arg, N, behavior);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3, uint8_t N1, uint8_t N2>
-    Command *new_TapDanceDetermineWithMouseMove(const TapDanceDetermineWithMouseMove::Pair (&arr)[N1], const uint8_t (&mouse_ids)[N2])
+    Command *new_TapDanceDetermineWithMouseMove(const TapDanceDetermineWithMouseMove::Pair (&arr)[N1], const uint8_t (&mouse_ids)[N2], TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
     {
       static TapDanceDetermineWithMouseMove::Pair arg1[N1];
       static uint8_t arg2[N2];
@@ -155,7 +167,7 @@ namespace hidpg
         arg2[i] = mouse_ids[i];
       }
 
-      return new (buf) TapDanceDetermineWithMouseMove(arg1, N1, arg2, N2);
+      return new (buf) TapDanceDetermineWithMouseMove(arg1, N1, arg2, N2, behavior);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
@@ -303,18 +315,18 @@ namespace hidpg
 // CombinationKey
 #define CK(modifiers, key_code) (Internal::new_CombinationKey<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(modifiers, key_code))
 
-// ModifierOrTap
-#define MoT(modifiers, command) (Internal::new_ModifierOrTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(modifiers, command))
+// ModifierTap
+#define MT(...) (Internal::new_ModifierTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(__VA_ARGS__))
 
 // Layering
 #define LY(...) (Internal::new_Layering<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer, __VA_ARGS__))
 #define LY1(...) (Internal::new_Layering<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer1, __VA_ARGS__))
 #define LY2(...) (Internal::new_Layering<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer2, __VA_ARGS__))
 
-// LayerOrTap
-#define LoT(layer_number, command) (Internal::new_LayerOrTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer, layer_number, command))
-#define LoT1(layer_number, command) (Internal::new_LayerOrTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer1, layer_number, command))
-#define LoT2(layer_number, command) (Internal::new_LayerOrTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer2, layer_number, command))
+// LayerTap
+#define LT(...) (Internal::new_LayerTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer, __VA_ARGS__))
+#define LT1(...) (Internal::new_LayerTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer1, __VA_ARGS__))
+#define LT2(...) (Internal::new_LayerTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer2, __VA_ARGS__))
 
 // ToggleLayer
 #define TL(layer_number) (Internal::new_ToggleLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer, layer_number))

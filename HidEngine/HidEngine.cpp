@@ -518,7 +518,7 @@ namespace hidpg
       return 1;
     }
 
-    void GestureOrTap::onBeforeDifferentRootCommandPress()
+    void GestureOrTap::onBeforeDifferentRootCommandPress(Command &command)
     {
       if (_state == State::Pressed)
       {
@@ -595,7 +595,7 @@ namespace hidpg
       return 1;
     }
 
-    void GestureOrTapKey::onBeforeDifferentRootCommandPress()
+    void GestureOrTapKey::onBeforeDifferentRootCommandPress(Command &command)
     {
       if (_state == State::Pressed)
       {
