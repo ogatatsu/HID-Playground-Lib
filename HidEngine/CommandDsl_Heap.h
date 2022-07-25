@@ -42,8 +42,6 @@ namespace hidpg
 
   static inline Command *MT(Modifiers modifiers, Command *command, TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
   {
-    return (new Internal::ModifierOrTap(modifiers, command));
-
     auto arg = new Internal::TapDance::Pair[1];
     arg[0].tap_command = command;
     arg[0].hold_command = new Internal::ModifierKey(modifiers);

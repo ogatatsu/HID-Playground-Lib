@@ -252,23 +252,6 @@ namespace hidpg
     };
 
     //------------------------------------------------------------------+
-    // ModifierOrTap
-    //------------------------------------------------------------------+
-    class ModifierOrTap : public Command
-    {
-    public:
-      ModifierOrTap(Modifiers modifiers, Command *command);
-
-    protected:
-      void onPress(uint8_t n_times) override;
-      uint8_t onRelease() override;
-
-    private:
-      const Modifiers _modifiers;
-      Command *_command;
-    };
-
-    //------------------------------------------------------------------+
     // Layering
     //------------------------------------------------------------------+
     class Layering : public Command
@@ -444,7 +427,6 @@ namespace hidpg
       void onTimer() override;
       void onBeforeDifferentRootCommandPress(Command &command) override;
       void onBeforeMouseMove(uint8_t mouse_id, int16_t delta_x, int16_t delta_y) override;
-      void onBeforeInput();
       void onHookPress() override;
       void onHookRelease() override;
 
