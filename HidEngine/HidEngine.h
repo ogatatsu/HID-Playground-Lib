@@ -62,6 +62,7 @@ namespace hidpg
     Command *down_command;
     Command *left_command;
     Command *right_command;
+    Command *pre_command;
   };
 
   struct Encoder

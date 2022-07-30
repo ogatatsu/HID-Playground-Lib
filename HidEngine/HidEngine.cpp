@@ -388,6 +388,19 @@ namespace hidpg
       if (gesture_id.is_linked() == false)
       {
         _gesture_list.push_back(gesture_id);
+
+        // pre_command
+        for (int i = 0; i < _gesture_map_len; i++)
+        {
+          if (_gesture_map[i].gesture_id == gesture_id.getID())
+          {
+            if (_gesture_map[i].pre_command != nullptr)
+            {
+              _gesture_map[i].pre_command->press();
+            }
+            return;
+          }
+        }
       }
     }
 
@@ -401,6 +414,19 @@ namespace hidpg
         if (_gesture_list.empty())
         {
           _total_distance_x = _total_distance_y = 0;
+        }
+
+        // pre_command
+        for (int i = 0; i < _gesture_map_len; i++)
+        {
+          if (_gesture_map[i].gesture_id == gesture_id.getID())
+          {
+            if (_gesture_map[i].pre_command != nullptr)
+            {
+              _gesture_map[i].pre_command->release();
+            }
+            return;
+          }
         }
       }
     }
