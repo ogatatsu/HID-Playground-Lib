@@ -144,12 +144,12 @@ namespace hidpg
   }
 
   template <uint8_t N1, uint8_t N2>
-  static Command *TDDM(const Internal::TapDanceDetermineWithMouseMove::Pair (&arr)[N1],
+  static Command *TDDM(const Internal::TapDanceDecideWithMouseMove::Pair (&arr)[N1],
                        const uint8_t (&mouse_ids)[N2],
-                       uint16_t determine_threshold = 4,
+                       uint16_t move_threshold = 4,
                        TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
   {
-    Internal::TapDanceDetermineWithMouseMove::Pair *arg1 = new Internal::TapDanceDetermineWithMouseMove::Pair[N1];
+    Internal::TapDanceDecideWithMouseMove::Pair *arg1 = new Internal::TapDanceDecideWithMouseMove::Pair[N1];
     uint8_t *arg2 = new uint8_t[N2];
 
     for (int i = 0; i < N1; i++)
@@ -162,7 +162,7 @@ namespace hidpg
     {
       arg2[i] = mouse_ids[i];
     }
-    return (new Internal::TapDanceDetermineWithMouseMove(arg1, N1, arg2, N2, determine_threshold, behavior));
+    return (new Internal::TapDanceDecideWithMouseMove(arg1, N1, arg2, N2, move_threshold, behavior));
   }
 
   static inline Command *ToH(Command *tap_command, unsigned int ms, Command *hold_command) { return (new Internal::TapOrHold(tap_command, ms, hold_command)); }
@@ -189,7 +189,7 @@ namespace hidpg
 
   static inline Command *OE(uint32_t ms, Command *command) { return (new Internal::OnceEvery(ms, command)); }
 
-  static inline Command *TS(uint32_t ms, Command *command) { return (new Internal::TapSpacing(ms, command)); }
+  static inline Command *NTE(uint32_t ms, Command *command) { return (new Internal::NTimesEvery(ms, command)); }
 
   static inline Command *IF(bool (*func)(), Command *true_command, Command *false_command) { return (new Internal::If(func, true_command, false_command)); }
 

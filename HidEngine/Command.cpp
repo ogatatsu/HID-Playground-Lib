@@ -48,7 +48,7 @@ namespace hidpg
     if (_state == State::Released && _notified == false && CommandHook::_isHooked(*this) == false)
     {
       _notified = true;
-      BeforeDifferentRootCommandPressEventListener::_notifyBeforeDifferentRootCommandPress(*this);
+      BeforeOtherCommandPressEventListener::_notifyOtherCommandPress(*this);
     }
 
     if (CommandHook::_tryHookPress(*this) == false)
@@ -80,13 +80,13 @@ namespace hidpg
   }
 
   //------------------------------------------------------------------+
-  // BeforeDifferentRootCommandPressEventListener
+  // BeforeOtherCommandPressEventListener
   //------------------------------------------------------------------+
-  BeforeDifferentRootCommandPressEventListener::BeforeDifferentRootCommandPressEventListener(Command *command) : _command(command), _is_listen(false)
+  BeforeOtherCommandPressEventListener::BeforeOtherCommandPressEventListener(Command *command) : _command(command), _is_listen(false)
   {
   }
 
-  bool BeforeDifferentRootCommandPressEventListener::startListenBeforeDifferentRootCommandPress()
+  bool BeforeOtherCommandPressEventListener::startListenBeforeOtherCommandPress()
   {
     if (_is_listen)
     {
@@ -99,32 +99,32 @@ namespace hidpg
     return true;
   }
 
-  bool BeforeDifferentRootCommandPressEventListener::stopListenBeforeDifferentRootCommandPress()
+  bool BeforeOtherCommandPressEventListener::stopListenBeforeOtherCommandPress()
   {
     if (_is_listen == false)
     {
       return false;
     }
 
-    auto i_item = etl::intrusive_list<BeforeDifferentRootCommandPressEventListener, BeforeDifferentRootCommandPressEventListenerLink>::iterator(*this);
+    auto i_item = etl::intrusive_list<BeforeOtherCommandPressEventListener, BeforeOtherCommandPressEventListenerLink>::iterator(*this);
     _listener_list().erase(i_item);
     _is_listen = false;
 
     return true;
   }
 
-  void BeforeDifferentRootCommandPressEventListener::_notifyBeforeDifferentRootCommandPress(Command &press_command)
+  void BeforeOtherCommandPressEventListener::_notifyOtherCommandPress(Command &press_command)
   {
-    for (BeforeDifferentRootCommandPressEventListener &listener : _listener_list())
+    for (BeforeOtherCommandPressEventListener &listener : _listener_list())
     {
       if (getRootCommand(listener._command) != getRootCommand(&press_command))
       {
-        listener.onBeforeDifferentRootCommandPress(press_command);
+        listener.onBeforeOtherCommandPress(press_command);
       }
     }
   }
 
-  Command *BeforeDifferentRootCommandPressEventListener::getRootCommand(Command *command)
+  Command *BeforeOtherCommandPressEventListener::getRootCommand(Command *command)
   {
     while (command->getParent() != nullptr)
     {
@@ -509,7 +509,7 @@ namespace hidpg
     // TapDance
     //------------------------------------------------------------------+
     TapDance::TapDance(Pair pairs[], uint8_t len, TapHoldBehavior behavior)
-        : TimerMixin(), BeforeDifferentRootCommandPressEventListener(this), CommandHook(),
+        : TimerMixin(), BeforeOtherCommandPressEventListener(this), CommandHook(),
           _pairs(pairs), _len(len), _behavior(behavior), _idx_count(-1), _state(State::Unexecuted)
     {
       for (int i = 0; i < len; i++)
@@ -526,7 +526,7 @@ namespace hidpg
       cmd->release();
       _idx_count = -1;
       _state = State::Unexecuted;
-      stopListenBeforeDifferentRootCommandPress();
+      stopListenBeforeOtherCommandPress();
     }
 
     void TapDance::processHoldPress()
@@ -541,14 +541,14 @@ namespace hidpg
     {
       _running_command->release();
       _state = State::Unexecuted;
-      stopListenBeforeDifferentRootCommandPress();
+      stopListenBeforeOtherCommandPress();
     }
 
     void TapDance::onPress(uint8_t n_times)
     {
       if (_state == State::Unexecuted)
       {
-        startListenBeforeDifferentRootCommandPress();
+        startListenBeforeOtherCommandPress();
       }
 
       if (_state == State::Unexecuted || _state == State::Tap_or_NextCommand)
@@ -604,7 +604,7 @@ namespace hidpg
       }
     }
 
-    void TapDance::onBeforeDifferentRootCommandPress(Command &command)
+    void TapDance::onBeforeOtherCommandPress(Command &command)
     {
       if (_state == State::Pressed)
       {
@@ -649,16 +649,16 @@ namespace hidpg
     }
 
     //------------------------------------------------------------------+
-    // TapDanceDetermineWithMouseMove
+    // TapDanceDecideWithMouseMove
     //------------------------------------------------------------------+
-    TapDanceDetermineWithMouseMove::TapDanceDetermineWithMouseMove(Pair pairs[],
-                                                                   uint8_t len,
-                                                                   uint8_t mouse_ids[],
-                                                                   uint8_t mouse_ids_len,
-                                                                   uint16_t determine_threshold,
-                                                                   TapHoldBehavior behavior)
+    TapDanceDecideWithMouseMove::TapDanceDecideWithMouseMove(Pair pairs[],
+                                                             uint8_t len,
+                                                             uint8_t mouse_ids[],
+                                                             uint8_t mouse_ids_len,
+                                                             uint16_t move_threshold,
+                                                             TapHoldBehavior behavior)
         : TimerMixin(),
-          BeforeDifferentRootCommandPressEventListener(this),
+          BeforeOtherCommandPressEventListener(this),
           BeforeMouseMoveEventListener(),
           CommandHook(),
           _pairs(pairs),
@@ -668,7 +668,7 @@ namespace hidpg
           _behavior(behavior),
           _idx_count(-1),
           _state(State::Unexecuted),
-          _determine_threshold(determine_threshold),
+          _move_threshold(move_threshold),
           _delta_x_sum(0),
           _delta_y_sum(0)
     {
@@ -679,18 +679,18 @@ namespace hidpg
       }
     }
 
-    void TapDanceDetermineWithMouseMove::processTap()
+    void TapDanceDecideWithMouseMove::processTap()
     {
       Command *cmd = _pairs[_idx_count].tap_command;
       cmd->press();
       cmd->release();
       _idx_count = -1;
       _state = State::Unexecuted;
-      stopListenBeforeDifferentRootCommandPress();
+      stopListenBeforeOtherCommandPress();
       stopListenBeforeMouseMove();
     }
 
-    void TapDanceDetermineWithMouseMove::processHoldPress()
+    void TapDanceDecideWithMouseMove::processHoldPress()
     {
       _state = State::FixedToHold;
       _running_command = _pairs[_idx_count].hold_command;
@@ -698,19 +698,19 @@ namespace hidpg
       _running_command->press();
     }
 
-    void TapDanceDetermineWithMouseMove::processHoldRelease()
+    void TapDanceDecideWithMouseMove::processHoldRelease()
     {
       _running_command->release();
       _state = State::Unexecuted;
-      stopListenBeforeDifferentRootCommandPress();
+      stopListenBeforeOtherCommandPress();
       stopListenBeforeMouseMove();
     }
 
-    void TapDanceDetermineWithMouseMove::onPress(uint8_t n_times)
+    void TapDanceDecideWithMouseMove::onPress(uint8_t n_times)
     {
       if (_state == State::Unexecuted)
       {
-        startListenBeforeDifferentRootCommandPress();
+        startListenBeforeOtherCommandPress();
         _delta_x_sum = 0;
         _delta_y_sum = 0;
         startListenBeforeMouseMove();
@@ -724,7 +724,7 @@ namespace hidpg
       }
     }
 
-    uint8_t TapDanceDetermineWithMouseMove::onRelease()
+    uint8_t TapDanceDecideWithMouseMove::onRelease()
     {
       if (_state == State::FixedToHold)
       {
@@ -751,7 +751,7 @@ namespace hidpg
       return 1;
     }
 
-    void TapDanceDetermineWithMouseMove::onTimer()
+    void TapDanceDecideWithMouseMove::onTimer()
     {
       if (_state == State::Pressed)
       {
@@ -769,7 +769,7 @@ namespace hidpg
       }
     }
 
-    void TapDanceDetermineWithMouseMove::onBeforeDifferentRootCommandPress(Command &command)
+    void TapDanceDecideWithMouseMove::onBeforeOtherCommandPress(Command &command)
     {
       if (_state == State::Pressed)
       {
@@ -798,7 +798,7 @@ namespace hidpg
       }
     }
 
-    void TapDanceDetermineWithMouseMove::onBeforeMouseMove(uint8_t mouse_id, int16_t delta_x, int16_t delta_y)
+    void TapDanceDecideWithMouseMove::onBeforeMouseMove(uint8_t mouse_id, int16_t delta_x, int16_t delta_y)
     {
       for (int i = 0; i < _mouse_ids_len; i++)
       {
@@ -806,7 +806,7 @@ namespace hidpg
         {
           _delta_x_sum += delta_x;
           _delta_y_sum += delta_y;
-          if (abs(_delta_x_sum) >= _determine_threshold || abs(_delta_y_sum) >= _determine_threshold)
+          if (abs(_delta_x_sum) >= _move_threshold || abs(_delta_y_sum) >= _move_threshold)
           {
             if (_state == State::Pressed)
             {
@@ -821,11 +821,11 @@ namespace hidpg
       }
     }
 
-    void TapDanceDetermineWithMouseMove::onHookPress()
+    void TapDanceDecideWithMouseMove::onHookPress()
     {
     }
 
-    void TapDanceDetermineWithMouseMove::onHookRelease()
+    void TapDanceDecideWithMouseMove::onHookRelease()
     {
       if (_state == State::Hook)
       {
@@ -1121,19 +1121,19 @@ namespace hidpg
     }
 
     //------------------------------------------------------------------+
-    // TapSpacing
+    // NTimesEvery
     //------------------------------------------------------------------+
-    TapSpacing::TapSpacing(uint32_t reference_ms, Command *command)
-        : _reference_ms(reference_ms), _command(command), _last_press_millis(0), _has_pressed(false)
+    NTimesEvery::NTimesEvery(uint32_t ms, Command *command)
+        : _ms(ms), _command(command), _last_press_millis(0), _has_pressed(false)
     {
       _command->setParent(this);
     }
 
-    void TapSpacing::onPress(uint8_t n_times)
+    void NTimesEvery::onPress(uint8_t n_times)
     {
       _n_times = n_times;
 
-      uint32_t ms = _reference_ms / n_times;
+      uint32_t ms = _ms / n_times;
 
       uint32_t current_millis = millis();
       if (static_cast<uint32_t>(current_millis - _last_press_millis) >= ms)
@@ -1144,7 +1144,7 @@ namespace hidpg
       }
     }
 
-    uint8_t TapSpacing::onRelease()
+    uint8_t NTimesEvery::onRelease()
     {
       if (_has_pressed)
       {

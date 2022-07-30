@@ -32,7 +32,7 @@
 #include "etl/intrusive_list.h"
 #include <stddef.h>
 
-#define BEFORE_DIFFERENT_ROOT_COMMAND_PRESS_EVENT_LISTENER_LINK_ID 0
+#define BEFORE_OTHER_COMMAND_PRESS_EVENT_LISTENER_LINK_ID 0
 #define BEFORE_MOUSE_MOVE_EVENT_LISTENER_LINK_ID 1
 #define BEFORE_GESTURE_EVENT_LISTENER_LINK_ID 2
 #define COMMAND_HOOK_LINK_ID 3
@@ -69,30 +69,30 @@ namespace hidpg
   };
 
   //------------------------------------------------------------------+
-  // BeforeDifferentRootCommandPressEventListener
+  // BeforeOtherCommandPressEventListener
   //------------------------------------------------------------------+
-  typedef etl::bidirectional_link<BEFORE_DIFFERENT_ROOT_COMMAND_PRESS_EVENT_LISTENER_LINK_ID> BeforeDifferentRootCommandPressEventListenerLink;
+  typedef etl::bidirectional_link<BEFORE_OTHER_COMMAND_PRESS_EVENT_LISTENER_LINK_ID> BeforeOtherCommandPressEventListenerLink;
 
-  class BeforeDifferentRootCommandPressEventListener : public BeforeDifferentRootCommandPressEventListenerLink
+  class BeforeOtherCommandPressEventListener : public BeforeOtherCommandPressEventListenerLink
   {
   public:
-    BeforeDifferentRootCommandPressEventListener(Command *command);
-    static void _notifyBeforeDifferentRootCommandPress(Command &press_command);
+    BeforeOtherCommandPressEventListener(Command *command);
+    static void _notifyOtherCommandPress(Command &press_command);
 
   protected:
-    bool startListenBeforeDifferentRootCommandPress();
-    bool stopListenBeforeDifferentRootCommandPress();
-    virtual void onBeforeDifferentRootCommandPress(Command &command) = 0;
+    bool startListenBeforeOtherCommandPress();
+    bool stopListenBeforeOtherCommandPress();
+    virtual void onBeforeOtherCommandPress(Command &command) = 0;
 
   private:
     static Command *getRootCommand(Command *command);
 
-    // keymap(グローバル変数)の定義で特定のコマンドがnewされたときにコンストラクタ内でstartListenBeforeDifferentRootCommandPress()が呼ばれる、
+    // keymap(グローバル変数)の定義で特定のコマンドがnewされたときにコンストラクタ内でstartListenBeforeOtherCommandPress()が呼ばれる、
     // _listener_listはその内部で使用するので単純なstatic変数にすると初期化順序が問題となる可能性がある。
     // https://isocpp.org/wiki/faq/ctors#static-init-order-on-first-use
-    static etl::intrusive_list<BeforeDifferentRootCommandPressEventListener, BeforeDifferentRootCommandPressEventListenerLink> &_listener_list()
+    static etl::intrusive_list<BeforeOtherCommandPressEventListener, BeforeOtherCommandPressEventListenerLink> &_listener_list()
     {
-      static etl::intrusive_list<BeforeDifferentRootCommandPressEventListener, BeforeDifferentRootCommandPressEventListenerLink> list;
+      static etl::intrusive_list<BeforeOtherCommandPressEventListener, BeforeOtherCommandPressEventListenerLink> list;
       return list;
     };
 
@@ -358,7 +358,7 @@ namespace hidpg
     //------------------------------------------------------------------+
     class TapDance : public Command,
                      public TimerMixin,
-                     public BeforeDifferentRootCommandPressEventListener,
+                     public BeforeOtherCommandPressEventListener,
                      public CommandHook
     {
     public:
@@ -374,7 +374,7 @@ namespace hidpg
       void onPress(uint8_t n_times) override;
       uint8_t onRelease() override;
       void onTimer() override;
-      void onBeforeDifferentRootCommandPress(Command &command) override;
+      void onBeforeOtherCommandPress(Command &command) override;
       void onHookPress() override;
       void onHookRelease() override;
 
@@ -402,13 +402,13 @@ namespace hidpg
     };
 
     //------------------------------------------------------------------+
-    // TapDanceDetermineWithMouseMove
+    // TapDanceDecideWithMouseMove
     //------------------------------------------------------------------+
-    class TapDanceDetermineWithMouseMove : public Command,
-                                           public TimerMixin,
-                                           public BeforeDifferentRootCommandPressEventListener,
-                                           public BeforeMouseMoveEventListener,
-                                           public CommandHook
+    class TapDanceDecideWithMouseMove : public Command,
+                                        public TimerMixin,
+                                        public BeforeOtherCommandPressEventListener,
+                                        public BeforeMouseMoveEventListener,
+                                        public CommandHook
     {
     public:
       struct Pair
@@ -417,7 +417,7 @@ namespace hidpg
         Command *hold_command;
       };
 
-      TapDanceDetermineWithMouseMove(Pair pairs[], uint8_t len, uint8_t mouse_ids[], uint8_t mouse_ids_len, uint16_t determine_threshold, TapHoldBehavior behavior);
+      TapDanceDecideWithMouseMove(Pair pairs[], uint8_t len, uint8_t mouse_ids[], uint8_t mouse_ids_len, uint16_t move_threshold, TapHoldBehavior behavior);
 
     protected:
       void onPress(uint8_t n_times) override;
@@ -425,7 +425,7 @@ namespace hidpg
 
     protected:
       void onTimer() override;
-      void onBeforeDifferentRootCommandPress(Command &command) override;
+      void onBeforeOtherCommandPress(Command &command) override;
       void onBeforeMouseMove(uint8_t mouse_id, int16_t delta_x, int16_t delta_y) override;
       void onHookPress() override;
       void onHookRelease() override;
@@ -453,7 +453,7 @@ namespace hidpg
       const TapHoldBehavior _behavior;
       int16_t _idx_count;
       State _state;
-      const uint16_t _determine_threshold;
+      const uint16_t _move_threshold;
       int32_t _delta_x_sum;
       int32_t _delta_y_sum;
     };
@@ -652,17 +652,17 @@ namespace hidpg
     };
 
     //------------------------------------------------------------------+
-    // TapSpacing
+    // NTimesEvery
     //------------------------------------------------------------------+
-    class TapSpacing : public Command
+    class NTimesEvery : public Command
     {
     public:
-      TapSpacing(uint32_t reference_ms, Command *command);
+      NTimesEvery(uint32_t _ms, Command *command);
       void onPress(uint8_t n_times) override;
       uint8_t onRelease() override;
 
     private:
-      uint32_t _reference_ms;
+      uint32_t _ms;
       Command *_command;
       uint32_t _last_press_millis;
       bool _has_pressed;

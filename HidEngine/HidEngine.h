@@ -212,7 +212,7 @@ namespace hidpg
     //------------------------------------------------------------------+
     // GestureOrTap
     //------------------------------------------------------------------+
-    class GestureOrTap : public Command, public BeforeDifferentRootCommandPressEventListener, public BeforeGestureEventListener
+    class GestureOrTap : public Command, public BeforeOtherCommandPressEventListener, public BeforeGestureEventListener
     {
     public:
       GestureOrTap(uint8_t gesture_id, Command *command);
@@ -220,7 +220,7 @@ namespace hidpg
     protected:
       void onPress(uint8_t n_times) override;
       uint8_t onRelease() override;
-      void onBeforeDifferentRootCommandPress(Command &command) override;
+      void onBeforeOtherCommandPress(Command &command) override;
       void onBeforeGesture(uint8_t gesture_id, uint8_t mouse_id) override;
       void startListen();
       void stopListen();
@@ -242,7 +242,7 @@ namespace hidpg
     //------------------------------------------------------------------+
     // GestureOrTapKey
     //------------------------------------------------------------------+
-    class GestureOrTapKey : public Command, public BeforeDifferentRootCommandPressEventListener, public BeforeGestureEventListener
+    class GestureOrTapKey : public Command, public BeforeOtherCommandPressEventListener, public BeforeGestureEventListener
     {
     public:
       GestureOrTapKey(uint8_t gesture_id, KeyCode key_code);
@@ -250,7 +250,7 @@ namespace hidpg
     protected:
       void onPress(uint8_t n_times) override;
       uint8_t onRelease() override;
-      void onBeforeDifferentRootCommandPress(Command &command) override;
+      void onBeforeOtherCommandPress(Command &command) override;
       void onBeforeGesture(uint8_t gesture_id, uint8_t mouse_id) override;
       void startListen();
       void stopListen();

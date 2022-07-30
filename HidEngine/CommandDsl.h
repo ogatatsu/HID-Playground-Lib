@@ -150,14 +150,14 @@ namespace hidpg
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3, uint8_t N1, uint8_t N2>
-    Command *new_TapDanceDetermineWithMouseMove(const TapDanceDetermineWithMouseMove::Pair (&arr)[N1],
-                                                const uint8_t (&mouse_ids)[N2],
-                                                uint16_t determine_threshold = 4,
-                                                TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
+    Command *new_TapDanceDecideWithMouseMove(const TapDanceDecideWithMouseMove::Pair (&arr)[N1],
+                                             const uint8_t (&mouse_ids)[N2],
+                                             uint16_t move_threshold = 4,
+                                             TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
     {
-      static TapDanceDetermineWithMouseMove::Pair arg1[N1];
+      static TapDanceDecideWithMouseMove::Pair arg1[N1];
       static uint8_t arg2[N2];
-      static uint8_t buf[sizeof(TapDanceDetermineWithMouseMove)];
+      static uint8_t buf[sizeof(TapDanceDecideWithMouseMove)];
 
       for (size_t i = 0; i < N1; i++)
       {
@@ -170,7 +170,7 @@ namespace hidpg
         arg2[i] = mouse_ids[i];
       }
 
-      return new (buf) TapDanceDetermineWithMouseMove(arg1, N1, arg2, N2, determine_threshold, behavior);
+      return new (buf) TapDanceDecideWithMouseMove(arg1, N1, arg2, N2, move_threshold, behavior);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
@@ -246,10 +246,10 @@ namespace hidpg
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_TapSpacing(uint32_t ms, Command *command)
+    Command *new_NTimesEvery(uint32_t ms, Command *command)
     {
-      static uint8_t buf[sizeof(TapSpacing)];
-      return new (buf) TapSpacing(ms, command);
+      static uint8_t buf[sizeof(NTimesEvery)];
+      return new (buf) NTimesEvery(ms, command);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
@@ -355,8 +355,8 @@ namespace hidpg
 // TapDance
 #define TD(...) (Internal::new_TapDance<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(__VA_ARGS__))
 
-// TapDanceDetermineWithMouseMove
-#define TDDM(...) (Internal::new_TapDanceDetermineWithMouseMove<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(__VA_ARGS__))
+// TapDanceDecideWithMouseMove
+#define TDDM(...) (Internal::new_TapDanceDecideWithMouseMove<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(__VA_ARGS__))
 
 // TapOrHold
 #define ToH(tap_command, ms, hold_command) (Internal::new_TapOrHold<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(tap_command, ms, hold_command))
@@ -388,8 +388,8 @@ namespace hidpg
 // OnceEvery
 #define OE(ms, command) (Internal::new_OnceEvery<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(ms, command))
 
-// TapSpacing
-#define TS(ms, command) (Internal::new_TapSpacing<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(ms, command))
+// NTimesEvery
+#define NTE(ms, command) (Internal::new_NTimesEvery<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(ms, command))
 
 // If
 #define IF(func, true_command, false_command) (Internal::new_If<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(func, true_command, false_command))

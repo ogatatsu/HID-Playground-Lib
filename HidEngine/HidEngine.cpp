@@ -476,7 +476,7 @@ namespace hidpg
     // GestureOrTap
     //------------------------------------------------------------------+
     GestureOrTap::GestureOrTap(uint8_t gesture_id, Command *command)
-        : BeforeDifferentRootCommandPressEventListener(this), BeforeGestureEventListener(), _gesture_id(gesture_id), _command(command), _state(State::Unexecuted)
+        : BeforeOtherCommandPressEventListener(this), BeforeGestureEventListener(), _gesture_id(gesture_id), _command(command), _state(State::Unexecuted)
     {
       _command->setParent(this);
     }
@@ -509,7 +509,7 @@ namespace hidpg
       return 1;
     }
 
-    void GestureOrTap::onBeforeDifferentRootCommandPress(Command &command)
+    void GestureOrTap::onBeforeOtherCommandPress(Command &command)
     {
       if (_state == State::Pressed)
       {
@@ -531,13 +531,13 @@ namespace hidpg
 
     void GestureOrTap::startListen()
     {
-      startListenBeforeDifferentRootCommandPress();
+      startListenBeforeOtherCommandPress();
       startListenBeforeGesture();
     }
 
     void GestureOrTap::stopListen()
     {
-      stopListenBeforeDifferentRootCommandPress();
+      stopListenBeforeOtherCommandPress();
       stopListenBeforeGesture();
     }
 
@@ -545,7 +545,7 @@ namespace hidpg
     // GestureOrTapKey
     //------------------------------------------------------------------+
     GestureOrTapKey::GestureOrTapKey(uint8_t gesture_id, KeyCode key_code)
-        : BeforeDifferentRootCommandPressEventListener(this), BeforeGestureEventListener(), _gesture_id(gesture_id), _nk_command(key_code), _state(State::Unexecuted)
+        : BeforeOtherCommandPressEventListener(this), BeforeGestureEventListener(), _gesture_id(gesture_id), _nk_command(key_code), _state(State::Unexecuted)
     {
       _nk_command.setParent(this);
     }
@@ -586,7 +586,7 @@ namespace hidpg
       return 1;
     }
 
-    void GestureOrTapKey::onBeforeDifferentRootCommandPress(Command &command)
+    void GestureOrTapKey::onBeforeOtherCommandPress(Command &command)
     {
       if (_state == State::Pressed)
       {
@@ -608,13 +608,13 @@ namespace hidpg
 
     void GestureOrTapKey::startListen()
     {
-      startListenBeforeDifferentRootCommandPress();
+      startListenBeforeOtherCommandPress();
       startListenBeforeGesture();
     }
 
     void GestureOrTapKey::stopListen()
     {
-      stopListenBeforeDifferentRootCommandPress();
+      stopListenBeforeOtherCommandPress();
       stopListenBeforeGesture();
     }
 
