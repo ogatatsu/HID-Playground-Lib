@@ -359,6 +359,7 @@ namespace hidpg
     class TapDance : public Command,
                      public TimerMixin,
                      public BeforeOtherCommandPressEventListener,
+                     public BeforeMouseMoveEventListener,
                      public CommandHook
     {
     public:
@@ -368,56 +369,7 @@ namespace hidpg
         Command *hold_command;
       };
 
-      TapDance(Pair pairs[], uint8_t len, TapHoldBehavior behavior);
-
-    protected:
-      void onPress(uint8_t n_times) override;
-      uint8_t onRelease() override;
-      void onTimer() override;
-      void onBeforeOtherCommandPress(Command &command) override;
-      void onHookPress() override;
-      void onHookRelease() override;
-
-    private:
-      void processTap();
-      void processHoldPress();
-      void processHoldRelease();
-
-      enum class State : uint8_t
-      {
-        Unexecuted,
-        Pressed,
-        Hook,
-        Tap_or_NextCommand,
-        FixedToHold,
-      };
-
-      Command *_running_command;
-      Command *_hooked_command;
-      Pair *const _pairs;
-      const uint8_t _len;
-      const TapHoldBehavior _behavior;
-      int16_t _idx_count;
-      State _state;
-    };
-
-    //------------------------------------------------------------------+
-    // TapDanceDecideWithMouseMove
-    //------------------------------------------------------------------+
-    class TapDanceDecideWithMouseMove : public Command,
-                                        public TimerMixin,
-                                        public BeforeOtherCommandPressEventListener,
-                                        public BeforeMouseMoveEventListener,
-                                        public CommandHook
-    {
-    public:
-      struct Pair
-      {
-        Command *tap_command;
-        Command *hold_command;
-      };
-
-      TapDanceDecideWithMouseMove(Pair pairs[], uint8_t len, uint8_t mouse_ids[], uint8_t mouse_ids_len, uint16_t move_threshold, TapHoldBehavior behavior);
+      TapDance(Pair pairs[], uint8_t len, uint8_t mouse_ids[], uint8_t mouse_ids_len, uint16_t move_threshold, TapHoldBehavior behavior);
 
     protected:
       void onPress(uint8_t n_times) override;
@@ -440,8 +392,8 @@ namespace hidpg
         Unexecuted,
         Pressed,
         Hook,
-        Tap_or_NextCommand,
-        FixedToHold,
+        TapOrNextCommand,
+        DecidedToHold,
       };
 
       Command *_running_command;
@@ -450,12 +402,12 @@ namespace hidpg
       const uint8_t _len;
       uint8_t *_mouse_ids;
       const uint8_t _mouse_ids_len;
+      const uint16_t _move_threshold;
       const TapHoldBehavior _behavior;
+      int16_t _delta_x_sum;
+      int16_t _delta_y_sum;
       int16_t _idx_count;
       State _state;
-      const uint16_t _move_threshold;
-      int32_t _delta_x_sum;
-      int32_t _delta_y_sum;
     };
 
     //------------------------------------------------------------------+

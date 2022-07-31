@@ -69,7 +69,7 @@ namespace hidpg
       arg[0].tap_command = command;
       arg[0].hold_command = new (mod_cmd_buf) ModifierKey(modifiers);
 
-      return new (buf) TapDance(arg, 1, behavior);
+      return new (buf) TapDance(arg, 1, nullptr, 0, 0, behavior);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3, size_t N>
@@ -97,7 +97,7 @@ namespace hidpg
       arg[0].tap_command = command;
       arg[0].hold_command = new (ly_cmd_buf) SwitchLayer(layer, layer_number);
 
-      return new (buf) TapDance(arg, 1, behavior);
+      return new (buf) TapDance(arg, 1, nullptr, 0, 0, behavior);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
@@ -146,18 +146,18 @@ namespace hidpg
         arg[i].tap_command = arr[i].tap_command;
         arg[i].hold_command = arr[i].hold_command;
       }
-      return new (buf) TapDance(arg, N, behavior);
+      return new (buf) TapDance(arg, N, nullptr, 0, 0, behavior);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3, uint8_t N1, uint8_t N2>
-    Command *new_TapDanceDecideWithMouseMove(const TapDanceDecideWithMouseMove::Pair (&arr)[N1],
+    Command *new_TapDanceDecideWithMouseMove(const TapDance::Pair (&arr)[N1],
                                              const uint8_t (&mouse_ids)[N2],
                                              uint16_t move_threshold = 4,
                                              TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
     {
-      static TapDanceDecideWithMouseMove::Pair arg1[N1];
+      static TapDance::Pair arg1[N1];
       static uint8_t arg2[N2];
-      static uint8_t buf[sizeof(TapDanceDecideWithMouseMove)];
+      static uint8_t buf[sizeof(TapDance)];
 
       for (size_t i = 0; i < N1; i++)
       {
@@ -170,7 +170,7 @@ namespace hidpg
         arg2[i] = mouse_ids[i];
       }
 
-      return new (buf) TapDanceDecideWithMouseMove(arg1, N1, arg2, N2, move_threshold, behavior);
+      return new (buf) TapDance(arg1, N1, arg2, N2, move_threshold, behavior);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>

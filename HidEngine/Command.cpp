@@ -55,8 +55,8 @@ namespace hidpg
     {
       if (_state == State::Released && CommandHook::_isHooked(*this) == false)
       {
-        onPress(n_times);
         _state = State::Pressed;
+        onPress(n_times);
       }
     }
   }
@@ -71,8 +71,8 @@ namespace hidpg
     {
       if (_state == State::Pressed && CommandHook::_isHooked(*this) == false)
       {
-        result = onRelease();
         _state = State::Released;
+        result = onRelease();
       }
     }
 
@@ -508,9 +508,26 @@ namespace hidpg
     //------------------------------------------------------------------+
     // TapDance
     //------------------------------------------------------------------+
-    TapDance::TapDance(Pair pairs[], uint8_t len, TapHoldBehavior behavior)
-        : TimerMixin(), BeforeOtherCommandPressEventListener(this), CommandHook(),
-          _pairs(pairs), _len(len), _behavior(behavior), _idx_count(-1), _state(State::Unexecuted)
+    TapDance::TapDance(Pair pairs[],
+                       uint8_t len,
+                       uint8_t mouse_ids[],
+                       uint8_t mouse_ids_len,
+                       uint16_t move_threshold,
+                       TapHoldBehavior behavior)
+        : TimerMixin(),
+          BeforeOtherCommandPressEventListener(this),
+          BeforeMouseMoveEventListener(),
+          CommandHook(),
+          _pairs(pairs),
+          _len(len),
+          _mouse_ids(mouse_ids),
+          _mouse_ids_len(mouse_ids_len),
+          _move_threshold(move_threshold),
+          _behavior(behavior),
+          _delta_x_sum(0),
+          _delta_y_sum(0),
+          _idx_count(-1),
+          _state(State::Unexecuted)
     {
       for (int i = 0; i < len; i++)
       {
@@ -521,17 +538,21 @@ namespace hidpg
 
     void TapDance::processTap()
     {
+      _state = State::Unexecuted;
       Command *cmd = _pairs[_idx_count].tap_command;
       cmd->press();
       cmd->release();
       _idx_count = -1;
-      _state = State::Unexecuted;
       stopListenBeforeOtherCommandPress();
+      if (_mouse_ids_len != 0)
+      {
+        stopListenBeforeMouseMove();
+      }
     }
 
     void TapDance::processHoldPress()
     {
-      _state = State::FixedToHold;
+      _state = State::DecidedToHold;
       _running_command = _pairs[_idx_count].hold_command;
       _idx_count = -1;
       _running_command->press();
@@ -539,9 +560,13 @@ namespace hidpg
 
     void TapDance::processHoldRelease()
     {
-      _running_command->release();
       _state = State::Unexecuted;
+      _running_command->release();
       stopListenBeforeOtherCommandPress();
+      if (_mouse_ids_len != 0)
+      {
+        stopListenBeforeMouseMove();
+      }
     }
 
     void TapDance::onPress(uint8_t n_times)
@@ -549,19 +574,24 @@ namespace hidpg
       if (_state == State::Unexecuted)
       {
         startListenBeforeOtherCommandPress();
+        if (_mouse_ids_len != 0)
+        {
+          _delta_x_sum = 0;
+          _delta_y_sum = 0;
+          startListenBeforeMouseMove();
+        }
       }
-
-      if (_state == State::Unexecuted || _state == State::Tap_or_NextCommand)
+      if (_state == State::Unexecuted || _state == State::TapOrNextCommand)
       {
-        _idx_count++;
         _state = State::Pressed;
+        _idx_count++;
         startTimer(HID_ENGINE_TAPPING_TERM_MS);
       }
     }
 
     uint8_t TapDance::onRelease()
     {
-      if (_state == State::FixedToHold)
+      if (_state == State::DecidedToHold)
       {
         processHoldRelease();
       }
@@ -573,7 +603,7 @@ namespace hidpg
         }
         else
         {
-          _state = State::Tap_or_NextCommand;
+          _state = State::TapOrNextCommand;
           startTimer(HID_ENGINE_TAPPING_TERM_MS);
         }
       }
@@ -592,7 +622,7 @@ namespace hidpg
       {
         processHoldPress();
       }
-      else if (_state == State::Tap_or_NextCommand)
+      else if (_state == State::TapOrNextCommand)
       {
         processTap();
       }
@@ -612,8 +642,8 @@ namespace hidpg
         {
           if (startHook(command))
           {
-            _hooked_command = &command;
             _state = State::Hook;
+            _hooked_command = &command;
           }
         }
         else
@@ -621,7 +651,7 @@ namespace hidpg
           processHoldPress();
         }
       }
-      else if (_state == State::Tap_or_NextCommand)
+      else if (_state == State::TapOrNextCommand)
       {
         processTap();
       }
@@ -633,186 +663,21 @@ namespace hidpg
       }
     }
 
-    void TapDance::onHookPress()
-    {
-    }
-
-    void TapDance::onHookRelease()
-    {
-      if (_state == State::Hook)
-      {
-        processHoldPress();
-        stopHook();
-        _hooked_command->press();
-        _hooked_command->release();
-      }
-    }
-
-    //------------------------------------------------------------------+
-    // TapDanceDecideWithMouseMove
-    //------------------------------------------------------------------+
-    TapDanceDecideWithMouseMove::TapDanceDecideWithMouseMove(Pair pairs[],
-                                                             uint8_t len,
-                                                             uint8_t mouse_ids[],
-                                                             uint8_t mouse_ids_len,
-                                                             uint16_t move_threshold,
-                                                             TapHoldBehavior behavior)
-        : TimerMixin(),
-          BeforeOtherCommandPressEventListener(this),
-          BeforeMouseMoveEventListener(),
-          CommandHook(),
-          _pairs(pairs),
-          _len(len),
-          _mouse_ids(mouse_ids),
-          _mouse_ids_len(mouse_ids_len),
-          _behavior(behavior),
-          _idx_count(-1),
-          _state(State::Unexecuted),
-          _move_threshold(move_threshold),
-          _delta_x_sum(0),
-          _delta_y_sum(0)
-    {
-      for (int i = 0; i < len; i++)
-      {
-        pairs[i].tap_command->setParent(this);
-        pairs[i].hold_command->setParent(this);
-      }
-    }
-
-    void TapDanceDecideWithMouseMove::processTap()
-    {
-      Command *cmd = _pairs[_idx_count].tap_command;
-      cmd->press();
-      cmd->release();
-      _idx_count = -1;
-      _state = State::Unexecuted;
-      stopListenBeforeOtherCommandPress();
-      stopListenBeforeMouseMove();
-    }
-
-    void TapDanceDecideWithMouseMove::processHoldPress()
-    {
-      _state = State::FixedToHold;
-      _running_command = _pairs[_idx_count].hold_command;
-      _idx_count = -1;
-      _running_command->press();
-    }
-
-    void TapDanceDecideWithMouseMove::processHoldRelease()
-    {
-      _running_command->release();
-      _state = State::Unexecuted;
-      stopListenBeforeOtherCommandPress();
-      stopListenBeforeMouseMove();
-    }
-
-    void TapDanceDecideWithMouseMove::onPress(uint8_t n_times)
-    {
-      if (_state == State::Unexecuted)
-      {
-        startListenBeforeOtherCommandPress();
-        _delta_x_sum = 0;
-        _delta_y_sum = 0;
-        startListenBeforeMouseMove();
-      }
-
-      if (_state == State::Unexecuted || _state == State::Tap_or_NextCommand)
-      {
-        _idx_count++;
-        _state = State::Pressed;
-        startTimer(HID_ENGINE_TAPPING_TERM_MS);
-      }
-    }
-
-    uint8_t TapDanceDecideWithMouseMove::onRelease()
-    {
-      if (_state == State::FixedToHold)
-      {
-        processHoldRelease();
-      }
-      else if (_state == State::Pressed)
-      {
-        if (_idx_count == _len - 1)
-        {
-          processTap();
-        }
-        else
-        {
-          _state = State::Tap_or_NextCommand;
-          startTimer(HID_ENGINE_TAPPING_TERM_MS);
-        }
-      }
-      else if (_state == State::Hook)
-      {
-        processTap();
-        stopHook();
-        _hooked_command->press();
-      }
-      return 1;
-    }
-
-    void TapDanceDecideWithMouseMove::onTimer()
-    {
-      if (_state == State::Pressed)
-      {
-        processHoldPress();
-      }
-      else if (_state == State::Tap_or_NextCommand)
-      {
-        processTap();
-      }
-      else if (_state == State::Hook)
-      {
-        processHoldPress();
-        stopHook();
-        _hooked_command->press();
-      }
-    }
-
-    void TapDanceDecideWithMouseMove::onBeforeOtherCommandPress(Command &command)
-    {
-      if (_state == State::Pressed)
-      {
-        if (_behavior == TapHoldBehavior::Balanced)
-        {
-          if (startHook(command))
-          {
-            _hooked_command = &command;
-            _state = State::Hook;
-          }
-        }
-        else
-        {
-          processHoldPress();
-        }
-      }
-      else if (_state == State::Tap_or_NextCommand)
-      {
-        processTap();
-      }
-      else if (_state == State::Hook)
-      {
-        processHoldPress();
-        stopHook();
-        _hooked_command->press();
-      }
-    }
-
-    void TapDanceDecideWithMouseMove::onBeforeMouseMove(uint8_t mouse_id, int16_t delta_x, int16_t delta_y)
+    void TapDance::onBeforeMouseMove(uint8_t mouse_id, int16_t delta_x, int16_t delta_y)
     {
       for (int i = 0; i < _mouse_ids_len; i++)
       {
         if (_mouse_ids[i] == mouse_id)
         {
-          _delta_x_sum += delta_x;
-          _delta_y_sum += delta_y;
+          _delta_x_sum = constrain(_delta_x_sum + delta_x, INT16_MIN, INT16_MAX);
+          _delta_y_sum = constrain(_delta_y_sum + delta_y, INT16_MIN, INT16_MAX);
           if (abs(_delta_x_sum) >= _move_threshold || abs(_delta_y_sum) >= _move_threshold)
           {
             if (_state == State::Pressed)
             {
               processHoldPress();
             }
-            else if (_state == State::Tap_or_NextCommand)
+            else if (_state == State::TapOrNextCommand)
             {
               processTap();
             }
@@ -821,11 +686,11 @@ namespace hidpg
       }
     }
 
-    void TapDanceDecideWithMouseMove::onHookPress()
+    void TapDance::onHookPress()
     {
     }
 
-    void TapDanceDecideWithMouseMove::onHookRelease()
+    void TapDance::onHookRelease()
     {
       if (_state == State::Hook)
       {

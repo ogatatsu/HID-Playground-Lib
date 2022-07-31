@@ -46,7 +46,7 @@ namespace hidpg
     arg[0].tap_command = command;
     arg[0].hold_command = new Internal::ModifierKey(modifiers);
 
-    return (new Internal::TapDance(arg, 1, behavior));
+    return (new Internal::TapDance(arg, 1, nullptr, 0, 0, behavior));
   }
 
   template <size_t N>
@@ -94,7 +94,7 @@ namespace hidpg
     arg[0].tap_command = command;
     arg[0].hold_command = new Internal::SwitchLayer(&Layer, layer_number);
 
-    return (new Internal::TapDance(arg, 1, behavior));
+    return (new Internal::TapDance(arg, 1, nullptr, 0, 0, behavior));
   }
 
   static inline Command *LT1(uint8_t layer_number, Command *command, TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
@@ -103,7 +103,7 @@ namespace hidpg
     arg[0].tap_command = command;
     arg[0].hold_command = new Internal::SwitchLayer(&Layer1, layer_number);
 
-    return (new Internal::TapDance(arg, 1, behavior));
+    return (new Internal::TapDance(arg, 1, nullptr, 0, 0, behavior));
   }
 
   static inline Command *LT2(uint8_t layer_number, Command *command, TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
@@ -112,7 +112,7 @@ namespace hidpg
     arg[0].tap_command = command;
     arg[0].hold_command = new Internal::SwitchLayer(&Layer2, layer_number);
 
-    return (new Internal::TapDance(arg, 1, behavior));
+    return (new Internal::TapDance(arg, 1, nullptr, 0, 0, behavior));
   }
 
   static inline Command *TL(uint8_t layer_number) { return (new Internal::ToggleLayer(&Layer, layer_number)); }
@@ -134,22 +134,22 @@ namespace hidpg
   template <uint8_t N>
   static Command *TD(const Internal::TapDance::Pair (&arr)[N], TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
   {
-    Internal::TapDance::Pair *arg = new Internal::TapDance::Pair[N];
+    auto *arg = new Internal::TapDance::Pair[N];
     for (int i = 0; i < N; i++)
     {
       arg[i].tap_command = arr[i].tap_command;
       arg[i].hold_command = arr[i].hold_command;
     }
-    return (new Internal::TapDance(arg, N, behavior));
+    return (new Internal::TapDance(arg, N, nullptr, 0, 0, behavior));
   }
 
   template <uint8_t N1, uint8_t N2>
-  static Command *TDDM(const Internal::TapDanceDecideWithMouseMove::Pair (&arr)[N1],
+  static Command *TDDM(const Internal::TapDance::Pair (&arr)[N1],
                        const uint8_t (&mouse_ids)[N2],
                        uint16_t move_threshold = 4,
                        TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
   {
-    Internal::TapDanceDecideWithMouseMove::Pair *arg1 = new Internal::TapDanceDecideWithMouseMove::Pair[N1];
+    auto *arg1 = new Internal::TapDance::Pair[N1];
     uint8_t *arg2 = new uint8_t[N2];
 
     for (int i = 0; i < N1; i++)
@@ -162,7 +162,7 @@ namespace hidpg
     {
       arg2[i] = mouse_ids[i];
     }
-    return (new Internal::TapDanceDecideWithMouseMove(arg1, N1, arg2, N2, move_threshold, behavior));
+    return (new Internal::TapDance(arg1, N1, arg2, N2, move_threshold, behavior));
   }
 
   static inline Command *ToH(Command *tap_command, unsigned int ms, Command *hold_command) { return (new Internal::TapOrHold(tap_command, ms, hold_command)); }
