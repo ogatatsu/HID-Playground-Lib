@@ -499,146 +499,150 @@ namespace hidpg
     }
 
     //------------------------------------------------------------------+
-    // GestureOrTap
+    // GestureOr
     //------------------------------------------------------------------+
-    GestureOrTap::GestureOrTap(uint8_t gesture_id, Command *command)
+    GestureOr::GestureOr(uint8_t gesture_id, Command *command)
         : BeforeOtherCommandPressEventListener(this), BeforeGestureEventListener(), _gesture_id(gesture_id), _command(command), _state(State::Unexecuted)
     {
       _command->setParent(this);
     }
 
-    void GestureOrTap::onPress(uint8_t n_times)
+    void GestureOr::onPress(uint8_t n_times)
     {
+      _state = State::Pressed;
       HidEngine.startGesture(_gesture_id);
       startListen();
-      _state = State::Pressed;
     }
 
-    uint8_t GestureOrTap::onRelease()
+    uint8_t GestureOr::onRelease()
     {
       if (_state == State::Pressed)
       {
+        _state = State::Unexecuted;
         HidEngine.stopGesture(_gesture_id);
         stopListen();
         CommandTapper.tap(_command);
       }
-      else if (_state == State::DifferentCommandPressed)
+      else if (_state == State::OtherCommandPressed)
       {
+        _state = State::Unexecuted;
         _command->release();
       }
       else if (_state == State::Gestured)
       {
+        _state = State::Unexecuted;
         HidEngine.stopGesture(_gesture_id);
       }
 
-      _state = State::Unexecuted;
       return 1;
     }
 
-    void GestureOrTap::onBeforeOtherCommandPress(Command &command)
+    void GestureOr::onBeforeOtherCommandPress(Command &command)
     {
       if (_state == State::Pressed)
       {
+        _state = State::OtherCommandPressed;
         HidEngine.stopGesture(_gesture_id);
         stopListen();
         _command->press();
-        _state = State::DifferentCommandPressed;
       }
     }
 
-    void GestureOrTap::onBeforeGesture(uint8_t gesture_id, uint8_t mouse_id)
+    void GestureOr::onBeforeGesture(uint8_t gesture_id, uint8_t mouse_id)
     {
       if (_state == State::Pressed)
       {
-        stopListen();
         _state = State::Gestured;
+        stopListen();
       }
     }
 
-    void GestureOrTap::startListen()
+    void GestureOr::startListen()
     {
       startListenBeforeOtherCommandPress();
       startListenBeforeGesture();
     }
 
-    void GestureOrTap::stopListen()
+    void GestureOr::stopListen()
     {
       stopListenBeforeOtherCommandPress();
       stopListenBeforeGesture();
     }
 
     //------------------------------------------------------------------+
-    // GestureOrTapKey
+    // GestureOrNK
     //------------------------------------------------------------------+
-    GestureOrTapKey::GestureOrTapKey(uint8_t gesture_id, KeyCode key_code)
+    GestureOrNK::GestureOrNK(uint8_t gesture_id, KeyCode key_code)
         : BeforeOtherCommandPressEventListener(this), BeforeGestureEventListener(), _gesture_id(gesture_id), _nk_command(key_code), _state(State::Unexecuted)
     {
       _nk_command.setParent(this);
     }
 
-    void GestureOrTapKey::onPress(uint8_t n_times)
+    void GestureOrNK::onPress(uint8_t n_times)
     {
       if (Hid.isModifiersSet())
       {
-        _nk_command.press();
         _state = State::PressedWithModifiers;
+        _nk_command.press();
       }
       else
       {
+        _state = State::Pressed;
         HidEngine.startGesture(_gesture_id);
         startListen();
-        _state = State::Pressed;
       }
     }
 
-    uint8_t GestureOrTapKey::onRelease()
+    uint8_t GestureOrNK::onRelease()
     {
       if (_state == State::Pressed)
       {
+        _state = State::Unexecuted;
         HidEngine.stopGesture(_gesture_id);
         stopListen();
         CommandTapper.tap(&_nk_command);
       }
-      else if (_state == State::DifferentCommandPressed || _state == State::PressedWithModifiers)
+      else if (_state == State::OtherCommandPressed || _state == State::PressedWithModifiers)
       {
+        _state = State::Unexecuted;
         _nk_command.release();
       }
       else if (_state == State::Gestured)
       {
+        _state = State::Unexecuted;
         HidEngine.stopGesture(_gesture_id);
       }
 
-      _state = State::Unexecuted;
       return 1;
     }
 
-    void GestureOrTapKey::onBeforeOtherCommandPress(Command &command)
+    void GestureOrNK::onBeforeOtherCommandPress(Command &command)
     {
       if (_state == State::Pressed)
       {
+        _state = State::OtherCommandPressed;
         HidEngine.stopGesture(_gesture_id);
         stopListen();
         _nk_command.press();
-        _state = State::DifferentCommandPressed;
       }
     }
 
-    void GestureOrTapKey::onBeforeGesture(uint8_t gesture_id, uint8_t mouse_id)
+    void GestureOrNK::onBeforeGesture(uint8_t gesture_id, uint8_t mouse_id)
     {
       if (_state == State::Pressed)
       {
-        stopListen();
         _state = State::Gestured;
+        stopListen();
       }
     }
 
-    void GestureOrTapKey::startListen()
+    void GestureOrNK::startListen()
     {
       startListenBeforeOtherCommandPress();
       startListenBeforeGesture();
     }
 
-    void GestureOrTapKey::stopListen()
+    void GestureOrNK::stopListen()
     {
       stopListenBeforeOtherCommandPress();
       stopListenBeforeGesture();

@@ -211,12 +211,12 @@ namespace hidpg
     };
 
     //------------------------------------------------------------------+
-    // GestureOrTap
+    // GestureOr
     //------------------------------------------------------------------+
-    class GestureOrTap : public Command, public BeforeOtherCommandPressEventListener, public BeforeGestureEventListener
+    class GestureOr : public Command, public BeforeOtherCommandPressEventListener, public BeforeGestureEventListener
     {
     public:
-      GestureOrTap(uint8_t gesture_id, Command *command);
+      GestureOr(uint8_t gesture_id, Command *command);
 
     protected:
       void onPress(uint8_t n_times) override;
@@ -231,7 +231,7 @@ namespace hidpg
       {
         Unexecuted,
         Pressed,
-        DifferentCommandPressed,
+        OtherCommandPressed,
         Gestured,
       };
 
@@ -241,12 +241,12 @@ namespace hidpg
     };
 
     //------------------------------------------------------------------+
-    // GestureOrTapKey
+    // GestureOrNK
     //------------------------------------------------------------------+
-    class GestureOrTapKey : public Command, public BeforeOtherCommandPressEventListener, public BeforeGestureEventListener
+    class GestureOrNK : public Command, public BeforeOtherCommandPressEventListener, public BeforeGestureEventListener
     {
     public:
-      GestureOrTapKey(uint8_t gesture_id, KeyCode key_code);
+      GestureOrNK(uint8_t gesture_id, KeyCode key_code);
 
     protected:
       void onPress(uint8_t n_times) override;
@@ -262,7 +262,7 @@ namespace hidpg
         Unexecuted,
         Pressed,
         PressedWithModifiers,
-        DifferentCommandPressed,
+        OtherCommandPressed,
         Gestured,
       };
 
