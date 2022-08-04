@@ -273,6 +273,39 @@ namespace hidpg
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
+    Command *new_Toggle(Command *command)
+    {
+      static uint8_t buf[sizeof(Toggle)];
+      return new (buf) Toggle(command);
+    }
+
+    template <uint64_t ID1, uint64_t ID2, uint64_t ID3, size_t N>
+    Command *new_Cycle(const CommandPtr (&arr)[N])
+    {
+      static Command *arg[N];
+      static uint8_t buf[sizeof(Cycle)];
+
+      for (size_t i = 0; i < N; i++)
+      {
+        arg[i] = arr[i];
+      }
+      return new (buf) Cycle(arg, N);
+    }
+
+    template <uint64_t ID1, uint64_t ID2, uint64_t ID3, size_t N>
+    Command *new_CyclePhaseShift(const CommandPtr (&arr)[N])
+    {
+      static Command *arg[N];
+      static uint8_t buf[sizeof(CyclePhaseShift)];
+
+      for (size_t i = 0; i < N; i++)
+      {
+        arg[i] = arr[i];
+      }
+      return new (buf) CyclePhaseShift(arg, N);
+    }
+
+    template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
     Command *new_NoOperation()
     {
       static uint8_t buf[sizeof(NoOperation)];
@@ -396,6 +429,15 @@ namespace hidpg
 
 // Multi
 #define MLT(...) (Internal::new_Multi<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(__VA_ARGS__))
+
+// Toggle
+#define TGL(command) (Internal::new_Toggle<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(command))
+
+// Cycle
+#define CYC(...) (Internal::new_Cycle<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(__VA_ARGS__))
+
+// CyclePhaseShift
+#define CYC_PS(...) (Internal::new_CyclePhaseShift<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(__VA_ARGS__))
 
 // NoOperation
 #define NOP() (Internal::new_NoOperation<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>())

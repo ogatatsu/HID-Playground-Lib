@@ -205,6 +205,32 @@ namespace hidpg
     return (new Internal::Multi(arg, N));
   }
 
+  static inline Command *TGL(Command *command) { return (new Internal::Toggle(command)); }
+
+  template <uint8_t N>
+  static Command *CYC(const CommandPtr (&arr)[N])
+  {
+    Command **arg = new Command *[N] {};
+
+    for (size_t i = 0; i < N; i++)
+    {
+      arg[i] = arr[i];
+    }
+    return (new Internal::Cycle(arg, N));
+  }
+
+  template <uint8_t N>
+  static Command *CYC_PS(const CommandPtr (&arr)[N])
+  {
+    Command **arg = new Command *[N] {};
+
+    for (size_t i = 0; i < N; i++)
+    {
+      arg[i] = arr[i];
+    }
+    return (new Internal::CyclePhaseShift(arg, N));
+  }
+
   static inline Command *NOP() { return (new Internal::NoOperation()); }
 
   static inline Command *SEQ_MODE() { return (new Internal::SequenceMode); }

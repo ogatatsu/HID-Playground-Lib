@@ -1071,6 +1071,99 @@ namespace hidpg
     }
 
     //------------------------------------------------------------------+
+    // Toggle
+    //------------------------------------------------------------------+
+    Toggle::Toggle(Command *command)
+        : _command(command), _is_pressed(false)
+    {
+      _command->setParent(this);
+    }
+
+    void Toggle::onPress(uint8_t n_times)
+    {
+      if (_is_pressed == false)
+      {
+        _command->press();
+      }
+      else
+      {
+        _command->release();
+      }
+
+      _is_pressed = !_is_pressed;
+    }
+
+    //------------------------------------------------------------------+
+    // Cycle
+    //------------------------------------------------------------------+
+    Cycle::Cycle(Command *commands[], uint8_t len)
+        : _commands(commands), _len(len), _idx(0)
+    {
+      for (size_t i = 0; i < len; i++)
+      {
+        _commands[i]->setParent(this);
+      }
+    }
+
+    void Cycle::onPress(uint8_t n_times)
+    {
+      if (_len == 0)
+      {
+        return;
+      }
+
+      _commands[_idx]->press();
+    }
+
+    uint8_t Cycle::onRelease()
+    {
+      if (_len == 0)
+      {
+        return 1;
+      }
+
+      _commands[_idx]->release();
+      _idx = (_idx + 1) % _len;
+
+      return 1;
+    }
+
+    //------------------------------------------------------------------+
+    // CyclePhaseShift
+    //------------------------------------------------------------------+
+    CyclePhaseShift::CyclePhaseShift(Command *commands[], uint8_t len)
+        : _commands(commands), _len(len), _idx(len - 1)
+    {
+      for (size_t i = 0; i < len; i++)
+      {
+        _commands[i]->setParent(this);
+      }
+    }
+
+    void CyclePhaseShift::onPress(uint8_t n_times)
+    {
+      if (_len == 0)
+      {
+        return;
+      }
+
+      _commands[_idx]->release();
+      _idx = (_idx + 1) % _len;
+    }
+
+    uint8_t CyclePhaseShift::onRelease()
+    {
+      if (_len == 0)
+      {
+        return 1;
+      }
+
+      _commands[_idx]->press();
+
+      return 1;
+    }
+
+    //------------------------------------------------------------------+
     // NoOperation
     //------------------------------------------------------------------+
     void NoOperation::onPress(uint8_t n_times)

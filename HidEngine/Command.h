@@ -658,6 +658,58 @@ namespace hidpg
     };
 
     //------------------------------------------------------------------+
+    // Toggle
+    //------------------------------------------------------------------+
+    class Toggle : public Command
+    {
+    public:
+      Toggle(Command *command);
+
+    protected:
+      void onPress(uint8_t n_times) override;
+
+    private:
+      Command *_command;
+      bool _is_pressed;
+    };
+
+    //------------------------------------------------------------------+
+    // Cycle
+    //------------------------------------------------------------------+
+    class Cycle : public Command
+    {
+    public:
+      Cycle(Command *commands[], uint8_t len);
+
+    protected:
+      void onPress(uint8_t n_times) override;
+      uint8_t onRelease() override;
+
+    private:
+      Command **const _commands;
+      const uint8_t _len;
+      size_t _idx;
+    };
+
+    //------------------------------------------------------------------+
+    // CyclePhaseShift
+    //------------------------------------------------------------------+
+    class CyclePhaseShift : public Command
+    {
+    public:
+      CyclePhaseShift(Command *commands[], uint8_t len);
+
+    protected:
+      void onPress(uint8_t n_times) override;
+      uint8_t onRelease() override;
+
+    private:
+      Command **const _commands;
+      const uint8_t _len;
+      size_t _idx;
+    };
+
+    //------------------------------------------------------------------+
     // NoOperation
     //------------------------------------------------------------------+
     class NoOperation : public Command
