@@ -28,6 +28,7 @@
 #include "BlinkLed.h"
 #include "centrals/BLECentralProfileBTTB179.h"
 #include "centrals/BLECentralProfileKoneProAir.h"
+#include "centrals/BLECentralProfileLift.h"
 #include "centrals/BLECentralProfileRelacon.h"
 #include "centrals/BLECentralProfileTrackPointKeyboard2.h"
 #include "centrals/BLECentralProfileUart.h"
