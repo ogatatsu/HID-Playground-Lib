@@ -52,6 +52,12 @@ namespace hidpg
     Disable,
   };
 
+  enum class PreCommandTiming : uint8_t
+  {
+    Immediately,
+    InsteadOfFirstGesture,
+  };
+
   struct Gesture
   {
     uint8_t gesture_id;
@@ -63,6 +69,7 @@ namespace hidpg
     Command *left_command;
     Command *right_command;
     Command *pre_command;
+    PreCommandTiming pre_command_timing;
   };
 
   struct Encoder
@@ -78,9 +85,12 @@ namespace hidpg
   {
     GestureID(uint8_t gesture_id) : _gesture_id(gesture_id) { clear(); }
     uint8_t getID() const { return _gesture_id; }
+    void setPreCommandPressFlag(bool flag) { _is_pre_command_pressed = flag; }
+    bool getPreCommandPressFlag() { return _is_pre_command_pressed; }
 
   private:
     uint8_t _gesture_id;
+    bool _is_pre_command_pressed;
   };
 
   namespace Internal
@@ -144,8 +154,11 @@ namespace hidpg
       static void processSequenceKeymap(Set &key_ids);
       static void processKeymap(Set &key_ids);
       static void mouseMove_impl(uint8_t mouse_id);
-      static void processGestureX(Gesture &gesture);
-      static void processGestureY(Gesture &gesture);
+      static void processGestureX(Gesture &gesture, GestureID &gesture_id);
+      static void processGestureXSub(Gesture &gesture, GestureID &gesture_id, Command *command);
+      static void processGestureY(Gesture &gesture, GestureID &gesture_id);
+      static void processGestureYSub(Gesture &gesture, GestureID &gesture_id, Command *command);
+      static bool processPreCommandInsteadOfFirstGesture(Gesture &gesture, GestureID &gesture_id);
       static void rotateEncoder_impl(uint8_t encoder_id);
 
       enum class MatchResult
@@ -180,7 +193,7 @@ namespace hidpg
 
       static SequenceModeState _sequence_mode_state;
 
-      static etl::intrusive_list<GestureID, GestureIDLink> _gesture_list;
+      static etl::intrusive_list<GestureID, GestureIDLink> _gesture_id_list;
       static int32_t _total_distance_x;
       static int32_t _total_distance_y;
     };

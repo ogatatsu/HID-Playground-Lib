@@ -48,7 +48,7 @@ namespace hidpg
     HidEngineClass::read_encoder_step_callback_t HidEngineClass::_read_encoder_step_cb = nullptr;
 
     HidEngineClass::SequenceModeState HidEngineClass::_sequence_mode_state = HidEngineClass::SequenceModeState::Disable;
-    etl::intrusive_list<GestureID, GestureIDLink> HidEngineClass::_gesture_list;
+    etl::intrusive_list<GestureID, GestureIDLink> HidEngineClass::_gesture_id_list;
 
     int32_t HidEngineClass::_total_distance_x = 0;
     int32_t HidEngineClass::_total_distance_y = 0;
@@ -258,33 +258,33 @@ namespace hidpg
 
       BeforeMouseMoveEventListener::_notifyBeforeMouseMove(mouse_id, delta_x, delta_y);
 
-      int gesture_idx = -1;
+      Gesture *gesture = nullptr;
+      GestureID *gesture_id = nullptr;
 
-      if (_gesture_list.size() > 0)
+      if (_gesture_id_list.empty() == false)
       {
         // 一番上のgesture_idを取得
-        uint8_t gesture_id = _gesture_list.back().getID();
+        gesture_id = &_gesture_id_list.back();
+        uint8_t gst_id = gesture_id->getID();
 
         // gesture_mapからgesture_idとmouse_idが一致するアイテムを検索
         for (int i = 0; i < _gesture_map_len; i++)
         {
-          if ((_gesture_map[i].gesture_id == gesture_id) && (_gesture_map[i].mouse_id == mouse_id))
+          if ((_gesture_map[i].gesture_id == gst_id) && (_gesture_map[i].mouse_id == mouse_id))
           {
-            gesture_idx = i;
+            gesture = &_gesture_map[i];
             break;
           }
         }
       }
 
-      if (gesture_idx != -1)
+      if (gesture != nullptr)
       {
-        Gesture &gesture = _gesture_map[gesture_idx];
-
         // 前回のidと違うなら距離をリセット
-        if ((gesture.gesture_id != prev_gesture_id) || (mouse_id != prev_mouse_id))
+        if ((gesture->gesture_id != prev_gesture_id) || (mouse_id != prev_mouse_id))
         {
           _total_distance_x = _total_distance_y = 0;
-          prev_gesture_id = gesture.gesture_id;
+          prev_gesture_id = gesture->gesture_id;
           prev_mouse_id = mouse_id;
         }
 
@@ -305,13 +305,13 @@ namespace hidpg
         // 距離の大きさによって実行する順序を変える
         if (abs(delta_x) >= abs(delta_y))
         {
-          processGestureX(gesture);
-          processGestureY(gesture);
+          processGestureX(*gesture, *gesture_id);
+          processGestureY(*gesture, *gesture_id);
         }
         else
         {
-          processGestureY(gesture);
-          processGestureX(gesture);
+          processGestureY(*gesture, *gesture_id);
+          processGestureX(*gesture, *gesture_id);
         }
       }
       else
@@ -323,110 +323,150 @@ namespace hidpg
       }
     }
 
-    void HidEngineClass::processGestureY(Gesture &gesture)
+    void HidEngineClass::processGestureY(Gesture &gesture, GestureID &gesture_id)
     {
       int16_t threshold = gesture.distance;
 
       if (_total_distance_y <= -threshold) // up
       {
-        BeforeGestureEventListener::_notifyBeforeGesture(gesture.gesture_id, gesture.mouse_id);
-
-        uint8_t n_times = static_cast<uint8_t>(std::min(abs(_total_distance_y / threshold), static_cast<long>(UINT8_MAX)));
-        _total_distance_y %= threshold;
-        CommandTapper.tap(gesture.up_command, n_times);
-        if (gesture.angle_snap == AngleSnap::Enable)
-        {
-          _total_distance_x = 0;
-        }
+        processGestureYSub(gesture, gesture_id, gesture.up_command);
       }
       else if (_total_distance_y >= threshold) // down
       {
-        BeforeGestureEventListener::_notifyBeforeGesture(gesture.gesture_id, gesture.mouse_id);
-
-        uint8_t n_times = static_cast<uint8_t>(std::min(_total_distance_y / threshold, static_cast<long>(UINT8_MAX)));
-        _total_distance_y %= threshold;
-        CommandTapper.tap(gesture.down_command, n_times);
-        if (gesture.angle_snap == AngleSnap::Enable)
-        {
-          _total_distance_x = 0;
-        }
+        processGestureYSub(gesture, gesture_id, gesture.down_command);
       }
     }
 
-    void HidEngineClass::processGestureX(Gesture &gesture)
+    void HidEngineClass::processGestureYSub(Gesture &gesture, GestureID &gesture_id, Command *command)
+    {
+      int16_t threshold = gesture.distance;
+
+      BeforeGestureEventListener::_notifyBeforeGesture(gesture.gesture_id, gesture.mouse_id);
+
+      if (processPreCommandInsteadOfFirstGesture(gesture, gesture_id))
+      {
+        _total_distance_y -= threshold;
+      }
+
+      uint8_t n_times = static_cast<uint8_t>(std::min(abs(_total_distance_y / threshold), static_cast<long>(UINT8_MAX)));
+      _total_distance_y %= threshold;
+      CommandTapper.tap(command, n_times);
+
+      if (gesture.angle_snap == AngleSnap::Enable)
+      {
+        _total_distance_x = 0;
+      }
+    }
+
+    void HidEngineClass::processGestureX(Gesture &gesture, GestureID &gesture_id)
     {
       int16_t threshold = gesture.distance;
 
       if (_total_distance_x <= -threshold) // left
       {
-        BeforeGestureEventListener::_notifyBeforeGesture(gesture.gesture_id, gesture.mouse_id);
-
-        uint8_t n_times = static_cast<uint8_t>(std::min(abs(_total_distance_x / threshold), static_cast<long>(UINT8_MAX)));
-        _total_distance_x %= threshold;
-        CommandTapper.tap(gesture.left_command, n_times);
-        if (gesture.angle_snap == AngleSnap::Enable)
-        {
-          _total_distance_y = 0;
-        }
+        processGestureXSub(gesture, gesture_id, gesture.left_command);
       }
       else if (_total_distance_x >= threshold) // right
       {
-        BeforeGestureEventListener::_notifyBeforeGesture(gesture.gesture_id, gesture.mouse_id);
-
-        uint8_t n_times = static_cast<uint8_t>(std::min(_total_distance_x / threshold, static_cast<long>(UINT8_MAX)));
-        _total_distance_x %= threshold;
-        CommandTapper.tap(gesture.right_command, n_times);
-        if (gesture.angle_snap == AngleSnap::Enable)
-        {
-          _total_distance_y = 0;
-        }
+        processGestureXSub(gesture, gesture_id, gesture.right_command);
       }
+    }
+
+    void HidEngineClass::processGestureXSub(Gesture &gesture, GestureID &gesture_id, Command *command)
+    {
+      int16_t threshold = gesture.distance;
+
+      BeforeGestureEventListener::_notifyBeforeGesture(gesture.gesture_id, gesture.mouse_id);
+
+      if (processPreCommandInsteadOfFirstGesture(gesture, gesture_id))
+      {
+        _total_distance_x -= threshold;
+      }
+
+      uint8_t n_times = static_cast<uint8_t>(std::min(abs(_total_distance_x / threshold), static_cast<long>(UINT8_MAX)));
+      _total_distance_x %= threshold;
+      CommandTapper.tap(command, n_times);
+
+      if (gesture.angle_snap == AngleSnap::Enable)
+      {
+        _total_distance_y = 0;
+      }
+    }
+
+    bool HidEngineClass::processPreCommandInsteadOfFirstGesture(Gesture &gesture, GestureID &gesture_id)
+    {
+      if (gesture.pre_command_timing == PreCommandTiming::InsteadOfFirstGesture && gesture_id.getPreCommandPressFlag() == false)
+      {
+        gesture_id.setPreCommandPressFlag(true);
+        if (gesture.pre_command != nullptr)
+        {
+          gesture.pre_command->press();
+        }
+        return true;
+      }
+
+      return false;
     }
 
     void HidEngineClass::startGesture(GestureID &gesture_id)
     {
-      if (gesture_id.is_linked() == false)
+      if (gesture_id.is_linked())
       {
-        _gesture_list.push_back(gesture_id);
+        return;
+      }
 
-        // pre_command
-        for (int i = 0; i < _gesture_map_len; i++)
+      _gesture_id_list.push_back(gesture_id);
+
+      // pre_command
+      for (int i = 0; i < _gesture_map_len; i++)
+      {
+        if (_gesture_map[i].gesture_id == gesture_id.getID())
         {
-          if (_gesture_map[i].gesture_id == gesture_id.getID())
+          if (_gesture_map[i].pre_command_timing == PreCommandTiming::Immediately)
           {
+            gesture_id.setPreCommandPressFlag(true);
+
             if (_gesture_map[i].pre_command != nullptr)
             {
               _gesture_map[i].pre_command->press();
             }
-            return;
           }
+          return;
         }
       }
     }
 
     void HidEngineClass::stopGesture(GestureID &gesture_id)
     {
-      if (gesture_id.is_linked())
+      if (gesture_id.is_linked() == false)
       {
-        auto i_item = etl::intrusive_list<GestureID, GestureIDLink>::iterator(gesture_id);
-        _gesture_list.erase(i_item);
-        gesture_id.clear();
-        if (_gesture_list.empty())
-        {
-          _total_distance_x = _total_distance_y = 0;
-        }
+        return;
+      }
 
-        // pre_command
-        for (int i = 0; i < _gesture_map_len; i++)
+      auto i_item = etl::intrusive_list<GestureID, GestureIDLink>::iterator(gesture_id);
+      _gesture_id_list.erase(i_item);
+      gesture_id.clear();
+
+      if (_gesture_id_list.empty())
+      {
+        _total_distance_x = _total_distance_y = 0;
+      }
+
+      // pre_command
+      for (int i = 0; i < _gesture_map_len; i++)
+      {
+        if (_gesture_map[i].gesture_id == gesture_id.getID())
         {
-          if (_gesture_map[i].gesture_id == gesture_id.getID())
+          if (gesture_id.getPreCommandPressFlag() == true)
           {
+            gesture_id.setPreCommandPressFlag(false);
+
             if (_gesture_map[i].pre_command != nullptr)
             {
               _gesture_map[i].pre_command->release();
             }
-            return;
           }
+          return;
         }
       }
     }
