@@ -313,13 +313,6 @@ namespace hidpg
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_SequenceMode()
-    {
-      static uint8_t buf[sizeof(SequenceMode)];
-      return new (buf) SequenceMode();
-    }
-
-    template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
     Command *new_GestureCommand(uint8_t gesture_id)
     {
       static uint8_t buf[sizeof(GestureCommand)];
@@ -441,9 +434,6 @@ namespace hidpg
 
 // NoOperation
 #define NOP() (Internal::new_NoOperation<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>())
-
-// SequenceMode
-#define SEQ_MODE() (Internal::new_SequenceMode<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>())
 
 // Gesture
 #define GST(gesture_id) (Internal::new_GestureCommand<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(gesture_id))

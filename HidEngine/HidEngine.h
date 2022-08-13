@@ -27,25 +27,40 @@
 #include "Command.h"
 #include "HidReporter.h"
 #include "Set.h"
+#include "etl/optional.h"
 
-#define GESTURE_ID_LINK_ID 2
+#define GESTURE_ID_LINK_ID 0
+#define COMBO_LINK_ID 0
 
 namespace hidpg
 {
-
+  // Key
   struct Key
   {
-    uint8_t key_id;
-    Command *command;
+    Key(uint8_t key_id, Command *command)
+        : key_id(key_id), command(command) {}
+
+    const uint8_t key_id;
+    Command *const command;
   };
 
-  struct SequenceKey
+  // Combo
+  typedef etl::bidirectional_link<COMBO_LINK_ID> ComboLink;
+
+  struct Combo : public ComboLink
   {
-    uint8_t key_ids[HID_ENGINE_MAX_SEQUENCE_COUNT];
-    Command *command;
-    size_t key_ids_len;
+    Combo(uint8_t first_key_id, uint8_t second_key_id, Command *command, uint32_t combo_term_ms)
+        : first_key_id(first_key_id), second_key_id(second_key_id), command(command), combo_term_ms(combo_term_ms) {}
+
+    const uint8_t first_key_id;
+    const uint8_t second_key_id;
+    Command *const command;
+    const uint32_t combo_term_ms;
+    bool first_id_rereased;
+    bool second_id_rereased;
   };
 
+  // Gesture
   enum class AngleSnap : uint8_t
   {
     Enable,
@@ -60,23 +75,37 @@ namespace hidpg
 
   struct Gesture
   {
-    uint8_t gesture_id;
-    uint8_t mouse_id;
-    uint16_t distance;
-    AngleSnap angle_snap;
-    Command *up_command;
-    Command *down_command;
-    Command *left_command;
-    Command *right_command;
-    Command *pre_command;
-    PreCommandTiming pre_command_timing;
-  };
+    Gesture(uint8_t gesture_id,
+            uint8_t mouse_id,
+            uint16_t distance,
+            AngleSnap angle_snap,
+            Command *up_command,
+            Command *down_command,
+            Command *left_command,
+            Command *right_command,
+            Command *pre_command,
+            PreCommandTiming pre_command_timing)
+        : gesture_id(gesture_id),
+          mouse_id(mouse_id),
+          distance(distance),
+          angle_snap(angle_snap),
+          up_command(up_command),
+          down_command(down_command),
+          left_command(left_command),
+          right_command(right_command),
+          pre_command(pre_command),
+          pre_command_timing(pre_command_timing) {}
 
-  struct Encoder
-  {
-    uint8_t encoder_id;
-    Command *counterclockwise_command;
-    Command *clockwise_command;
+    const uint8_t gesture_id;
+    const uint8_t mouse_id;
+    const uint16_t distance;
+    const AngleSnap angle_snap;
+    Command *const up_command;
+    Command *const down_command;
+    Command *const left_command;
+    Command *const right_command;
+    Command *const pre_command;
+    const PreCommandTiming pre_command_timing;
   };
 
   typedef etl::bidirectional_link<GESTURE_ID_LINK_ID> GestureIDLink;
@@ -93,6 +122,17 @@ namespace hidpg
     bool _is_pre_command_pressed;
   };
 
+  // Encoder
+  struct Encoder
+  {
+    Encoder(uint8_t encoder_id, Command *counterclockwise_command, Command *clockwise_command)
+        : encoder_id(encoder_id), counterclockwise_command(counterclockwise_command), clockwise_command(clockwise_command) {}
+
+    const uint8_t encoder_id;
+    Command *const counterclockwise_command;
+    Command *const clockwise_command;
+  };
+
   namespace Internal
   {
 
@@ -101,42 +141,13 @@ namespace hidpg
       friend class HidEngineTaskClass;
 
     public:
-      template <uint8_t keymap_len>
-      static void setKeymap(Key (&keymap)[keymap_len])
-      {
-        _keymap = keymap;
-        _keymap_len = keymap_len;
-      }
-
-      template <uint8_t sequence_keymap_len>
-      static void setSequenceKeymap(SequenceKey (&sequence_keymap)[sequence_keymap_len])
-      {
-        _sequence_keymap = sequence_keymap;
-        _sequence_keymap_len = sequence_keymap_len;
-
-        for (int i = 0; i < _sequence_keymap_len; i++)
-        {
-          _sequence_keymap[i].key_ids_len = getValidLength(_sequence_keymap[i].key_ids, HID_ENGINE_MAX_SEQUENCE_COUNT);
-        }
-      }
-
-      template <uint8_t gesture_map_len>
-      static void setGestureMap(Gesture (&gesture_map)[gesture_map_len])
-      {
-        _gesture_map = gesture_map;
-        _gesture_map_len = gesture_map_len;
-      }
-
-      template <uint8_t encoder_map_len>
-      static void setEncoderMap(Encoder (&encoder_map)[encoder_map_len])
-      {
-        _encoder_map = encoder_map;
-        _encoder_map_len = encoder_map_len;
-      }
-
       using read_mouse_delta_callback_t = void (*)(uint8_t mouse_id, int16_t &delta_x, int16_t &delta_y);
       using read_encoder_step_callback_t = void (*)(uint8_t encoder_id, int32_t &step);
 
+      static void setKeymap(etl::span<Key> keymap);
+      static void setComboMap(etl::span<Combo> combo_map);
+      static void setGestureMap(etl::span<Gesture> gesture_map);
+      static void setEncoderMap(etl::span<Encoder> encoder_map);
       static void setHidReporter(HidReporter *hid_reporter);
       static void start();
       static void applyToKeymap(const Set &key_ids);
@@ -145,66 +156,51 @@ namespace hidpg
       static void setReadMouseDeltaCallback(read_mouse_delta_callback_t cb);
       static void setReadEncoderStepCallback(read_encoder_step_callback_t cb);
 
-      static void switchSequenceMode();
       static void startGesture(GestureID &gesture_id);
       static void stopGesture(GestureID &gesture_id);
 
     private:
-      static void applyToKeymap_impl(Set &key_ids);
-      static void processSequenceKeymap(Set &key_ids);
-      static void processKeymap(Set &key_ids);
-      static void mouseMove_impl(uint8_t mouse_id);
-      static void processGestureX(Gesture &gesture, GestureID &gesture_id);
-      static void processGestureXSub(Gesture &gesture, GestureID &gesture_id, Command *command);
-      static void processGestureY(Gesture &gesture, GestureID &gesture_id);
-      static void processGestureYSub(Gesture &gesture, GestureID &gesture_id, Command *command);
-      static bool processPreCommandInsteadOfFirstGesture(Gesture &gesture, GestureID &gesture_id);
-      static void rotateEncoder_impl(uint8_t encoder_id);
-
-      enum class MatchResult
+      enum class Action
       {
-        NoMatch,
-        PartialMatch,
-        Match,
+        Press,
+        Release,
+        ComboTermTimer,
       };
 
-      static MatchResult matchWithSequenceKeymap(const uint8_t id_seq[], size_t len, SequenceKey **matched);
-      static size_t getValidLength(const uint8_t key_ids[], size_t max_len);
+      static void applyToKeymap_impl(Set &key_ids);
+      static void processComboAndKey(Action action, etl::optional<uint8_t> key_id);
+      static void performKeyPress(uint8_t key_id);
+      static void performKeyRelease(uint8_t key_id);
 
-      static Key *_keymap;
-      static SequenceKey *_sequence_keymap;
-      static Gesture *_gesture_map;
-      static Encoder *_encoder_map;
+      static void mouseMove_impl(uint8_t mouse_id);
+      static void processGestureX(Gesture &gesture, GestureID &gesture_id);
+      static void processGestureY(Gesture &gesture, GestureID &gesture_id);
+      static void performGestureX(Gesture &gesture, GestureID &gesture_id, Command *command);
+      static void performGestureY(Gesture &gesture, GestureID &gesture_id, Command *command);
+      static bool processPreCommandInsteadOfFirstGesture(Gesture &gesture, GestureID &gesture_id);
 
-      static uint8_t _keymap_len;
-      static uint8_t _sequence_keymap_len;
-      static uint8_t _gesture_map_len;
-      static uint8_t _encoder_map_len;
+      static void rotateEncoder_impl(uint8_t encoder_id);
+
+      static etl::span<Key> _keymap;
+      static etl::span<Combo> _combo_map;
+      static etl::span<Gesture> _gesture_map;
+      static etl::span<Encoder> _encoder_map;
 
       static read_mouse_delta_callback_t _read_mouse_delta_cb;
       static read_encoder_step_callback_t _read_encoder_step_cb;
 
-      enum class SequenceModeState
+      class ComboTermTimer : public TimerMixin
       {
-        Disable,
-        MatchProcess,
-        WaitRelease,
+      public:
+        void startTimer(uint32_t ms) { TimerMixin::startTimer(ms); }
+        void onTimer() override { processComboAndKey(Action::ComboTermTimer, etl::nullopt); }
       };
+      static ComboTermTimer _combo_term_timer;
+      static void startComboTermTimer(uint32_t ms) { _combo_term_timer.startTimer(ms); };
 
-      static SequenceModeState _sequence_mode_state;
-
-      static etl::intrusive_list<GestureID, GestureIDLink> _gesture_id_list;
+      static etl::intrusive_list<GestureID, GestureIDLink> _started_gesture_id_list;
       static int32_t _total_distance_x;
       static int32_t _total_distance_y;
-    };
-
-    //------------------------------------------------------------------+
-    // SequenceMode
-    //------------------------------------------------------------------+
-    class SequenceMode : public Command
-    {
-    protected:
-      void onPress(uint8_t n_times) override;
     };
 
     //------------------------------------------------------------------+

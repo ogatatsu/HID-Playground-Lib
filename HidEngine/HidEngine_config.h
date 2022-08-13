@@ -49,11 +49,6 @@
 #define HID_ENGINE_TAPPING_TERM_MS 250
 #endif
 
-// シーケンスキーマップの最大シーケンス数
-#ifndef HID_ENGINE_MAX_SEQUENCE_COUNT
-#define HID_ENGINE_MAX_SEQUENCE_COUNT 5
-#endif
-
 // MouseMoveコマンドの最初のキープレス時のディレイ
 #ifndef HID_ENGINE_MOUSEKEY_DELAY_MS
 #define HID_ENGINE_MOUSEKEY_DELAY_MS 200

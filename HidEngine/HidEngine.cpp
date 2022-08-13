@@ -34,24 +34,40 @@ namespace hidpg
   namespace Internal
   {
 
-    Key *HidEngineClass::_keymap = nullptr;
-    SequenceKey *HidEngineClass::_sequence_keymap = nullptr;
-    Gesture *HidEngineClass::_gesture_map = nullptr;
-    Encoder *HidEngineClass::_encoder_map = nullptr;
-
-    uint8_t HidEngineClass::_keymap_len = 0;
-    uint8_t HidEngineClass::_sequence_keymap_len = 0;
-    uint8_t HidEngineClass::_gesture_map_len = 0;
-    uint8_t HidEngineClass::_encoder_map_len = 0;
+    etl::span<Key> HidEngineClass::_keymap;
+    etl::span<Combo> HidEngineClass::_combo_map;
+    etl::span<Gesture> HidEngineClass::_gesture_map;
+    etl::span<Encoder> HidEngineClass::_encoder_map;
 
     HidEngineClass::read_mouse_delta_callback_t HidEngineClass::_read_mouse_delta_cb = nullptr;
     HidEngineClass::read_encoder_step_callback_t HidEngineClass::_read_encoder_step_cb = nullptr;
 
-    HidEngineClass::SequenceModeState HidEngineClass::_sequence_mode_state = HidEngineClass::SequenceModeState::Disable;
-    etl::intrusive_list<GestureID, GestureIDLink> HidEngineClass::_gesture_id_list;
+    HidEngineClass::ComboTermTimer HidEngineClass::_combo_term_timer;
+
+    etl::intrusive_list<GestureID, GestureIDLink> HidEngineClass::_started_gesture_id_list;
 
     int32_t HidEngineClass::_total_distance_x = 0;
     int32_t HidEngineClass::_total_distance_y = 0;
+
+    void HidEngineClass::setKeymap(etl::span<Key> keymap)
+    {
+      _keymap = keymap;
+    }
+
+    void HidEngineClass::setComboMap(etl::span<Combo> combo_map)
+    {
+      _combo_map = combo_map;
+    }
+
+    void HidEngineClass::setGestureMap(etl::span<Gesture> gesture_map)
+    {
+      _gesture_map = gesture_map;
+    }
+
+    void HidEngineClass::setEncoderMap(etl::span<Encoder> encoder_map)
+    {
+      _encoder_map = encoder_map;
+    }
 
     void HidEngineClass::setHidReporter(HidReporter *hid_reporter)
     {
@@ -97,147 +113,187 @@ namespace hidpg
       _read_encoder_step_cb = cb;
     }
 
-    size_t HidEngineClass::getValidLength(const uint8_t key_ids[], size_t max_len)
-    {
-      size_t i = 0;
-      for (; i < max_len; i++)
-      {
-        if (key_ids[i] == 0)
-        {
-          break;
-        }
-      }
-      return i;
-    }
-
     //------------------------------------------------------------------+
     // ApplyToKeymap
     //------------------------------------------------------------------+
     void HidEngineClass::applyToKeymap_impl(Set &key_ids)
     {
-      processSequenceKeymap(key_ids);
-      processKeymap(key_ids);
-    }
+      static Set prev_ids;
 
-    void HidEngineClass::processSequenceKeymap(Set &key_ids)
-    {
-      static Set prev_ids, pressed_in_sequence_mode_ids;
-      static uint8_t id_seq[HID_ENGINE_MAX_SEQUENCE_COUNT];
-      static size_t id_seq_len = 0;
-      static SequenceKey *matched;
-
-      // シーケンスモード中に押されたidがリリースされるまで監視する
-      if (pressed_in_sequence_mode_ids.count() != 0)
       {
-        // リリースされたids = 1つ前のids - 現在のids
+        Set press_ids = key_ids - prev_ids;
+
+        uint8_t arr[press_ids.count()];
+        press_ids.toArray(arr);
+
+        for (uint8_t key_id : arr)
+        {
+          processComboAndKey(Action::Press, key_id);
+        }
+      }
+
+      {
         Set release_ids = prev_ids - key_ids;
-        pressed_in_sequence_mode_ids -= release_ids;
-      }
 
-      if (_sequence_mode_state == SequenceModeState::MatchProcess)
-      {
-        // 新しく押されたidを順番に保存していきsequence_keymap内で一致している物があるかどうかを調べる
-        // 新しく押されたids = 現在のids - 1つ前のids
-        Set new_press_ids = key_ids - prev_ids;
+        uint8_t arr[release_ids.count()];
+        release_ids.toArray(arr);
 
-        // Setだと直接値を取得できないので配列に変換
-        uint16_t new_press_len = new_press_ids.count();
-        uint8_t new_press_arr[new_press_len];
-        new_press_ids.toArray(new_press_arr);
-
-        // id_seqにシーケンスモードになってから新しく押されたidを順番に保存する
-        size_t i = 0;
-        while ((id_seq_len < HID_ENGINE_MAX_SEQUENCE_COUNT) && (i < new_press_len))
+        for (uint8_t key_id : arr)
         {
-          id_seq[id_seq_len++] = new_press_arr[i++];
-        }
-
-        // 順番に保存したidとsequence_keymapの比較
-        MatchResult match_result = matchWithSequenceKeymap(id_seq, id_seq_len, &matched);
-
-        if (match_result == MatchResult::NoMatch)
-        { // マッチしなければシーケンスモードを解除
-          id_seq_len = 0;
-          _sequence_mode_state = SequenceModeState::Disable;
-        }
-        else if (match_result == MatchResult::PartialMatch)
-        { // 部分マッチならば何もしない
-          // pass
-        }
-        else if (match_result == MatchResult::Match)
-        { // 完全マッチしたらコマンドを実行してStateをWaitReleaseに移行
-          id_seq_len = 0;
-          matched->command->press();
-          _sequence_mode_state = SequenceModeState::WaitRelease;
-        }
-
-        // シーケンスモード時に押されたidは1回リリースされるまではkeymapのコマンドを実行しない
-        // そのためリリースされるまで監視する必要があるのでidを追加していく
-        pressed_in_sequence_mode_ids |= new_press_ids;
-      }
-      else if (_sequence_mode_state == SequenceModeState::WaitRelease)
-      {
-        // 完全マッチ時に実行したコマンドを解除
-        // key_ids内からマッチしたid列の最後のid無くなったら解除する
-        if (key_ids.contains(matched->key_ids[matched->key_ids_len - 1]) == false)
-        {
-          matched->command->release();
-          _sequence_mode_state = SequenceModeState::Disable;
+          processComboAndKey(Action::Release, key_id);
         }
       }
 
-      // 1つ前のidとして保存
       prev_ids = key_ids;
-
-      if (pressed_in_sequence_mode_ids.count() != 0)
-      {
-        // シーケンスモード中に押されたidはprocessKeymap()では処理しない
-        key_ids -= pressed_in_sequence_mode_ids;
-      }
     }
 
-    HidEngineClass::MatchResult HidEngineClass::matchWithSequenceKeymap(const uint8_t id_seq[], size_t len, SequenceKey **matched)
+    void HidEngineClass::processComboAndKey(Action action, etl::optional<uint8_t> key_id)
     {
-      for (size_t i = 0; i < _sequence_keymap_len; i++)
+      static etl::optional<uint8_t> first_commbo_id;
+      static etl::intrusive_list<Combo, ComboLink> success_combo_list;
+
+      switch (action)
       {
-        size_t min_len = std::min(len, _sequence_keymap[i].key_ids_len);
-        if (memcmp(id_seq, _sequence_keymap[i].key_ids, min_len) == 0)
+      case Action::Press:
+      {
+        // コンボ実行中のidは新しい入力は受け付けない
+        for (auto &combo : success_combo_list)
         {
-          if (len == _sequence_keymap[i].key_ids_len)
+          if (combo.first_key_id == key_id || combo.second_key_id == key_id)
           {
-            *matched = &_sequence_keymap[i];
-            return MatchResult::Match;
+            return;
           }
-          return MatchResult::PartialMatch;
+        }
+
+        // first_id check
+        if (first_commbo_id.has_value() == false)
+        {
+          for (auto &combo : _combo_map)
+          {
+            if (combo.first_key_id == key_id)
+            {
+              // first_id success
+              first_commbo_id = key_id;
+              startComboTermTimer(combo.combo_term_ms);
+              return;
+            }
+          }
+          // first_id failure
+          performKeyPress(key_id.value());
+          return;
+        }
+
+        // second_id check
+        for (auto &combo : _combo_map)
+        {
+          if (combo.first_key_id == first_commbo_id && combo.second_key_id == key_id)
+          {
+            // combo success
+            combo.first_id_rereased = false;
+            combo.second_id_rereased = false;
+            combo.command->press();
+            success_combo_list.push_back(combo);
+            first_commbo_id = etl::nullopt;
+            return;
+          }
+        }
+
+        // second_id failure
+        performKeyPress(first_commbo_id.value());
+        performKeyPress(key_id.value());
+        first_commbo_id = etl::nullopt;
+      }
+      break;
+
+      case Action::Release:
+      {
+        // combo実行中のidがreleaseされた場合
+        for (auto &combo : success_combo_list)
+        {
+          if (combo.first_key_id == key_id)
+          {
+            combo.first_id_rereased = true;
+
+            if (combo.first_id_rereased && combo.second_id_rereased)
+            {
+              combo.command->release();
+              success_combo_list.erase(combo);
+            }
+            return;
+          }
+
+          if (combo.second_key_id == key_id)
+          {
+            combo.second_id_rereased = true;
+
+            if (combo.first_id_rereased && combo.second_id_rereased)
+            {
+              combo.command->release();
+              success_combo_list.erase(combo);
+            }
+            return;
+          }
+        }
+
+        // first_idがタップされた場合
+        if (first_commbo_id == key_id)
+        {
+          first_commbo_id = etl::nullopt;
+          performKeyPress(key_id.value());
+          performKeyRelease(key_id.value());
+          return;
+        }
+
+        // first_idより前に押されていたidがreleaseされた場合
+        if (first_commbo_id.has_value())
+        {
+          performKeyPress(first_commbo_id.value());
+          performKeyRelease(key_id.value());
+          first_commbo_id = etl::nullopt;
+          return;
+        }
+
+        // 他
+        performKeyRelease(key_id.value());
+      }
+      break;
+
+      case Action::ComboTermTimer:
+      {
+        if (first_commbo_id.has_value())
+        {
+          performKeyPress(first_commbo_id.value());
+          first_commbo_id = etl::nullopt;
         }
       }
-      return MatchResult::NoMatch;
+      break;
+
+      default:
+        break;
+      }
     }
 
-    void HidEngineClass::processKeymap(Set &key_ids)
+    void HidEngineClass::performKeyPress(uint8_t key_id)
     {
-      for (size_t i = 0; i < _keymap_len; i++)
+      for (auto &key : _keymap)
       {
-        // idが押されているかを取得
-        bool pressed = key_ids.contains(_keymap[i].key_id);
-
-        // コマンドに現在の状態を適用する
-        if (pressed)
+        if (key.key_id == key_id)
         {
-          _keymap[i].command->press();
-        }
-        else
-        {
-          _keymap[i].command->release();
+          key.command->press();
+          return;
         }
       }
     }
 
-    void HidEngineClass::switchSequenceMode()
+    void HidEngineClass::performKeyRelease(uint8_t key_id)
     {
-      if (_sequence_mode_state == SequenceModeState::Disable)
+      for (auto &key : _keymap)
       {
-        _sequence_mode_state = SequenceModeState::MatchProcess;
+        if (key.key_id == key_id)
+        {
+          key.command->release();
+          return;
+        }
       }
     }
 
@@ -258,60 +314,59 @@ namespace hidpg
 
       BeforeMouseMoveEventListener::_notifyBeforeMouseMove(mouse_id, delta_x, delta_y);
 
-      Gesture *gesture = nullptr;
-      GestureID *gesture_id = nullptr;
+      Gesture *curr_gesture = nullptr;
+      GestureID *curr_gesture_id = nullptr;
 
-      if (_gesture_id_list.empty() == false)
+      if (_started_gesture_id_list.empty() == false)
       {
-        // 一番上のgesture_idを取得
-        gesture_id = &_gesture_id_list.back();
-        uint8_t gst_id = gesture_id->getID();
+        // 実行中のジェスチャーの中で一番上を取得
+        curr_gesture_id = &_started_gesture_id_list.back();
 
         // gesture_mapからgesture_idとmouse_idが一致するアイテムを検索
-        for (int i = 0; i < _gesture_map_len; i++)
+        for (auto &gesture : _gesture_map)
         {
-          if ((_gesture_map[i].gesture_id == gst_id) && (_gesture_map[i].mouse_id == mouse_id))
+          if ((gesture.gesture_id == curr_gesture_id->getID()) && (gesture.mouse_id == mouse_id))
           {
-            gesture = &_gesture_map[i];
+            curr_gesture = &gesture;
             break;
           }
         }
       }
 
-      if (gesture != nullptr)
+      if (curr_gesture != nullptr)
       {
         // 前回のidと違うなら距離をリセット
-        if ((gesture->gesture_id != prev_gesture_id) || (mouse_id != prev_mouse_id))
+        if ((curr_gesture_id->getID() != prev_gesture_id) || (mouse_id != prev_mouse_id))
         {
           _total_distance_x = _total_distance_y = 0;
-          prev_gesture_id = gesture->gesture_id;
+          prev_gesture_id = curr_gesture_id->getID();
           prev_mouse_id = mouse_id;
         }
 
         // 逆方向に動いたら距離をリセット
-        if (bitRead(_total_distance_x ^ delta_x, 15))
+        if (bitRead(_total_distance_x ^ static_cast<int32_t>(delta_x), 31))
         {
           _total_distance_x = 0;
         }
-        if (bitRead(_total_distance_y ^ delta_y, 15))
+        if (bitRead(_total_distance_y ^ static_cast<int32_t>(delta_y), 31))
         {
           _total_distance_y = 0;
         }
 
-        //距離を足す
+        // 距離を足す
         _total_distance_x += delta_x;
         _total_distance_y += delta_y;
 
-        // 距離の大きさによって実行する順序を変える
+        // 直近のマウスの移動距離の大きさによって実行する順序を変える
         if (abs(delta_x) >= abs(delta_y))
         {
-          processGestureX(*gesture, *gesture_id);
-          processGestureY(*gesture, *gesture_id);
+          processGestureX(*curr_gesture, *curr_gesture_id);
+          processGestureY(*curr_gesture, *curr_gesture_id);
         }
         else
         {
-          processGestureY(*gesture, *gesture_id);
-          processGestureX(*gesture, *gesture_id);
+          processGestureY(*curr_gesture, *curr_gesture_id);
+          processGestureX(*curr_gesture, *curr_gesture_id);
         }
       }
       else
@@ -323,73 +378,65 @@ namespace hidpg
       }
     }
 
-    void HidEngineClass::processGestureY(Gesture &gesture, GestureID &gesture_id)
-    {
-      int16_t threshold = gesture.distance;
-
-      if (_total_distance_y <= -threshold) // up
-      {
-        processGestureYSub(gesture, gesture_id, gesture.up_command);
-      }
-      else if (_total_distance_y >= threshold) // down
-      {
-        processGestureYSub(gesture, gesture_id, gesture.down_command);
-      }
-    }
-
-    void HidEngineClass::processGestureYSub(Gesture &gesture, GestureID &gesture_id, Command *command)
-    {
-      int16_t threshold = gesture.distance;
-
-      BeforeGestureEventListener::_notifyBeforeGesture(gesture.gesture_id, gesture.mouse_id);
-
-      if (processPreCommandInsteadOfFirstGesture(gesture, gesture_id))
-      {
-        _total_distance_y -= threshold;
-      }
-
-      uint8_t n_times = static_cast<uint8_t>(std::min(abs(_total_distance_y / threshold), static_cast<long>(UINT8_MAX)));
-      _total_distance_y %= threshold;
-      CommandTapper.tap(command, n_times);
-
-      if (gesture.angle_snap == AngleSnap::Enable)
-      {
-        _total_distance_x = 0;
-      }
-    }
-
     void HidEngineClass::processGestureX(Gesture &gesture, GestureID &gesture_id)
     {
-      int16_t threshold = gesture.distance;
-
-      if (_total_distance_x <= -threshold) // left
+      if (_total_distance_x <= -gesture.distance) // left
       {
-        processGestureXSub(gesture, gesture_id, gesture.left_command);
+        performGestureX(gesture, gesture_id, gesture.left_command);
       }
-      else if (_total_distance_x >= threshold) // right
+      else if (_total_distance_x >= gesture.distance) // right
       {
-        processGestureXSub(gesture, gesture_id, gesture.right_command);
+        performGestureX(gesture, gesture_id, gesture.right_command);
       }
     }
 
-    void HidEngineClass::processGestureXSub(Gesture &gesture, GestureID &gesture_id, Command *command)
+    void HidEngineClass::processGestureY(Gesture &gesture, GestureID &gesture_id)
     {
-      int16_t threshold = gesture.distance;
+      if (_total_distance_y <= -gesture.distance) // up
+      {
+        performGestureY(gesture, gesture_id, gesture.up_command);
+      }
+      else if (_total_distance_y >= gesture.distance) // down
+      {
+        performGestureY(gesture, gesture_id, gesture.down_command);
+      }
+    }
 
+    void HidEngineClass::performGestureX(Gesture &gesture, GestureID &gesture_id, Command *command)
+    {
       BeforeGestureEventListener::_notifyBeforeGesture(gesture.gesture_id, gesture.mouse_id);
 
       if (processPreCommandInsteadOfFirstGesture(gesture, gesture_id))
       {
-        _total_distance_x -= threshold;
+        _total_distance_x -= gesture.distance;
       }
 
-      uint8_t n_times = static_cast<uint8_t>(std::min(abs(_total_distance_x / threshold), static_cast<long>(UINT8_MAX)));
-      _total_distance_x %= threshold;
+      uint8_t n_times = static_cast<uint8_t>(std::min<int32_t>(abs(_total_distance_x / gesture.distance), UINT8_MAX));
+      _total_distance_x %= gesture.distance;
       CommandTapper.tap(command, n_times);
 
       if (gesture.angle_snap == AngleSnap::Enable)
       {
         _total_distance_y = 0;
+      }
+    }
+
+    void HidEngineClass::performGestureY(Gesture &gesture, GestureID &gesture_id, Command *command)
+    {
+      BeforeGestureEventListener::_notifyBeforeGesture(gesture.gesture_id, gesture.mouse_id);
+
+      if (processPreCommandInsteadOfFirstGesture(gesture, gesture_id))
+      {
+        _total_distance_y -= gesture.distance;
+      }
+
+      uint8_t n_times = static_cast<uint8_t>(std::min<int32_t>(abs(_total_distance_y / gesture.distance), UINT8_MAX));
+      _total_distance_y %= gesture.distance;
+      CommandTapper.tap(command, n_times);
+
+      if (gesture.angle_snap == AngleSnap::Enable)
+      {
+        _total_distance_x = 0;
       }
     }
 
@@ -415,20 +462,20 @@ namespace hidpg
         return;
       }
 
-      _gesture_id_list.push_back(gesture_id);
+      _started_gesture_id_list.push_back(gesture_id);
 
       // pre_command
-      for (int i = 0; i < _gesture_map_len; i++)
+      for (auto &gesture : _gesture_map)
       {
-        if (_gesture_map[i].gesture_id == gesture_id.getID())
+        if (gesture.gesture_id == gesture_id.getID())
         {
-          if (_gesture_map[i].pre_command_timing == PreCommandTiming::Immediately)
+          if (gesture.pre_command_timing == PreCommandTiming::Immediately)
           {
             gesture_id.setPreCommandPressFlag(true);
 
-            if (_gesture_map[i].pre_command != nullptr)
+            if (gesture.pre_command != nullptr)
             {
-              _gesture_map[i].pre_command->press();
+              gesture.pre_command->press();
             }
           }
           return;
@@ -443,27 +490,26 @@ namespace hidpg
         return;
       }
 
-      auto i_item = etl::intrusive_list<GestureID, GestureIDLink>::iterator(gesture_id);
-      _gesture_id_list.erase(i_item);
+      _started_gesture_id_list.erase(gesture_id);
       gesture_id.clear();
 
-      if (_gesture_id_list.empty())
+      if (_started_gesture_id_list.empty())
       {
         _total_distance_x = _total_distance_y = 0;
       }
 
       // pre_command
-      for (int i = 0; i < _gesture_map_len; i++)
+      for (auto &gesture : _gesture_map)
       {
-        if (_gesture_map[i].gesture_id == gesture_id.getID())
+        if (gesture.gesture_id == gesture_id.getID())
         {
           if (gesture_id.getPreCommandPressFlag() == true)
           {
             gesture_id.setPreCommandPressFlag(false);
 
-            if (_gesture_map[i].pre_command != nullptr)
+            if (gesture.pre_command != nullptr)
             {
-              _gesture_map[i].pre_command->release();
+              gesture.pre_command->release();
             }
           }
           return;
@@ -476,19 +522,18 @@ namespace hidpg
     //------------------------------------------------------------------+
     void HidEngineClass::rotateEncoder_impl(uint8_t encoder_id)
     {
-      // encoderMapから一致するencoder_idのインデックスを検索
-      int idx = -1;
-      for (int i = 0; i < _encoder_map_len; i++)
+      Encoder *curr_encoder = nullptr;
+
+      for (auto &encoder : _encoder_map)
       {
-        if (_encoder_map[i].encoder_id == encoder_id)
+        if (encoder.encoder_id == encoder_id)
         {
-          idx = i;
+          curr_encoder = &encoder;
           break;
         }
       }
 
-      // 一致するencoder_idが無かったら抜ける
-      if (idx == -1)
+      if (curr_encoder == nullptr)
       {
         return;
       }
@@ -503,21 +548,13 @@ namespace hidpg
 
         if (step >= 0)
         {
-          CommandTapper.tap(_encoder_map[idx].clockwise_command, step_u8);
+          CommandTapper.tap(curr_encoder->clockwise_command, step_u8);
         }
         else
         {
-          CommandTapper.tap(_encoder_map[idx].counterclockwise_command, step_u8);
+          CommandTapper.tap(curr_encoder->counterclockwise_command, step_u8);
         }
       }
-    }
-
-    //------------------------------------------------------------------+
-    // SequenceMode
-    //------------------------------------------------------------------+
-    void SequenceMode::onPress(uint8_t n_times)
-    {
-      HidEngine.switchSequenceMode();
     }
 
     //------------------------------------------------------------------+

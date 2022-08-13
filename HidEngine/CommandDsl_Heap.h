@@ -233,8 +233,6 @@ namespace hidpg
 
   static inline Command *NOP() { return (new Internal::NoOperation()); }
 
-  static inline Command *SEQ_MODE() { return (new Internal::SequenceMode); }
-
   static inline Command *GST(uint8_t gesture_id) { return (new Internal::GestureCommand(gesture_id)); }
 
   static inline Command *GST_OR(uint8_t gesture_id, Command *command) { return (new Internal::GestureOr(gesture_id, command)); }
