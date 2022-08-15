@@ -482,44 +482,10 @@ namespace hidpg
       uint8_t onRelease() override;
 
     private:
-      class Mover : public TimerMixin
-      {
-      public:
-        Mover();
-        void setXY(int16_t x, int16_t y);
-        void unsetXY(int16_t x, int16_t y);
-
-      protected:
-        void onTimer() override;
-
-      private:
-        void calcXY(int16_t &x, int16_t &y);
-
-        int _total_x;
-        int _total_y;
-        uint8_t _count;
-      };
-
-      static Mover _mover;
-
       const int16_t _x;
       const int16_t _y;
-    };
-
-    //------------------------------------------------------------------+
-    // MouseSpeed
-    //------------------------------------------------------------------+
-    class MouseSpeed : public Command
-    {
-    public:
-      MouseSpeed(int16_t percent);
-
-    protected:
-      void onPress(uint8_t n_times) override;
-      uint8_t onRelease() override;
-
-    private:
-      const int16_t _percent;
+      uint8_t _max_n_times;
+      uint8_t _actual_n_times;
     };
 
     //------------------------------------------------------------------+
@@ -671,6 +637,26 @@ namespace hidpg
     private:
       Command *_command;
       bool _is_pressed;
+    };
+
+    //------------------------------------------------------------------+
+    // Repeat
+    //------------------------------------------------------------------+
+    class Repeat : public Command, public TimerMixin
+    {
+    public:
+      Repeat(Command *command, uint32_t delay_ms, uint32_t interval_ms);
+
+    protected:
+      void onPress(uint8_t n_times) override;
+      uint8_t onRelease() override;
+      void onTimer() override;
+
+    private:
+      Command *_command;
+      const uint32_t _delay_ms;
+      const uint32_t _interval_ms;
+      uint8_t _n_times;
     };
 
     //------------------------------------------------------------------+

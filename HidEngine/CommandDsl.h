@@ -202,13 +202,6 @@ namespace hidpg
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_MouseSpeed(int16_t percent)
-    {
-      static uint8_t buf[sizeof(MouseSpeed)];
-      return new (buf) MouseSpeed(percent);
-    }
-
-    template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
     Command *new_MouseScroll(int8_t scroll, int8_t horiz)
     {
       static uint8_t buf[sizeof(MouseScroll)];
@@ -277,6 +270,13 @@ namespace hidpg
     {
       static uint8_t buf[sizeof(Toggle)];
       return new (buf) Toggle(command);
+    }
+
+    template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
+    Command *new_Repeat(Command *command, uint32_t delay_ms, uint32_t interval_ms)
+    {
+      static uint8_t buf[sizeof(Repeat)];
+      return new (buf) Repeat(command, delay_ms, interval_ms);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3, size_t N>
@@ -396,9 +396,6 @@ namespace hidpg
 // MouseMove
 #define MS_MOV(x, y) (Internal::new_MouseMove<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(x, y))
 
-// MouseSpeed
-#define MS_SPD(percent) (Internal::new_MouseSpeed<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(percent))
-
 // MouseScroll
 #define MS_SCR(scroll, horiz) (Internal::new_MouseScroll<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(scroll, horiz))
 
@@ -425,6 +422,9 @@ namespace hidpg
 
 // Toggle
 #define TGL(command) (Internal::new_Toggle<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(command))
+
+// Repeat
+#define RPT(command, delay_ms, interval_ms) (Internal::new_Repeat<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(command, delay_ms, interval_ms))
 
 // Cycle
 #define CYC(...) (Internal::new_Cycle<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(__VA_ARGS__))

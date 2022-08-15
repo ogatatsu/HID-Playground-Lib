@@ -26,7 +26,6 @@
 #include "ArduinoMacro.h"
 #include "CommandTapper.h"
 #include "HidCore.h"
-#include "MouseSpeedController.h"
 
 extern "C"
 {
@@ -782,103 +781,20 @@ namespace hidpg
     //------------------------------------------------------------------+
     // MouseMove
     //------------------------------------------------------------------+
-    MouseMove::Mover::Mover() : TimerMixin(), _total_x(0), _total_y(0), _count(0)
-    {
-    }
-
-    void MouseMove::Mover::setXY(int16_t x, int16_t y)
-    {
-      _count++;
-      _total_x += x;
-      _total_y += y;
-      calcXY(x, y);
-      Hid.mouseMove(x, y);
-      if (_count == 1)
-      {
-        startTimer(HID_ENGINE_MOUSEKEY_DELAY_MS);
-      }
-    }
-
-    void MouseMove::Mover::unsetXY(int16_t x, int16_t y)
-    {
-      _count--;
-      _total_x -= x;
-      _total_y -= y;
-      if (_count == 0)
-      {
-        stopTimer();
-      }
-    }
-
-    void MouseMove::Mover::onTimer()
-    {
-      int16_t x, y;
-      calcXY(x, y);
-      Hid.mouseMove(x, y);
-      startTimer(HID_ENGINE_MOUSEKEY_INTERVAL_MS);
-    }
-
-    void MouseMove::Mover::calcXY(int16_t &x, int16_t &y)
-    {
-      double factor = MouseSpeedController.getfactor();
-      int ix, iy;
-      ix = round(_total_x * factor);
-      ix = constrain(ix, INT16_MIN, INT16_MAX);
-      iy = round(_total_y * factor);
-      iy = constrain(iy, INT16_MIN, INT16_MAX);
-      x = static_cast<int16_t>(ix);
-      y = static_cast<int16_t>(iy);
-    }
-
-    MouseMove::Mover MouseMove::_mover;
-
     MouseMove::MouseMove(int16_t x, int16_t y)
-        : _x(x), _y(y)
+        : _x(x), _y(y), _max_n_times(std::min(32767 / std::max(abs(_x), abs(_y)), UINT8_MAX))
     {
     }
 
     void MouseMove::onPress(uint8_t n_times)
     {
-      _mover.setXY(_x, _y);
+      _actual_n_times = std::min(n_times, _max_n_times);
+      Hid.mouseMove(_x * _actual_n_times, _y * _actual_n_times);
     }
 
     uint8_t MouseMove::onRelease()
     {
-      _mover.unsetXY(_x, _y);
-      return 1;
-    }
-
-    //------------------------------------------------------------------+
-    // MouseSpeed
-    //------------------------------------------------------------------+
-    MouseSpeed::MouseSpeed(int16_t percent)
-        : _percent(percent)
-    {
-    }
-
-    void MouseSpeed::onPress(uint8_t n_times)
-    {
-      if (_percent == 0)
-      {
-        MouseSpeedController.setZero();
-      }
-      else
-      {
-        MouseSpeedController.accel(_percent);
-      }
-    }
-
-    uint8_t MouseSpeed::onRelease()
-    {
-      if (_percent == 0)
-      {
-        MouseSpeedController.unsetZero();
-      }
-      else
-      {
-        MouseSpeedController.decel(_percent);
-      }
-      return 1;
+      return _actual_n_times;
     }
 
     //------------------------------------------------------------------+
@@ -1091,6 +1007,33 @@ namespace hidpg
       }
 
       _is_pressed = !_is_pressed;
+    }
+
+    //------------------------------------------------------------------+
+    // Repeat
+    //------------------------------------------------------------------+
+    Repeat::Repeat(Command *command, uint32_t delay_ms, uint32_t interval_ms)
+        : TimerMixin(), _command(command), _delay_ms(delay_ms), _interval_ms(interval_ms)
+    {
+    }
+
+    void Repeat::onPress(uint8_t n_times)
+    {
+      _n_times = n_times;
+      CommandTapper.tap(_command);
+      startTimer(_delay_ms);
+    }
+
+    uint8_t Repeat::onRelease()
+    {
+      stopTimer();
+      return _n_times;
+    }
+
+    void Repeat::onTimer()
+    {
+      CommandTapper.tap(_command);
+      startTimer(_interval_ms);
     }
 
     //------------------------------------------------------------------+

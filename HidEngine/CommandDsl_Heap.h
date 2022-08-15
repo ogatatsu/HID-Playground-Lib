@@ -173,8 +173,6 @@ namespace hidpg
 
   static inline Command *MS_MOV(int16_t x, int16_t y) { return (new Internal::MouseMove(x, y)); }
 
-  static inline Command *MS_SPD(int percent) { return (new Internal::MouseSpeed(percent)); }
-
   static inline Command *MS_SCR(int8_t scroll, int8_t horiz) { return (new Internal::MouseScroll(scroll, horiz)); }
 
   static inline Command *MS_CLK(MouseButtons buttons) { return (new Internal::MouseClick(buttons)); }
@@ -206,6 +204,8 @@ namespace hidpg
   }
 
   static inline Command *TGL(Command *command) { return (new Internal::Toggle(command)); }
+
+  static inline Command *RPT(Command *command, uint32_t delay_ms, uint32_t interval_ms) { return (new Internal::Repeat(command, delay_ms, interval_ms)); }
 
   template <uint8_t N>
   static Command *CYC(const CommandPtr (&arr)[N])

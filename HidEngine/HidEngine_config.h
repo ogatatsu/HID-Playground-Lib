@@ -49,17 +49,6 @@
 #define HID_ENGINE_TAPPING_TERM_MS 250
 #endif
 
-// MouseMoveコマンドの最初のキープレス時のディレイ
-#ifndef HID_ENGINE_MOUSEKEY_DELAY_MS
-#define HID_ENGINE_MOUSEKEY_DELAY_MS 200
-#endif
-
-// MouseMoveのマウスカーソルの動く間隔 (ms)
-// ワイヤレスの場合下げすぎると不安定になるかも
-#ifndef HID_ENGINE_MOUSEKEY_INTERVAL_MS
-#define HID_ENGINE_MOUSEKEY_INTERVAL_MS 25
-#endif
-
 // HidEngineタスクのスタックサイズ
 #ifndef HID_ENGINE_TASK_STACK_SIZE
 #define HID_ENGINE_TASK_STACK_SIZE 256
