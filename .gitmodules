@@ -10,3 +10,6 @@
 [submodule "QDEC"]
 	path = QDEC
 	url = https://github.com/SimpleHacks/QDEC.git
+[submodule "gsl-lite"]
+	path = gsl-lite
+	url = https://github.com/gsl-lite/gsl-lite.git

@@ -37,11 +37,11 @@ namespace hidpg
   // Key
   struct Key
   {
-    Key(uint8_t key_id, Command *command)
+    Key(uint8_t key_id, NotNullCommandPtr command)
         : key_id(key_id), command(command) {}
 
     const uint8_t key_id;
-    Command *const command;
+    const NotNullCommandPtr command;
   };
 
   // Combo
@@ -49,12 +49,12 @@ namespace hidpg
 
   struct Combo : public ComboLink
   {
-    Combo(uint8_t first_key_id, uint8_t second_key_id, Command *command, uint32_t combo_term_ms)
+    Combo(uint8_t first_key_id, uint8_t second_key_id, NotNullCommandPtr command, uint32_t combo_term_ms)
         : first_key_id(first_key_id), second_key_id(second_key_id), command(command), combo_term_ms(combo_term_ms) {}
 
     const uint8_t first_key_id;
     const uint8_t second_key_id;
-    Command *const command;
+    const NotNullCommandPtr command;
     const uint32_t combo_term_ms;
     bool first_id_rereased;
     bool second_id_rereased;
@@ -100,11 +100,11 @@ namespace hidpg
     const uint8_t mouse_id;
     const uint16_t distance;
     const AngleSnap angle_snap;
-    Command *const up_command;
-    Command *const down_command;
-    Command *const left_command;
-    Command *const right_command;
-    Command *const pre_command;
+    const CommandPtr up_command;
+    const CommandPtr down_command;
+    const CommandPtr left_command;
+    const CommandPtr right_command;
+    const CommandPtr pre_command;
     const PreCommandTiming pre_command_timing;
   };
 
@@ -125,12 +125,12 @@ namespace hidpg
   // Encoder
   struct Encoder
   {
-    Encoder(uint8_t encoder_id, Command *counterclockwise_command, Command *clockwise_command)
+    Encoder(uint8_t encoder_id, NotNullCommandPtr counterclockwise_command, NotNullCommandPtr clockwise_command)
         : encoder_id(encoder_id), counterclockwise_command(counterclockwise_command), clockwise_command(clockwise_command) {}
 
     const uint8_t encoder_id;
-    Command *const counterclockwise_command;
-    Command *const clockwise_command;
+    NotNullCommandPtr counterclockwise_command;
+    NotNullCommandPtr clockwise_command;
   };
 
   namespace Internal
@@ -225,7 +225,7 @@ namespace hidpg
     class GestureOr : public Command, public BeforeOtherCommandPressEventListener, public BeforeGestureEventListener
     {
     public:
-      GestureOr(uint8_t gesture_id, Command *command);
+      GestureOr(uint8_t gesture_id, NotNullCommandPtr command);
 
     protected:
       void onPress(uint8_t n_times) override;
@@ -245,7 +245,7 @@ namespace hidpg
       };
 
       GestureID _gesture_id;
-      Command *_command;
+      NotNullCommandPtr _command;
       State _state;
     };
 

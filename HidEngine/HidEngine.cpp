@@ -578,7 +578,7 @@ namespace hidpg
     //------------------------------------------------------------------+
     // GestureOr
     //------------------------------------------------------------------+
-    GestureOr::GestureOr(uint8_t gesture_id, Command *command)
+    GestureOr::GestureOr(uint8_t gesture_id, NotNullCommandPtr command)
         : BeforeOtherCommandPressEventListener(this), BeforeGestureEventListener(), _gesture_id(gesture_id), _command(command), _state(State::Unexecuted)
     {
       _command->setParent(this);

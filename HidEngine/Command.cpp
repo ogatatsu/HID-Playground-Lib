@@ -105,8 +105,7 @@ namespace hidpg
       return false;
     }
 
-    auto i_item = etl::intrusive_list<BeforeOtherCommandPressEventListener, BeforeOtherCommandPressEventListenerLink>::iterator(*this);
-    _listener_list().erase(i_item);
+    _listener_list().erase(*this);
     _is_listen = false;
 
     return true;
@@ -159,8 +158,7 @@ namespace hidpg
       return false;
     }
 
-    auto i_item = etl::intrusive_list<BeforeMouseMoveEventListener, BeforeMouseMoveEventListenerLink>::iterator(*this);
-    _listener_list().erase(i_item);
+    _listener_list().erase(*this);
     _is_listen = false;
 
     return true;
@@ -201,8 +199,7 @@ namespace hidpg
       return false;
     }
 
-    auto i_item = etl::intrusive_list<BeforeGestureEventListener, BeforeGestureEventListenerLink>::iterator(*this);
-    _listener_list().erase(i_item);
+    _listener_list().erase(*this);
     _is_listen = false;
 
     return true;
@@ -254,8 +251,7 @@ namespace hidpg
     }
 
     _hooked_command = nullptr;
-    auto i_item = etl::intrusive_list<CommandHook, CommandHookLink>::iterator(*this);
-    _hooker_list().erase(i_item);
+    _hooker_list().erase(*this);
     _is_hook = false;
 
     return true;
@@ -371,13 +367,13 @@ namespace hidpg
     //------------------------------------------------------------------+
     // Layering
     //------------------------------------------------------------------+
-    Layering::Layering(LayerClass *layer, Command *commands[HID_ENGINE_LAYER_SIZE]) : _layer(layer), _commands(commands)
+    Layering::Layering(LayerClass &layer, const etl::span<CommandPtr> commands) : _layer(layer), _commands(commands)
     {
-      for (int i = 0; i < HID_ENGINE_LAYER_SIZE; i++)
+      for (auto command : _commands)
       {
-        if (commands[i] != nullptr)
+        if (command != nullptr)
         {
-          commands[i]->setParent(this);
+          command->setParent(this);
         }
       }
     }
@@ -385,12 +381,12 @@ namespace hidpg
     void Layering::onPress(uint8_t n_times)
     {
       // 現在のレイヤーの状態を取得
-      layer_bitmap_t layer_state = _layer->getState();
+      layer_bitmap_t layer_state = _layer.getState();
 
       _running_command = nullptr;
 
       // layerを上から舐めていってonのlayerを探す
-      int i = HID_ENGINE_LAYER_SIZE - 1;
+      int i = _commands.size() - 1;
       for (; i >= 0; i--)
       {
         if (bitRead(layer_state, i) == 1)
@@ -410,7 +406,7 @@ namespace hidpg
         _running_command = _commands[i];
         break;
       }
-      // 委託する
+      // 実行する
       if (_running_command != nullptr)
       {
         _running_command->press(n_times);
@@ -430,55 +426,55 @@ namespace hidpg
     //------------------------------------------------------------------+
     // ToggleLayer
     //------------------------------------------------------------------+
-    ToggleLayer::ToggleLayer(LayerClass *layer, uint8_t layer_number) : _layer(layer), _layer_number(layer_number)
+    ToggleLayer::ToggleLayer(LayerClass &layer, uint8_t layer_number) : _layer(layer), _layer_number(layer_number)
     {
     }
 
     void ToggleLayer::onPress(uint8_t n_times)
     {
-      _layer->toggle(_layer_number);
+      _layer.toggle(_layer_number);
     }
 
     //------------------------------------------------------------------+
     // SwitchLayer
     //------------------------------------------------------------------+
-    SwitchLayer::SwitchLayer(LayerClass *layer, uint8_t layer_number) : _layer(layer), _layer_number(layer_number)
+    SwitchLayer::SwitchLayer(LayerClass &layer, uint8_t layer_number) : _layer(layer), _layer_number(layer_number)
     {
     }
 
     void SwitchLayer::onPress(uint8_t n_times)
     {
-      _layer->on(_layer_number);
+      _layer.on(_layer_number);
     }
 
     uint8_t SwitchLayer::onRelease()
     {
-      _layer->off(_layer_number);
+      _layer.off(_layer_number);
       return 1;
     }
 
     //------------------------------------------------------------------+
     // UpDefaultLayer
     //------------------------------------------------------------------+
-    UpDefaultLayer::UpDefaultLayer(LayerClass *layer, uint8_t i) : _layer(layer), _i(i)
+    UpDefaultLayer::UpDefaultLayer(LayerClass &layer, uint8_t i) : _layer(layer), _i(i)
     {
     }
 
     void UpDefaultLayer::onPress(uint8_t n_times)
     {
-      _layer->addToDefaultLayer(_i);
+      _layer.addToDefaultLayer(_i);
     }
 
     uint8_t UpDefaultLayer::onRelease()
     {
-      _layer->addToDefaultLayer(-_i);
+      _layer.addToDefaultLayer(-_i);
       return 1;
     }
 
     //------------------------------------------------------------------+
     // Tap
     //------------------------------------------------------------------+
-    Tap::Tap(Command *command, uint8_t n_times, uint16_t tap_speed_ms)
+    Tap::Tap(NotNullCommandPtr command, uint8_t n_times, uint16_t tap_speed_ms)
         : _command(command), _n_times(n_times), _tap_speed_ms(tap_speed_ms)
     {
       _command->setParent(this);
@@ -492,7 +488,7 @@ namespace hidpg
     //------------------------------------------------------------------+
     // TapWhenReleased
     //------------------------------------------------------------------+
-    TapWhenReleased::TapWhenReleased(Command *command, uint8_t n_times, uint16_t tap_speed_ms)
+    TapWhenReleased::TapWhenReleased(NotNullCommandPtr command, uint8_t n_times, uint16_t tap_speed_ms)
         : _command(command), _n_times(n_times), _tap_speed_ms(tap_speed_ms)
     {
       _command->setParent(this);
@@ -507,10 +503,8 @@ namespace hidpg
     //------------------------------------------------------------------+
     // TapDance
     //------------------------------------------------------------------+
-    TapDance::TapDance(Pair pairs[],
-                       uint8_t len,
-                       uint8_t mouse_ids[],
-                       uint8_t mouse_ids_len,
+    TapDance::TapDance(etl::span<Pair> pairs,
+                       etl::span<uint8_t> mouse_ids,
                        uint16_t move_threshold,
                        TapHoldBehavior behavior)
         : TimerMixin(),
@@ -518,9 +512,7 @@ namespace hidpg
           BeforeMouseMoveEventListener(),
           CommandHook(),
           _pairs(pairs),
-          _len(len),
           _mouse_ids(mouse_ids),
-          _mouse_ids_len(mouse_ids_len),
           _move_threshold(move_threshold),
           _behavior(behavior),
           _delta_x_sum(0),
@@ -528,10 +520,10 @@ namespace hidpg
           _idx_count(-1),
           _state(State::Unexecuted)
     {
-      for (int i = 0; i < len; i++)
+      for (auto &pair : _pairs)
       {
-        pairs[i].tap_command->setParent(this);
-        pairs[i].hold_command->setParent(this);
+        pair.tap_command->setParent(this);
+        pair.hold_command->setParent(this);
       }
     }
 
@@ -543,7 +535,7 @@ namespace hidpg
       cmd->release();
       _idx_count = -1;
       stopListenBeforeOtherCommandPress();
-      if (_mouse_ids_len != 0)
+      if (_mouse_ids.size() != 0)
       {
         stopListenBeforeMouseMove();
       }
@@ -562,7 +554,7 @@ namespace hidpg
       _state = State::Unexecuted;
       _running_command->release();
       stopListenBeforeOtherCommandPress();
-      if (_mouse_ids_len != 0)
+      if (_mouse_ids.size() != 0)
       {
         stopListenBeforeMouseMove();
       }
@@ -573,7 +565,7 @@ namespace hidpg
       if (_state == State::Unexecuted)
       {
         startListenBeforeOtherCommandPress();
-        if (_mouse_ids_len != 0)
+        if (_mouse_ids.size() != 0)
         {
           _delta_x_sum = 0;
           _delta_y_sum = 0;
@@ -596,7 +588,7 @@ namespace hidpg
       }
       else if (_state == State::Pressed)
       {
-        if (_idx_count == _len - 1)
+        if (_idx_count == _pairs.size() - 1)
         {
           processTap();
         }
@@ -664,9 +656,9 @@ namespace hidpg
 
     void TapDance::onBeforeMouseMove(uint8_t mouse_id, int16_t delta_x, int16_t delta_y)
     {
-      for (int i = 0; i < _mouse_ids_len; i++)
+      for (uint8_t id : _mouse_ids)
       {
-        if (_mouse_ids[i] == mouse_id)
+        if (id == mouse_id)
         {
           _delta_x_sum = constrain(_delta_x_sum + delta_x, INT16_MIN, INT16_MAX);
           _delta_y_sum = constrain(_delta_y_sum + delta_y, INT16_MIN, INT16_MAX);
@@ -703,8 +695,8 @@ namespace hidpg
     //------------------------------------------------------------------+
     // TapOrHold
     //------------------------------------------------------------------+
-    TapOrHold::TapOrHold(Command *tap_command, unsigned int ms, Command *hold_command)
-        : TimerMixin(), _ms(ms), _state(State::Unexecuted), _tap_command(tap_command), _hold_command(hold_command)
+    TapOrHold::TapOrHold(NotNullCommandPtr tap_command, unsigned int ms, NotNullCommandPtr hold_command)
+        : TimerMixin(), _tap_command(tap_command), _hold_command(hold_command), _ms(ms), _state(State::Unexecuted)
     {
       _tap_command->setParent(this);
       _hold_command->setParent(this);
@@ -871,7 +863,7 @@ namespace hidpg
     //------------------------------------------------------------------+
     // OnceEvery
     //------------------------------------------------------------------+
-    OnceEvery::OnceEvery(uint32_t ms, Command *command)
+    OnceEvery::OnceEvery(uint32_t ms, NotNullCommandPtr command)
         : _ms(ms), _command(command), _last_press_millis(0), _has_pressed(false)
     {
       _command->setParent(this);
@@ -904,7 +896,7 @@ namespace hidpg
     //------------------------------------------------------------------+
     // NTimesEvery
     //------------------------------------------------------------------+
-    NTimesEvery::NTimesEvery(uint32_t ms, Command *command)
+    NTimesEvery::NTimesEvery(uint32_t ms, NotNullCommandPtr command)
         : _ms(ms), _command(command), _last_press_millis(0), _has_pressed(false)
     {
       _command->setParent(this);
@@ -939,7 +931,7 @@ namespace hidpg
     //------------------------------------------------------------------+
     // If
     //------------------------------------------------------------------+
-    If::If(bool (*func)(), Command *true_command, Command *false_command)
+    If::If(bool (*func)(), NotNullCommandPtr true_command, NotNullCommandPtr false_command)
         : _func(func), _true_command(true_command), _false_command(false_command)
     {
       _true_command->setParent(this);
@@ -960,28 +952,28 @@ namespace hidpg
     //------------------------------------------------------------------+
     // Multi
     //------------------------------------------------------------------+
-    Multi::Multi(Command *commands[], uint8_t len)
-        : _commands(commands), _len(len)
+    Multi::Multi(etl::span<NotNullCommandPtr> commands)
+        : _commands(commands)
     {
-      for (size_t i = 0; i < len; i++)
+      for (auto &command : _commands)
       {
-        _commands[i]->setParent(this);
+        command->setParent(this);
       }
     }
 
     void Multi::onPress(uint8_t n_times)
     {
-      for (size_t i = 0; i < _len; i++)
+      for (auto &command : _commands)
       {
-        _commands[i]->press();
+        command->press();
       }
     }
 
     uint8_t Multi::onRelease()
     {
-      for (size_t i = 0; i < _len; i++)
+      for (auto &command : _commands)
       {
-        _commands[i]->release();
+        command->release();
       }
       return 1;
     }
@@ -989,7 +981,7 @@ namespace hidpg
     //------------------------------------------------------------------+
     // Toggle
     //------------------------------------------------------------------+
-    Toggle::Toggle(Command *command)
+    Toggle::Toggle(NotNullCommandPtr command)
         : _command(command), _is_pressed(false)
     {
       _command->setParent(this);
@@ -1012,7 +1004,7 @@ namespace hidpg
     //------------------------------------------------------------------+
     // Repeat
     //------------------------------------------------------------------+
-    Repeat::Repeat(Command *command, uint32_t delay_ms, uint32_t interval_ms)
+    Repeat::Repeat(NotNullCommandPtr command, uint32_t delay_ms, uint32_t interval_ms)
         : TimerMixin(), _command(command), _delay_ms(delay_ms), _interval_ms(interval_ms)
     {
     }
@@ -1039,18 +1031,18 @@ namespace hidpg
     //------------------------------------------------------------------+
     // Cycle
     //------------------------------------------------------------------+
-    Cycle::Cycle(Command *commands[], uint8_t len)
-        : _commands(commands), _len(len), _idx(0)
+    Cycle::Cycle(etl::span<NotNullCommandPtr> commands)
+        : _commands(commands), _idx(0)
     {
-      for (size_t i = 0; i < len; i++)
+      for (auto &command : _commands)
       {
-        _commands[i]->setParent(this);
+        command->setParent(this);
       }
     }
 
     void Cycle::onPress(uint8_t n_times)
     {
-      if (_len == 0)
+      if (_commands.size() == 0)
       {
         return;
       }
@@ -1060,13 +1052,13 @@ namespace hidpg
 
     uint8_t Cycle::onRelease()
     {
-      if (_len == 0)
+      if (_commands.size() == 0)
       {
         return 1;
       }
 
       _commands[_idx]->release();
-      _idx = (_idx + 1) % _len;
+      _idx = (_idx + 1) % _commands.size();
 
       return 1;
     }
@@ -1074,29 +1066,29 @@ namespace hidpg
     //------------------------------------------------------------------+
     // CyclePhaseShift
     //------------------------------------------------------------------+
-    CyclePhaseShift::CyclePhaseShift(Command *commands[], uint8_t len)
-        : _commands(commands), _len(len), _idx(len - 1)
+    CyclePhaseShift::CyclePhaseShift(etl::span<NotNullCommandPtr> commands)
+        : _commands(commands), _idx(_commands.size() - 1)
     {
-      for (size_t i = 0; i < len; i++)
+      for (auto &command : _commands)
       {
-        _commands[i]->setParent(this);
+        command->setParent(this);
       }
     }
 
     void CyclePhaseShift::onPress(uint8_t n_times)
     {
-      if (_len == 0)
+      if (_commands.size() == 0)
       {
         return;
       }
 
       _commands[_idx]->release();
-      _idx = (_idx + 1) % _len;
+      _idx = (_idx + 1) % _commands.size();
     }
 
     uint8_t CyclePhaseShift::onRelease()
     {
-      if (_len == 0)
+      if (_commands.size() == 0)
       {
         return 1;
       }

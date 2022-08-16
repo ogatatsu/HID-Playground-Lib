@@ -35,7 +35,7 @@ namespace hidpg
   namespace Internal
   {
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_RemoteWakeup()
+    NotNullCommandPtr new_RemoteWakeup()
     {
       static uint8_t buf[sizeof(RemoteWakeup)];
       return new (buf) RemoteWakeup();

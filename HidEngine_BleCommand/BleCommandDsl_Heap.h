@@ -29,8 +29,6 @@
 namespace hidpg
 {
 
-  static inline Command *BT(uint8_t slot) { return (new Internal::ConnectBluetooth(slot)); }
-
-  static inline Command *RESET() { return (new Internal::ResetConnection); }
+  static inline NotNullCommandPtr RESET() { return (new Internal::ResetConnection); }
 
 } // namespace hidpg

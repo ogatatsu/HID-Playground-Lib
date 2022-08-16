@@ -30,6 +30,9 @@
 #include "TimerMixin.h"
 #include "etl/intrusive_links.h"
 #include "etl/intrusive_list.h"
+#include "etl/optional.h"
+#include "etl/span.h"
+#include "gsl/gsl-lite.hpp"
 #include <stddef.h>
 
 #define BEFORE_OTHER_COMMAND_PRESS_EVENT_LISTENER_LINK_ID 0
@@ -67,6 +70,9 @@ namespace hidpg
     State _state;
     bool _notified;
   };
+
+  using CommandPtr = Command *;
+  using NotNullCommandPtr = gsl::not_null<Command *>;
 
   //------------------------------------------------------------------+
   // BeforeOtherCommandPressEventListener
@@ -257,15 +263,15 @@ namespace hidpg
     class Layering : public Command
     {
     public:
-      Layering(LayerClass *layer, Command *commands[HID_ENGINE_LAYER_SIZE]);
+      Layering(LayerClass &layer, etl::span<CommandPtr> commands);
 
     protected:
       void onPress(uint8_t n_times) override;
       uint8_t onRelease() override;
 
     private:
-      LayerClass *_layer;
-      Command **const _commands;
+      LayerClass &_layer;
+      const etl::span<CommandPtr> _commands;
       Command *_running_command;
     };
 
@@ -275,13 +281,13 @@ namespace hidpg
     class ToggleLayer : public Command
     {
     public:
-      ToggleLayer(LayerClass *layer, uint8_t layer_number);
+      ToggleLayer(LayerClass &layer, uint8_t layer_number);
 
     protected:
       void onPress(uint8_t n_times) override;
 
     private:
-      LayerClass *_layer;
+      LayerClass &_layer;
       const uint8_t _layer_number;
     };
 
@@ -291,14 +297,14 @@ namespace hidpg
     class SwitchLayer : public Command
     {
     public:
-      SwitchLayer(LayerClass *layer, uint8_t layer_number);
+      SwitchLayer(LayerClass &layer, uint8_t layer_number);
 
     protected:
       void onPress(uint8_t n_times) override;
       uint8_t onRelease() override;
 
     private:
-      LayerClass *_layer;
+      LayerClass &_layer;
       const uint8_t _layer_number;
     };
 
@@ -308,14 +314,14 @@ namespace hidpg
     class UpDefaultLayer : public Command
     {
     public:
-      UpDefaultLayer(LayerClass *layer, uint8_t i);
+      UpDefaultLayer(LayerClass &layer, uint8_t i);
 
     protected:
       void onPress(uint8_t n_times) override;
       uint8_t onRelease() override;
 
     private:
-      LayerClass *_layer;
+      LayerClass &_layer;
       const uint8_t _i;
     };
 
@@ -325,13 +331,13 @@ namespace hidpg
     class Tap : public Command
     {
     public:
-      Tap(Command *command, uint8_t n_times, uint16_t tap_speed_ms);
+      Tap(NotNullCommandPtr command, uint8_t n_times, uint16_t tap_speed_ms);
 
     protected:
       void onPress(uint8_t n_times) override;
 
     private:
-      Command *_command;
+      const NotNullCommandPtr _command;
       const uint8_t _n_times;
       const uint16_t _tap_speed_ms;
     };
@@ -342,13 +348,13 @@ namespace hidpg
     class TapWhenReleased : public Command
     {
     public:
-      TapWhenReleased(Command *command, uint8_t n_times, uint16_t tap_speed_ms);
+      TapWhenReleased(NotNullCommandPtr command, uint8_t n_times, uint16_t tap_speed_ms);
 
     protected:
       uint8_t onRelease() override;
 
     private:
-      Command *_command;
+      const NotNullCommandPtr _command;
       const uint8_t _n_times;
       const uint16_t _tap_speed_ms;
     };
@@ -365,11 +371,11 @@ namespace hidpg
     public:
       struct Pair
       {
-        Command *tap_command;
-        Command *hold_command;
+        NotNullCommandPtr tap_command;
+        NotNullCommandPtr hold_command;
       };
 
-      TapDance(Pair pairs[], uint8_t len, uint8_t mouse_ids[], uint8_t mouse_ids_len, uint16_t move_threshold, TapHoldBehavior behavior);
+      TapDance(etl::span<Pair> pairs, etl::span<uint8_t> mouse_ids, uint16_t move_threshold, TapHoldBehavior behavior);
 
     protected:
       void onPress(uint8_t n_times) override;
@@ -398,15 +404,13 @@ namespace hidpg
 
       Command *_running_command;
       Command *_hooked_command;
-      Pair *const _pairs;
-      const uint8_t _len;
-      uint8_t *_mouse_ids;
-      const uint8_t _mouse_ids_len;
+      const etl::span<Pair> _pairs;
+      const etl::span<uint8_t> _mouse_ids;
       const uint16_t _move_threshold;
       const TapHoldBehavior _behavior;
       int16_t _delta_x_sum;
       int16_t _delta_y_sum;
-      int16_t _idx_count;
+      size_t _idx_count;
       State _state;
     };
 
@@ -416,7 +420,7 @@ namespace hidpg
     class TapOrHold : public Command, public TimerMixin
     {
     public:
-      TapOrHold(Command *tap_command, unsigned int ms, Command *hold_command);
+      TapOrHold(NotNullCommandPtr tap_command, unsigned int ms, NotNullCommandPtr hold_command);
 
     protected:
       void onPress(uint8_t n_times) override;
@@ -431,10 +435,10 @@ namespace hidpg
         FixedToHold,
       };
 
+      const NotNullCommandPtr _tap_command;
+      const NotNullCommandPtr _hold_command;
       const unsigned int _ms;
       State _state;
-      Command *const _tap_command;
-      Command *const _hold_command;
     };
 
     //------------------------------------------------------------------+
@@ -484,7 +488,7 @@ namespace hidpg
     private:
       const int16_t _x;
       const int16_t _y;
-      uint8_t _max_n_times;
+      const uint8_t _max_n_times;
       uint8_t _actual_n_times;
     };
 
@@ -557,13 +561,13 @@ namespace hidpg
     class OnceEvery : public Command
     {
     public:
-      OnceEvery(uint32_t ms, Command *command);
+      OnceEvery(uint32_t ms, NotNullCommandPtr command);
       void onPress(uint8_t n_times) override;
       uint8_t onRelease() override;
 
     private:
-      uint32_t _ms;
-      Command *_command;
+      const uint32_t _ms;
+      const NotNullCommandPtr _command;
       uint32_t _last_press_millis;
       bool _has_pressed;
       uint8_t _n_times;
@@ -575,13 +579,13 @@ namespace hidpg
     class NTimesEvery : public Command
     {
     public:
-      NTimesEvery(uint32_t _ms, Command *command);
+      NTimesEvery(uint32_t _ms, NotNullCommandPtr command);
       void onPress(uint8_t n_times) override;
       uint8_t onRelease() override;
 
     private:
-      uint32_t _ms;
-      Command *_command;
+      const uint32_t _ms;
+      const NotNullCommandPtr _command;
       uint32_t _last_press_millis;
       bool _has_pressed;
       uint8_t _n_times;
@@ -593,7 +597,7 @@ namespace hidpg
     class If : public Command
     {
     public:
-      If(bool (*func)(), Command *true_command, Command *false_command);
+      If(bool (*func)(), NotNullCommandPtr true_command, NotNullCommandPtr false_command);
 
     protected:
       void onPress(uint8_t n_times) override;
@@ -601,8 +605,8 @@ namespace hidpg
 
     private:
       bool (*const _func)();
-      Command *const _true_command;
-      Command *const _false_command;
+      const NotNullCommandPtr _true_command;
+      const NotNullCommandPtr _false_command;
       Command *_running_command;
     };
 
@@ -612,15 +616,14 @@ namespace hidpg
     class Multi : public Command
     {
     public:
-      Multi(Command *commands[], uint8_t len);
+      Multi(etl::span<NotNullCommandPtr> commands);
 
     protected:
       void onPress(uint8_t n_times) override;
       uint8_t onRelease() override;
 
     private:
-      Command **const _commands;
-      const uint8_t _len;
+      const etl::span<NotNullCommandPtr> _commands;
     };
 
     //------------------------------------------------------------------+
@@ -629,13 +632,13 @@ namespace hidpg
     class Toggle : public Command
     {
     public:
-      Toggle(Command *command);
+      Toggle(NotNullCommandPtr command);
 
     protected:
       void onPress(uint8_t n_times) override;
 
     private:
-      Command *_command;
+      const NotNullCommandPtr _command;
       bool _is_pressed;
     };
 
@@ -645,7 +648,7 @@ namespace hidpg
     class Repeat : public Command, public TimerMixin
     {
     public:
-      Repeat(Command *command, uint32_t delay_ms, uint32_t interval_ms);
+      Repeat(NotNullCommandPtr command, uint32_t delay_ms, uint32_t interval_ms);
 
     protected:
       void onPress(uint8_t n_times) override;
@@ -653,7 +656,7 @@ namespace hidpg
       void onTimer() override;
 
     private:
-      Command *_command;
+      const NotNullCommandPtr _command;
       const uint32_t _delay_ms;
       const uint32_t _interval_ms;
       uint8_t _n_times;
@@ -665,15 +668,14 @@ namespace hidpg
     class Cycle : public Command
     {
     public:
-      Cycle(Command *commands[], uint8_t len);
+      Cycle(etl::span<NotNullCommandPtr> commands);
 
     protected:
       void onPress(uint8_t n_times) override;
       uint8_t onRelease() override;
 
     private:
-      Command **const _commands;
-      const uint8_t _len;
+      const etl::span<NotNullCommandPtr> _commands;
       size_t _idx;
     };
 
@@ -683,15 +685,14 @@ namespace hidpg
     class CyclePhaseShift : public Command
     {
     public:
-      CyclePhaseShift(Command *commands[], uint8_t len);
+      CyclePhaseShift(etl::span<NotNullCommandPtr> commands);
 
     protected:
       void onPress(uint8_t n_times) override;
       uint8_t onRelease() override;
 
     private:
-      Command **const _commands;
-      const uint8_t _len;
+      const etl::span<NotNullCommandPtr> _commands;
       size_t _idx;
     };
 

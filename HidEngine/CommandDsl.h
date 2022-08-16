@@ -28,202 +28,184 @@
 #include "HidEngine.h"
 #include "consthash/cityhash64.hxx"
 #include "consthash/crc64.hxx"
+#include "etl/array.h"
+#include "etl/optional.h"
+#include "etl/vector.h"
 #include <new>
 
 namespace hidpg
 {
 
-  using CommandPtr = Command *;
-
   namespace Internal
   {
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_NormalKey(KeyCode key_code)
+    NotNullCommandPtr new_NormalKey(KeyCode key_code)
     {
       static uint8_t buf[sizeof(NormalKey)];
       return new (buf) NormalKey(key_code);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_ModifierKey(Modifiers modifiers)
+    NotNullCommandPtr new_ModifierKey(Modifiers modifiers)
     {
       static uint8_t buf[sizeof(ModifierKey)];
       return new (buf) ModifierKey(modifiers);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_CombinationKey(Modifiers modifiers, KeyCode key_code)
+    NotNullCommandPtr new_CombinationKey(Modifiers modifiers, KeyCode key_code)
     {
       static uint8_t buf[sizeof(CombinationKey)];
       return new (buf) CombinationKey(modifiers, key_code);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_ModifierTap(Modifiers modifiers, Command *command, TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
+    NotNullCommandPtr new_ModifierTap(Modifiers modifiers, NotNullCommandPtr command, TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
     {
-      static TapDance::Pair arg[1];
+      static uint8_t cmd_buf[sizeof(ModifierKey)];
+      static etl::vector<Internal::TapDance::Pair, 1> pairs{
+          {command, new (cmd_buf) Internal::ModifierKey(modifiers)},
+      };
+      static etl::span<uint8_t> mouse_ids;
       static uint8_t buf[sizeof(TapDance)];
-      static uint8_t mod_cmd_buf[sizeof(ModifierKey)];
 
-      arg[0].tap_command = command;
-      arg[0].hold_command = new (mod_cmd_buf) ModifierKey(modifiers);
-
-      return new (buf) TapDance(arg, 1, nullptr, 0, 0, behavior);
+      return new (buf) TapDance(pairs, mouse_ids, 0, behavior);
     }
 
-    template <uint64_t ID1, uint64_t ID2, uint64_t ID3, size_t N>
-    Command *new_Layering(LayerClass *layer, const CommandPtr (&arr)[N])
+    template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
+    NotNullCommandPtr new_Layering(LayerClass &layer, const CommandPtr (&commands)[HID_ENGINE_LAYER_SIZE])
     {
-      static_assert(N <= HID_ENGINE_LAYER_SIZE, "");
-
-      static Command *arg[HID_ENGINE_LAYER_SIZE] = {};
+      static etl::array<CommandPtr, HID_ENGINE_LAYER_SIZE> _commands;
+      _commands.assign(etl::begin(commands), etl::end(commands));
       static uint8_t buf[sizeof(Layering)];
 
-      for (size_t i = 0; i < N; i++)
-      {
-        arg[i] = arr[i];
-      }
-      return new (buf) Layering(layer, arg);
+      return new (buf) Layering(layer, _commands);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_LayerTap(LayerClass *layer, uint8_t layer_number, Command *command, TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
+    Command *new_LayerTap(LayerClass &layer, uint8_t layer_number, Command *command, TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
     {
-      static TapDance::Pair arg[1];
+      static uint8_t cmd_buf[sizeof(SwitchLayer)];
+      static etl::vector<Internal::TapDance::Pair, 1> pairs{
+          {command, new (cmd_buf) SwitchLayer(layer, layer_number)},
+      };
+      static etl::span<uint8_t> mouse_ids;
       static uint8_t buf[sizeof(TapDance)];
-      static uint8_t ly_cmd_buf[sizeof(SwitchLayer)];
 
-      arg[0].tap_command = command;
-      arg[0].hold_command = new (ly_cmd_buf) SwitchLayer(layer, layer_number);
-
-      return new (buf) TapDance(arg, 1, nullptr, 0, 0, behavior);
+      return new (buf) TapDance(pairs, mouse_ids, 0, behavior);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_ToggleLayer(LayerClass *layer, uint8_t layer_number)
+    NotNullCommandPtr new_ToggleLayer(LayerClass &layer, uint8_t layer_number)
     {
       static uint8_t buf[sizeof(ToggleLayer)];
       return new (buf) ToggleLayer(layer, layer_number);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_SwitchLayer(LayerClass *layer, uint8_t layer_number)
+    NotNullCommandPtr new_SwitchLayer(LayerClass &layer, uint8_t layer_number)
     {
       static uint8_t buf[sizeof(SwitchLayer)];
       return new (buf) SwitchLayer(layer, layer_number);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_UpDefaultLayer(LayerClass *layer, uint8_t i)
+    NotNullCommandPtr new_UpDefaultLayer(LayerClass &layer, uint8_t i)
     {
       static uint8_t buf[sizeof(UpDefaultLayer)];
       return new (buf) UpDefaultLayer(layer, i);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_Tap(Command *command, uint8_t n_times = 1, uint16_t tap_speed_ms = HID_ENGINE_TAP_SPEED_MS)
+    NotNullCommandPtr new_Tap(NotNullCommandPtr command, uint8_t n_times = 1, uint16_t tap_speed_ms = HID_ENGINE_TAP_SPEED_MS)
     {
       static uint8_t buf[sizeof(Tap)];
       return new (buf) Tap(command, n_times, tap_speed_ms);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_TapWhenReleased(Command *command, uint8_t n_times = 1, uint16_t tap_speed_ms = HID_ENGINE_TAP_SPEED_MS)
+    NotNullCommandPtr new_TapWhenReleased(NotNullCommandPtr command, uint8_t n_times = 1, uint16_t tap_speed_ms = HID_ENGINE_TAP_SPEED_MS)
     {
       static uint8_t buf[sizeof(TapWhenReleased)];
       return new (buf) TapWhenReleased(command, n_times, tap_speed_ms);
     }
 
-    template <uint64_t ID1, uint64_t ID2, uint64_t ID3, uint8_t N>
-    Command *new_TapDance(const TapDance::Pair (&arr)[N], TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
+    template <uint64_t ID1, uint64_t ID2, uint64_t ID3, size_t N>
+    NotNullCommandPtr new_TapDance(const TapDance::Pair (&pairs)[N], TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
     {
-      static TapDance::Pair arg[N];
+      static etl::vector<Internal::TapDance::Pair, N> _pairs{etl::begin(pairs), etl::end(pairs)};
+      static etl::span<uint8_t> mouse_ids;
       static uint8_t buf[sizeof(TapDance)];
 
-      for (size_t i = 0; i < N; i++)
-      {
-        arg[i].tap_command = arr[i].tap_command;
-        arg[i].hold_command = arr[i].hold_command;
-      }
-      return new (buf) TapDance(arg, N, nullptr, 0, 0, behavior);
+      return new (buf) TapDance(_pairs, mouse_ids, 0, behavior);
     }
 
-    template <uint64_t ID1, uint64_t ID2, uint64_t ID3, uint8_t N1, uint8_t N2>
-    Command *new_TapDanceDecideWithMouseMove(const TapDance::Pair (&arr)[N1],
-                                             const uint8_t (&mouse_ids)[N2],
-                                             uint16_t move_threshold = 4,
-                                             TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
+    template <uint64_t ID1, uint64_t ID2, uint64_t ID3, size_t N1, size_t N2>
+    NotNullCommandPtr new_TapDanceDecideWithMouseMove(const TapDance::Pair (&pairs)[N1],
+                                                      const uint8_t (&mouse_ids)[N2],
+                                                      uint16_t move_threshold = 4,
+                                                      TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
     {
-      static TapDance::Pair arg1[N1];
-      static uint8_t arg2[N2];
+      static etl::vector<Internal::TapDance::Pair, N1> _pairs{etl::begin(pairs), etl::end(pairs)};
+      static etl::array<uint8_t, N2> _mouse_ids;
+      _mouse_ids.assign(etl::begin(mouse_ids), etl::end(mouse_ids));
       static uint8_t buf[sizeof(TapDance)];
 
-      for (size_t i = 0; i < N1; i++)
-      {
-        arg1[i].tap_command = arr[i].tap_command;
-        arg1[i].hold_command = arr[i].hold_command;
-      }
-
-      for (size_t i = 0; i < N2; i++)
-      {
-        arg2[i] = mouse_ids[i];
-      }
-
-      return new (buf) TapDance(arg1, N1, arg2, N2, move_threshold, behavior);
+      return new (buf) TapDance(_pairs, _mouse_ids, move_threshold, behavior);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_TapOrHold(Command *tap_command, unsigned int ms, Command *hold_command)
+    NotNullCommandPtr new_TapOrHold(NotNullCommandPtr tap_command, unsigned int ms, NotNullCommandPtr hold_command)
     {
       static uint8_t buf[sizeof(TapOrHold)];
       return new (buf) TapOrHold(tap_command, ms, hold_command);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_ConsumerControl(ConsumerControlCode usage_code)
+    NotNullCommandPtr new_ConsumerControl(ConsumerControlCode usage_code)
     {
       static uint8_t buf[sizeof(ConsumerControl)];
       return new (buf) ConsumerControl(usage_code);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_SystemControl(SystemControlCode usage_code)
+    NotNullCommandPtr new_SystemControl(SystemControlCode usage_code)
     {
       static uint8_t buf[sizeof(SystemControl)];
       return new (buf) SystemControl(usage_code);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_MouseMove(int16_t x, int16_t y)
+    NotNullCommandPtr new_MouseMove(int16_t x, int16_t y)
     {
       static uint8_t buf[sizeof(MouseMove)];
       return new (buf) MouseMove(x, y);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_MouseScroll(int8_t scroll, int8_t horiz)
+    NotNullCommandPtr new_MouseScroll(int8_t scroll, int8_t horiz)
     {
       static uint8_t buf[sizeof(MouseScroll)];
       return new (buf) MouseScroll(scroll, horiz);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_MouseClick(MouseButtons buttons)
+    NotNullCommandPtr new_MouseClick(MouseButtons buttons)
     {
       static uint8_t buf[sizeof(MouseClick)];
       return new (buf) MouseClick(buttons);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_RadialClick()
+    NotNullCommandPtr new_RadialClick()
     {
       static uint8_t buf[sizeof(RadialClick)];
       return new (buf) RadialClick();
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_RadialRotate(int16_t deci_degree)
+    NotNullCommandPtr new_RadialRotate(int16_t deci_degree)
     {
       deci_degree = constrain(deci_degree, -3600, 3600);
 
@@ -232,102 +214,90 @@ namespace hidpg
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_OnceEvery(uint32_t ms, Command *command)
+    NotNullCommandPtr new_OnceEvery(uint32_t ms, NotNullCommandPtr command)
     {
       static uint8_t buf[sizeof(OnceEvery)];
       return new (buf) OnceEvery(ms, command);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_NTimesEvery(uint32_t ms, Command *command)
+    NotNullCommandPtr new_NTimesEvery(uint32_t ms, NotNullCommandPtr command)
     {
       static uint8_t buf[sizeof(NTimesEvery)];
       return new (buf) NTimesEvery(ms, command);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_If(bool (*func)(), Command *true_command, Command *false_command)
+    NotNullCommandPtr new_If(bool (*func)(), NotNullCommandPtr true_command, NotNullCommandPtr false_command)
     {
       static uint8_t buf[sizeof(If)];
       return new (buf) If(func, true_command, false_command);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3, size_t N>
-    Command *new_Multi(const CommandPtr (&arr)[N])
+    NotNullCommandPtr new_Multi(const NotNullCommandPtr (&commands)[N])
     {
-      static Command *arg[N];
+      static etl::vector<NotNullCommandPtr, N> _commands{etl::begin(commands), etl::end(commands)};
       static uint8_t buf[sizeof(Multi)];
 
-      for (size_t i = 0; i < N; i++)
-      {
-        arg[i] = arr[i];
-      }
-      return new (buf) Multi(arg, N);
+      return new (buf) Multi(_commands);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_Toggle(Command *command)
+    NotNullCommandPtr new_Toggle(NotNullCommandPtr command)
     {
       static uint8_t buf[sizeof(Toggle)];
       return new (buf) Toggle(command);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_Repeat(Command *command, uint32_t delay_ms, uint32_t interval_ms)
+    NotNullCommandPtr new_Repeat(NotNullCommandPtr command, uint32_t delay_ms, uint32_t interval_ms)
     {
       static uint8_t buf[sizeof(Repeat)];
       return new (buf) Repeat(command, delay_ms, interval_ms);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3, size_t N>
-    Command *new_Cycle(const CommandPtr (&arr)[N])
+    NotNullCommandPtr new_Cycle(const NotNullCommandPtr (&commands)[N])
     {
-      static Command *arg[N];
+      static etl::vector<NotNullCommandPtr, N> _commands{etl::begin(commands), etl::end(commands)};
       static uint8_t buf[sizeof(Cycle)];
 
-      for (size_t i = 0; i < N; i++)
-      {
-        arg[i] = arr[i];
-      }
-      return new (buf) Cycle(arg, N);
+      return new (buf) Cycle(_commands);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3, size_t N>
-    Command *new_CyclePhaseShift(const CommandPtr (&arr)[N])
+    NotNullCommandPtr new_CyclePhaseShift(const NotNullCommandPtr (&commands)[N])
     {
-      static Command *arg[N];
+      static etl::vector<NotNullCommandPtr, N> _commands{etl::begin(commands), etl::end(commands)};
       static uint8_t buf[sizeof(CyclePhaseShift)];
 
-      for (size_t i = 0; i < N; i++)
-      {
-        arg[i] = arr[i];
-      }
-      return new (buf) CyclePhaseShift(arg, N);
+      return new (buf) CyclePhaseShift(_commands);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_NoOperation()
+    NotNullCommandPtr new_NoOperation()
     {
       static uint8_t buf[sizeof(NoOperation)];
       return new (buf) NoOperation();
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_GestureCommand(uint8_t gesture_id)
+    NotNullCommandPtr new_GestureCommand(uint8_t gesture_id)
     {
       static uint8_t buf[sizeof(GestureCommand)];
       return new (buf) GestureCommand(gesture_id);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_GestureOr(uint8_t gesture_id, Command *command)
+    NotNullCommandPtr new_GestureOr(uint8_t gesture_id, NotNullCommandPtr command)
     {
       static uint8_t buf[sizeof(GestureOr)];
       return new (buf) GestureOr(gesture_id, command);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_GestureOrNK(uint8_t gesture_id, KeyCode key_code)
+    NotNullCommandPtr new_GestureOrNK(uint8_t gesture_id, KeyCode key_code)
     {
       static uint8_t buf[sizeof(GestureOrNK)];
       return new (buf) GestureOrNK(gesture_id, key_code);
@@ -348,29 +318,29 @@ namespace hidpg
 #define MT(...) (Internal::new_ModifierTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(__VA_ARGS__))
 
 // Layering
-#define LY(...) (Internal::new_Layering<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer, __VA_ARGS__))
-#define LY1(...) (Internal::new_Layering<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer1, __VA_ARGS__))
-#define LY2(...) (Internal::new_Layering<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer2, __VA_ARGS__))
+#define LY(...) (Internal::new_Layering<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(Layer, __VA_ARGS__))
+#define LY1(...) (Internal::new_Layering<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(Layer1, __VA_ARGS__))
+#define LY2(...) (Internal::new_Layering<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(Layer2, __VA_ARGS__))
 
 // LayerTap
-#define LT(...) (Internal::new_LayerTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer, __VA_ARGS__))
-#define LT1(...) (Internal::new_LayerTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer1, __VA_ARGS__))
-#define LT2(...) (Internal::new_LayerTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer2, __VA_ARGS__))
+#define LT(...) (Internal::new_LayerTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(Layer, __VA_ARGS__))
+#define LT1(...) (Internal::new_LayerTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(Layer1, __VA_ARGS__))
+#define LT2(...) (Internal::new_LayerTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(Layer2, __VA_ARGS__))
 
 // ToggleLayer
-#define TL(layer_number) (Internal::new_ToggleLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer, layer_number))
-#define TL1(layer_number) (Internal::new_ToggleLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer1, layer_number))
-#define TL2(layer_number) (Internal::new_ToggleLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer2, layer_number))
+#define TL(layer_number) (Internal::new_ToggleLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(Layer, layer_number))
+#define TL1(layer_number) (Internal::new_ToggleLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(Layer1, layer_number))
+#define TL2(layer_number) (Internal::new_ToggleLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(Layer2, layer_number))
 
 // SwitchLayer
-#define SL(layer_number) (Internal::new_SwitchLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer, layer_number))
-#define SL1(layer_number) (Internal::new_SwitchLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer1, layer_number))
-#define SL2(layer_number) (Internal::new_SwitchLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer2, layer_number))
+#define SL(layer_number) (Internal::new_SwitchLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(Layer, layer_number))
+#define SL1(layer_number) (Internal::new_SwitchLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(Layer1, layer_number))
+#define SL2(layer_number) (Internal::new_SwitchLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(Layer2, layer_number))
 
 // UpDefaultLayer
-#define UPL(i) (Internal::new_UpDefaultLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer, i))
-#define UPL1(i) (Internal::new_UpDefaultLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer1, i))
-#define UPL2(i) (Internal::new_UpDefaultLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(&Layer2, i))
+#define UPL(i) (Internal::new_UpDefaultLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(Layer, i))
+#define UPL1(i) (Internal::new_UpDefaultLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(Layer1, i))
+#define UPL2(i) (Internal::new_UpDefaultLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(Layer2, i))
 
 // Tap
 #define TAP(...) (Internal::new_Tap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(__VA_ARGS__))
@@ -445,6 +415,6 @@ namespace hidpg
 #define GST_OR_NK(gesture_id, key_code) (Internal::new_GestureOrNK<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(gesture_id, key_code))
 
 // nullptr alias (_ * 7)
-#define _______ (static_cast<Command *>(nullptr))
+#define _______ (nullptr)
 
 } // namespace hidpg
