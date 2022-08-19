@@ -105,7 +105,8 @@ namespace hidpg
       return false;
     }
 
-    _listener_list().erase(*this);
+    auto i_item = List::iterator(*this);
+    _listener_list().erase(i_item);
     _is_listen = false;
 
     return true;
@@ -158,7 +159,8 @@ namespace hidpg
       return false;
     }
 
-    _listener_list().erase(*this);
+    auto i_item = List::iterator(*this);
+    _listener_list().erase(i_item);
     _is_listen = false;
 
     return true;
@@ -199,7 +201,8 @@ namespace hidpg
       return false;
     }
 
-    _listener_list().erase(*this);
+    auto i_item = List::iterator(*this);
+    _listener_list().erase(i_item);
     _is_listen = false;
 
     return true;
@@ -251,7 +254,8 @@ namespace hidpg
     }
 
     _hooked_command = nullptr;
-    _hooker_list().erase(*this);
+    auto i_item = List::iterator(*this);
+    _hooker_list().erase(i_item);
     _is_hook = false;
 
     return true;

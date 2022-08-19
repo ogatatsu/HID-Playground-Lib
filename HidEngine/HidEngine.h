@@ -45,7 +45,7 @@ namespace hidpg
   };
 
   // Combo
-  typedef etl::bidirectional_link<COMBO_LINK_ID> ComboLink;
+  using ComboLink = etl::bidirectional_link<COMBO_LINK_ID>;
 
   struct Combo : public ComboLink
   {
@@ -108,7 +108,7 @@ namespace hidpg
     const PreCommandTiming pre_command_timing;
   };
 
-  typedef etl::bidirectional_link<GESTURE_ID_LINK_ID> GestureIDLink;
+  using GestureIDLink = etl::bidirectional_link<GESTURE_ID_LINK_ID>;
 
   struct GestureID : public GestureIDLink
   {

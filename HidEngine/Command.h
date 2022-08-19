@@ -77,7 +77,7 @@ namespace hidpg
   //------------------------------------------------------------------+
   // BeforeOtherCommandPressEventListener
   //------------------------------------------------------------------+
-  typedef etl::bidirectional_link<BEFORE_OTHER_COMMAND_PRESS_EVENT_LISTENER_LINK_ID> BeforeOtherCommandPressEventListenerLink;
+  using BeforeOtherCommandPressEventListenerLink = etl::bidirectional_link<BEFORE_OTHER_COMMAND_PRESS_EVENT_LISTENER_LINK_ID>;
 
   class BeforeOtherCommandPressEventListener : public BeforeOtherCommandPressEventListenerLink
   {
@@ -91,14 +91,16 @@ namespace hidpg
     virtual void onBeforeOtherCommandPress(Command &command) = 0;
 
   private:
+    using List = etl::intrusive_list<BeforeOtherCommandPressEventListener, BeforeOtherCommandPressEventListenerLink>;
+
     static Command *getRootCommand(Command *command);
 
     // keymap(グローバル変数)の定義で特定のコマンドがnewされたときにコンストラクタ内でstartListenBeforeOtherCommandPress()が呼ばれる、
     // _listener_listはその内部で使用するので単純なstatic変数にすると初期化順序が問題となる可能性がある。
     // https://isocpp.org/wiki/faq/ctors#static-init-order-on-first-use
-    static etl::intrusive_list<BeforeOtherCommandPressEventListener, BeforeOtherCommandPressEventListenerLink> &_listener_list()
+    static List &_listener_list()
     {
-      static etl::intrusive_list<BeforeOtherCommandPressEventListener, BeforeOtherCommandPressEventListenerLink> list;
+      static List list;
       return list;
     };
 
@@ -109,7 +111,7 @@ namespace hidpg
   //------------------------------------------------------------------+
   // BeforeMouseMoveEventListener
   //------------------------------------------------------------------+
-  typedef etl::bidirectional_link<BEFORE_MOUSE_MOVE_EVENT_LISTENER_LINK_ID> BeforeMouseMoveEventListenerLink;
+  using BeforeMouseMoveEventListenerLink = etl::bidirectional_link<BEFORE_MOUSE_MOVE_EVENT_LISTENER_LINK_ID>;
 
   class BeforeMouseMoveEventListener : public BeforeMouseMoveEventListenerLink
   {
@@ -123,10 +125,12 @@ namespace hidpg
     virtual void onBeforeMouseMove(uint8_t mouse_id, int16_t delta_x, int16_t delta_y) = 0;
 
   private:
+    using List = etl::intrusive_list<BeforeMouseMoveEventListener, BeforeMouseMoveEventListenerLink>;
+
     // Construct On First Use Idiom
-    static etl::intrusive_list<BeforeMouseMoveEventListener, BeforeMouseMoveEventListenerLink> &_listener_list()
+    static List &_listener_list()
     {
-      static etl::intrusive_list<BeforeMouseMoveEventListener, BeforeMouseMoveEventListenerLink> list;
+      static List list;
       return list;
     };
 
@@ -136,7 +140,7 @@ namespace hidpg
   //------------------------------------------------------------------+
   // BeforeGestureEventListener
   //------------------------------------------------------------------+
-  typedef etl::bidirectional_link<BEFORE_GESTURE_EVENT_LISTENER_LINK_ID> BeforeGestureEventListenerLink;
+  using BeforeGestureEventListenerLink = etl::bidirectional_link<BEFORE_GESTURE_EVENT_LISTENER_LINK_ID>;
 
   class BeforeGestureEventListener : public BeforeGestureEventListenerLink
   {
@@ -150,10 +154,12 @@ namespace hidpg
     virtual void onBeforeGesture(uint8_t gesture_id, uint8_t mouse_id) = 0;
 
   private:
+    using List = etl::intrusive_list<BeforeGestureEventListener, BeforeGestureEventListenerLink>;
+
     // Construct On First Use Idiom
-    static etl::intrusive_list<BeforeGestureEventListener, BeforeGestureEventListenerLink> &_listener_list()
+    static List &_listener_list()
     {
-      static etl::intrusive_list<BeforeGestureEventListener, BeforeGestureEventListenerLink> list;
+      static List list;
       return list;
     };
 
@@ -163,7 +169,7 @@ namespace hidpg
   //------------------------------------------------------------------+
   // CommandHook
   //------------------------------------------------------------------+
-  typedef etl::bidirectional_link<COMMAND_HOOK_LINK_ID> CommandHookLink;
+  using CommandHookLink = etl::bidirectional_link<COMMAND_HOOK_LINK_ID>;
 
   class CommandHook : public CommandHookLink
   {
@@ -180,10 +186,12 @@ namespace hidpg
     virtual void onHookRelease() = 0;
 
   private:
+    using List = etl::intrusive_list<CommandHook, CommandHookLink>;
+    
     // Construct On First Use Idiom
-    static etl::intrusive_list<CommandHook, CommandHookLink> &_hooker_list()
+    static List &_hooker_list()
     {
-      static etl::intrusive_list<CommandHook, CommandHookLink> list;
+      static List list;
       return list;
     };
 

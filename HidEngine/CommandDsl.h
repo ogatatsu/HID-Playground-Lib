@@ -77,7 +77,7 @@ namespace hidpg
     NotNullCommandPtr new_Layering(LayerClass &layer, const CommandPtr (&commands)[HID_ENGINE_LAYER_SIZE])
     {
       static etl::array<CommandPtr, HID_ENGINE_LAYER_SIZE> _commands;
-      _commands.assign(etl::begin(commands), etl::end(commands));
+      _commands.assign(std::begin(commands), std::end(commands));
       static uint8_t buf[sizeof(Layering)];
 
       return new (buf) Layering(layer, _commands);
@@ -134,7 +134,7 @@ namespace hidpg
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3, size_t N>
     NotNullCommandPtr new_TapDance(const TapDance::Pair (&pairs)[N], TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
     {
-      static etl::vector<Internal::TapDance::Pair, N> _pairs{etl::begin(pairs), etl::end(pairs)};
+      static etl::vector<Internal::TapDance::Pair, N> _pairs{std::begin(pairs), std::end(pairs)};
       static etl::span<uint8_t> mouse_ids;
       static uint8_t buf[sizeof(TapDance)];
 
@@ -147,9 +147,9 @@ namespace hidpg
                                                       uint16_t move_threshold = 4,
                                                       TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
     {
-      static etl::vector<Internal::TapDance::Pair, N1> _pairs{etl::begin(pairs), etl::end(pairs)};
+      static etl::vector<Internal::TapDance::Pair, N1> _pairs{std::begin(pairs), std::end(pairs)};
       static etl::array<uint8_t, N2> _mouse_ids;
-      _mouse_ids.assign(etl::begin(mouse_ids), etl::end(mouse_ids));
+      _mouse_ids.assign(std::begin(mouse_ids), std::end(mouse_ids));
       static uint8_t buf[sizeof(TapDance)];
 
       return new (buf) TapDance(_pairs, _mouse_ids, move_threshold, behavior);
@@ -237,7 +237,7 @@ namespace hidpg
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3, size_t N>
     NotNullCommandPtr new_Multi(const NotNullCommandPtr (&commands)[N])
     {
-      static etl::vector<NotNullCommandPtr, N> _commands{etl::begin(commands), etl::end(commands)};
+      static etl::vector<NotNullCommandPtr, N> _commands{std::begin(commands), std::end(commands)};
       static uint8_t buf[sizeof(Multi)];
 
       return new (buf) Multi(_commands);
@@ -260,7 +260,7 @@ namespace hidpg
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3, size_t N>
     NotNullCommandPtr new_Cycle(const NotNullCommandPtr (&commands)[N])
     {
-      static etl::vector<NotNullCommandPtr, N> _commands{etl::begin(commands), etl::end(commands)};
+      static etl::vector<NotNullCommandPtr, N> _commands{std::begin(commands), std::end(commands)};
       static uint8_t buf[sizeof(Cycle)];
 
       return new (buf) Cycle(_commands);
@@ -269,7 +269,7 @@ namespace hidpg
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3, size_t N>
     NotNullCommandPtr new_CyclePhaseShift(const NotNullCommandPtr (&commands)[N])
     {
-      static etl::vector<NotNullCommandPtr, N> _commands{etl::begin(commands), etl::end(commands)};
+      static etl::vector<NotNullCommandPtr, N> _commands{std::begin(commands), std::end(commands)};
       static uint8_t buf[sizeof(CyclePhaseShift)];
 
       return new (buf) CyclePhaseShift(_commands);

@@ -54,7 +54,7 @@ namespace hidpg
   static inline NotNullCommandPtr LY(const CommandPtr (&commands)[HID_ENGINE_LAYER_SIZE])
   {
     auto _commands = new etl::array<CommandPtr, HID_ENGINE_LAYER_SIZE>;
-    _commands->assign(etl::begin(commands), etl::end(commands));
+    _commands->assign(std::begin(commands), std::end(commands));
 
     return (new Internal::Layering(Layer, *_commands));
   }
@@ -62,7 +62,7 @@ namespace hidpg
   static inline NotNullCommandPtr LY1(const CommandPtr (&commands)[HID_ENGINE_LAYER_SIZE])
   {
     auto _commands = new etl::array<CommandPtr, HID_ENGINE_LAYER_SIZE>;
-    _commands->assign(etl::begin(commands), etl::end(commands));
+    _commands->assign(std::begin(commands), std::end(commands));
 
     return (new Internal::Layering(Layer1, *_commands));
   }
@@ -70,7 +70,7 @@ namespace hidpg
   static inline NotNullCommandPtr LY2(const CommandPtr (&commands)[HID_ENGINE_LAYER_SIZE])
   {
     auto _commands = new etl::array<CommandPtr, HID_ENGINE_LAYER_SIZE>;
-    _commands->assign(etl::begin(commands), etl::end(commands));
+    _commands->assign(std::begin(commands), std::end(commands));
 
     return (new Internal::Layering(Layer2, *_commands));
   }
@@ -124,7 +124,7 @@ namespace hidpg
   template <uint8_t N>
   static NotNullCommandPtr TD(const Internal::TapDance::Pair (&pairs)[N], TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
   {
-    auto _pairs = new etl::vector<Internal::TapDance::Pair, N>{etl::begin(pairs), etl::end(pairs)};
+    auto _pairs = new etl::vector<Internal::TapDance::Pair, N>{std::begin(pairs), std::end(pairs)};
     auto mouse_ids = new etl::span<uint8_t>;
 
     return (new Internal::TapDance(*_pairs, *mouse_ids, 0, behavior));
@@ -136,9 +136,9 @@ namespace hidpg
                                 uint16_t move_threshold = 4,
                                 TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
   {
-    auto _pairs = new etl::vector<Internal::TapDance::Pair, N1>{etl::begin(pairs), etl::end(pairs)};
+    auto _pairs = new etl::vector<Internal::TapDance::Pair, N1>{std::begin(pairs), std::end(pairs)};
     auto _mouse_ids = new etl::array<uint8_t, N2>;
-    _mouse_ids->assign(etl::begin(mouse_ids), etl::end(mouse_ids));
+    _mouse_ids->assign(std::begin(mouse_ids), std::end(mouse_ids));
 
     return (new Internal::TapDance(*_pairs, *_mouse_ids, move_threshold, behavior));
   }
@@ -172,7 +172,7 @@ namespace hidpg
   template <uint8_t N>
   static NotNullCommandPtr MLT(const NotNullCommandPtr (&commands)[N])
   {
-    auto _commands = new etl::vector<NotNullCommandPtr, N>{etl::begin(commands), etl::end(commands)};
+    auto _commands = new etl::vector<NotNullCommandPtr, N>{std::begin(commands), std::end(commands)};
     return (new Internal::Multi(*_commands));
   }
 
@@ -183,14 +183,14 @@ namespace hidpg
   template <uint8_t N>
   static inline NotNullCommandPtr CYC(const NotNullCommandPtr (&commands)[N])
   {
-    auto _commands = new etl::vector<NotNullCommandPtr, N>{etl::begin(commands), etl::end(commands)};
+    auto _commands = new etl::vector<NotNullCommandPtr, N>{std::begin(commands), std::end(commands)};
     return new Internal::Cycle(*_commands);
   }
 
   template <uint8_t N>
   static inline NotNullCommandPtr CYC_PS(const NotNullCommandPtr (&commands)[N])
   {
-    auto _commands = new etl::vector<NotNullCommandPtr, N>{etl::begin(commands), etl::end(commands)};
+    auto _commands = new etl::vector<NotNullCommandPtr, N>{std::begin(commands), std::end(commands)};
     return (new Internal::CyclePhaseShift(*_commands));
   }
 

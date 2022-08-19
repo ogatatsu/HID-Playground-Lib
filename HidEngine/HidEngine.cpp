@@ -217,7 +217,9 @@ namespace hidpg
             if (combo.first_id_rereased && combo.second_id_rereased)
             {
               combo.command->release();
-              success_combo_list.erase(combo);
+
+              auto i_item = etl::intrusive_list<Combo, ComboLink>::iterator(combo);
+              success_combo_list.erase(i_item);
             }
             return;
           }
@@ -229,7 +231,9 @@ namespace hidpg
             if (combo.first_id_rereased && combo.second_id_rereased)
             {
               combo.command->release();
-              success_combo_list.erase(combo);
+
+              auto i_item = etl::intrusive_list<Combo, ComboLink>::iterator(combo);
+              success_combo_list.erase(i_item);
             }
             return;
           }
@@ -490,7 +494,8 @@ namespace hidpg
         return;
       }
 
-      _started_gesture_id_list.erase(gesture_id);
+      auto i_item = etl::intrusive_list<GestureID, GestureIDLink>::iterator(gesture_id);
+      _started_gesture_id_list.erase(i_item);
       gesture_id.clear();
 
       if (_started_gesture_id_list.empty())
