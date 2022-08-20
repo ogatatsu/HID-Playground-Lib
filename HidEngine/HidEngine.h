@@ -56,6 +56,7 @@ namespace hidpg
     const uint8_t second_key_id;
     const NotNullCommandPtr command;
     const uint32_t combo_term_ms;
+
     bool first_id_rereased;
     bool second_id_rereased;
   };
@@ -94,7 +95,11 @@ namespace hidpg
           left_command(left_command),
           right_command(right_command),
           pre_command(pre_command),
-          pre_command_timing(pre_command_timing) {}
+          pre_command_timing(pre_command_timing),
+          is_pre_command_pressed(false),
+          total_distance_x(0),
+          total_distance_y(0),
+          instead_of_first_gesture_millis(etl::nullopt) {}
 
     const uint8_t gesture_id;
     const uint8_t mouse_id;
@@ -106,20 +111,20 @@ namespace hidpg
     const CommandPtr right_command;
     const CommandPtr pre_command;
     const PreCommandTiming pre_command_timing;
+
+    bool is_pre_command_pressed;
+    int32_t total_distance_x;
+    int32_t total_distance_y;
+    etl::optional<uint32_t> instead_of_first_gesture_millis;
   };
 
   using GestureIDLink = etl::bidirectional_link<GESTURE_ID_LINK_ID>;
 
   struct GestureID : public GestureIDLink
   {
-    GestureID(uint8_t gesture_id) : _gesture_id(gesture_id) { clear(); }
-    uint8_t getID() const { return _gesture_id; }
-    void setPreCommandPressFlag(bool flag) { _is_pre_command_pressed = flag; }
-    bool getPreCommandPressFlag() { return _is_pre_command_pressed; }
+    GestureID(uint8_t id) : id(id) { clear(); }
 
-  private:
-    uint8_t _gesture_id;
-    bool _is_pre_command_pressed;
+    const uint8_t id;
   };
 
   // Encoder
@@ -129,8 +134,8 @@ namespace hidpg
         : encoder_id(encoder_id), counterclockwise_command(counterclockwise_command), clockwise_command(clockwise_command) {}
 
     const uint8_t encoder_id;
-    NotNullCommandPtr counterclockwise_command;
-    NotNullCommandPtr clockwise_command;
+    const NotNullCommandPtr counterclockwise_command;
+    const NotNullCommandPtr clockwise_command;
   };
 
   namespace Internal
@@ -173,11 +178,11 @@ namespace hidpg
       static void performKeyRelease(uint8_t key_id);
 
       static void mouseMove_impl(uint8_t mouse_id);
-      static void processGestureX(Gesture &gesture, GestureID &gesture_id);
-      static void processGestureY(Gesture &gesture, GestureID &gesture_id);
-      static void performGestureX(Gesture &gesture, GestureID &gesture_id, Command *command);
-      static void performGestureY(Gesture &gesture, GestureID &gesture_id, Command *command);
-      static bool processPreCommandInsteadOfFirstGesture(Gesture &gesture, GestureID &gesture_id);
+      static void processGestureX(Gesture &gesture);
+      static void processGestureY(Gesture &gesture);
+      static void performGestureX(Gesture &gesture, Command *command);
+      static void performGestureY(Gesture &gesture, Command *command);
+      static bool processPreCommandInsteadOfFirstGesture(Gesture &gesture);
 
       static void rotateEncoder_impl(uint8_t encoder_id);
 
@@ -199,8 +204,6 @@ namespace hidpg
       static void startComboTermTimer(uint32_t ms) { _combo_term_timer.startTimer(ms); };
 
       static etl::intrusive_list<GestureID, GestureIDLink> _started_gesture_id_list;
-      static int32_t _total_distance_x;
-      static int32_t _total_distance_y;
     };
 
     //------------------------------------------------------------------+

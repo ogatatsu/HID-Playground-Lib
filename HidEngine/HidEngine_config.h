@@ -49,6 +49,11 @@
 #define HID_ENGINE_TAPPING_TERM_MS 250
 #endif
 
+// PreCommand::InsteadOfFirstGestureを設定した時にPreCommandが実行された後、次のジェスチャが実行されないようにする時間
+#ifndef HID_ENGINE_WAIT_TIME_AFTER_INSTEAD_OF_FIRST_GESTURE_MS
+#define HID_ENGINE_WAIT_TIME_AFTER_INSTEAD_OF_FIRST_GESTURE_MS 250
+#endif
+
 // HidEngineタスクのスタックサイズ
 #ifndef HID_ENGINE_TASK_STACK_SIZE
 #define HID_ENGINE_TASK_STACK_SIZE 256
