@@ -163,9 +163,9 @@ namespace hidpg
     return (new Internal::RadialRotate(deci_degree));
   }
 
-  static inline NotNullCommandPtr OE(uint32_t ms, NotNullCommandPtr command) { return (new Internal::OnceEvery(ms, command)); }
+  static inline NotNullCommandPtr OE(NotNullCommandPtr command, uint32_t ms) { return (new Internal::OnceEvery(command, ms)); }
 
-  static inline NotNullCommandPtr NTE(uint32_t ms, NotNullCommandPtr command) { return (new Internal::NTimesEvery(ms, command)); }
+  static inline NotNullCommandPtr NTE(NotNullCommandPtr command, uint32_t ms) { return (new Internal::NTimesEvery(command, ms)); }
 
   static inline NotNullCommandPtr IF(bool (*func)(), NotNullCommandPtr true_command, NotNullCommandPtr false_command) { return (new Internal::If(func, true_command, false_command)); }
 

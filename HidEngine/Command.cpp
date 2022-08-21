@@ -526,8 +526,8 @@ namespace hidpg
     {
       for (auto &pair : _pairs)
       {
-        pair.tap_command->setParent(this);
         pair.hold_command->setParent(this);
+        pair.tap_command->setParent(this);
       }
     }
 
@@ -867,8 +867,8 @@ namespace hidpg
     //------------------------------------------------------------------+
     // OnceEvery
     //------------------------------------------------------------------+
-    OnceEvery::OnceEvery(uint32_t ms, NotNullCommandPtr command)
-        : _ms(ms), _command(command), _last_press_millis(0), _has_pressed(false)
+    OnceEvery::OnceEvery(NotNullCommandPtr command, uint32_t ms)
+        : _command(command), _ms(ms), _last_press_millis(0), _has_pressed(false)
     {
       _command->setParent(this);
     }
@@ -900,8 +900,8 @@ namespace hidpg
     //------------------------------------------------------------------+
     // NTimesEvery
     //------------------------------------------------------------------+
-    NTimesEvery::NTimesEvery(uint32_t ms, NotNullCommandPtr command)
-        : _ms(ms), _command(command), _last_press_millis(0), _has_pressed(false)
+    NTimesEvery::NTimesEvery(NotNullCommandPtr command, uint32_t ms)
+        : _command(command), _ms(ms), _last_press_millis(0), _has_pressed(false)
     {
       _command->setParent(this);
     }

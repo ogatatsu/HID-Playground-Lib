@@ -187,7 +187,7 @@ namespace hidpg
 
   private:
     using List = etl::intrusive_list<CommandHook, CommandHookLink>;
-    
+
     // Construct On First Use Idiom
     static List &_hooker_list()
     {
@@ -379,8 +379,8 @@ namespace hidpg
     public:
       struct Pair
       {
-        NotNullCommandPtr tap_command;
         NotNullCommandPtr hold_command;
+        NotNullCommandPtr tap_command;
       };
 
       TapDance(etl::span<Pair> pairs, etl::span<uint8_t> mouse_ids, uint16_t move_threshold, TapHoldBehavior behavior);
@@ -569,13 +569,13 @@ namespace hidpg
     class OnceEvery : public Command
     {
     public:
-      OnceEvery(uint32_t ms, NotNullCommandPtr command);
+      OnceEvery(NotNullCommandPtr command, uint32_t ms);
       void onPress(uint8_t n_times) override;
       uint8_t onRelease() override;
 
     private:
-      const uint32_t _ms;
       const NotNullCommandPtr _command;
+      const uint32_t _ms;
       uint32_t _last_press_millis;
       bool _has_pressed;
       uint8_t _n_times;
@@ -587,13 +587,13 @@ namespace hidpg
     class NTimesEvery : public Command
     {
     public:
-      NTimesEvery(uint32_t _ms, NotNullCommandPtr command);
+      NTimesEvery(NotNullCommandPtr command, uint32_t _ms);
       void onPress(uint8_t n_times) override;
       uint8_t onRelease() override;
 
     private:
-      const uint32_t _ms;
       const NotNullCommandPtr _command;
+      const uint32_t _ms;
       uint32_t _last_press_millis;
       bool _has_pressed;
       uint8_t _n_times;
