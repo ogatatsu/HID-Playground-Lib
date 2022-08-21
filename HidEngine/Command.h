@@ -578,7 +578,6 @@ namespace hidpg
       const uint32_t _ms;
       uint32_t _last_press_millis;
       bool _has_pressed;
-      uint8_t _n_times;
     };
 
     //------------------------------------------------------------------+
@@ -596,7 +595,6 @@ namespace hidpg
       const uint32_t _ms;
       uint32_t _last_press_millis;
       bool _has_pressed;
-      uint8_t _n_times;
     };
 
     //------------------------------------------------------------------+
@@ -667,7 +665,6 @@ namespace hidpg
       const NotNullCommandPtr _command;
       const uint32_t _delay_ms;
       const uint32_t _interval_ms;
-      uint8_t _n_times;
     };
 
     //------------------------------------------------------------------+
@@ -711,11 +708,7 @@ namespace hidpg
     {
 
     protected:
-      void onPress(uint8_t n_times) override;
       uint8_t onRelease() override;
-
-    private:
-      uint8_t _n_times;
     };
 
   } // namespace Internal

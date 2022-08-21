@@ -875,8 +875,6 @@ namespace hidpg
 
     void OnceEvery::onPress(uint8_t n_times)
     {
-      _n_times = n_times;
-
       uint32_t current_millis = millis();
       if (static_cast<uint32_t>(current_millis - _last_press_millis) >= _ms)
       {
@@ -894,7 +892,7 @@ namespace hidpg
         _has_pressed = false;
       }
 
-      return _n_times;
+      return UINT8_MAX;
     }
 
     //------------------------------------------------------------------+
@@ -908,8 +906,6 @@ namespace hidpg
 
     void NTimesEvery::onPress(uint8_t n_times)
     {
-      _n_times = n_times;
-
       uint32_t ms = _ms / n_times;
 
       uint32_t current_millis = millis();
@@ -929,7 +925,7 @@ namespace hidpg
         _has_pressed = false;
       }
 
-      return _n_times;
+      return UINT8_MAX;
     }
 
     //------------------------------------------------------------------+
@@ -1015,7 +1011,6 @@ namespace hidpg
 
     void Repeat::onPress(uint8_t n_times)
     {
-      _n_times = n_times;
       CommandTapper.tap(_command);
       startTimer(_delay_ms);
     }
@@ -1023,7 +1018,7 @@ namespace hidpg
     uint8_t Repeat::onRelease()
     {
       stopTimer();
-      return _n_times;
+      return 1;
     }
 
     void Repeat::onTimer()
@@ -1058,7 +1053,7 @@ namespace hidpg
     {
       if (_commands.size() == 0)
       {
-        return 1;
+        return UINT8_MAX;
       }
 
       _commands[_idx]->release();
@@ -1094,7 +1089,7 @@ namespace hidpg
     {
       if (_commands.size() == 0)
       {
-        return 1;
+        return UINT8_MAX;
       }
 
       _commands[_idx]->press();
@@ -1105,14 +1100,9 @@ namespace hidpg
     //------------------------------------------------------------------+
     // NoOperation
     //------------------------------------------------------------------+
-    void NoOperation::onPress(uint8_t n_times)
-    {
-      _n_times = n_times;
-    }
-
     uint8_t NoOperation::onRelease()
     {
-      return _n_times;
+      return UINT8_MAX;
     }
 
   } // namespace Internal

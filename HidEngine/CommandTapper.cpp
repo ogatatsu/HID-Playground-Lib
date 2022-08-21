@@ -103,7 +103,8 @@ namespace hidpg
     {
       if (_state == State::Press)
       {
-        _running.num_of_taps -= _running.command->release();
+        uint8_t n_times = _running.command->release();
+        _running.num_of_taps = std::max(_running.num_of_taps - n_times, 0);
 
         // まだタップ回数が残っている場合同じコマンドで再度タップ
         if (_running.num_of_taps > 0)
