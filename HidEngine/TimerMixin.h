@@ -48,7 +48,7 @@ namespace hidpg
     virtual void onTimer() {}
 
   private:
-    struct Info
+    struct Data
     {
       TimerMixin *cls;
       unsigned int timer_number;
@@ -64,8 +64,8 @@ namespace hidpg
     unsigned int _num_of_timer;
 
     static StaticTimer_t _timer_buffers[HID_ENGINE_TIMER_MIXIN_MAX_TIMER_COUNT];
-    static Info _info_buffers[HID_ENGINE_TIMER_MIXIN_MAX_TIMER_COUNT];
-    static etl::forward_list<Info *, HID_ENGINE_TIMER_MIXIN_MAX_TIMER_COUNT> _pool;
+    static Data _data_buffers[HID_ENGINE_TIMER_MIXIN_MAX_TIMER_COUNT];
+    static etl::forward_list<Data *, HID_ENGINE_TIMER_MIXIN_MAX_TIMER_COUNT> _pool;
   };
 
 } // namespace hidpg

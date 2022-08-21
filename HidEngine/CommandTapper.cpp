@@ -23,7 +23,6 @@
 */
 
 #include "CommandTapper.h"
-#include "ArduinoMacro.h"
 #include "FreeRTOS.h"
 #include "HidEngineTask.h"
 
@@ -32,8 +31,8 @@ namespace hidpg
   namespace Internal
   {
 
-    etl::deque<CommandTapperClass::Info, HID_ENGINE_COMMAND_TAPPER_QUEUE_SIZE> CommandTapperClass::_deque;
-    CommandTapperClass::Info CommandTapperClass::_running = {.command = nullptr, .num_of_taps = 0, .tap_speed_ms = 0};
+    etl::deque<CommandTapperClass::Data, HID_ENGINE_COMMAND_TAPPER_QUEUE_SIZE> CommandTapperClass::_deque;
+    CommandTapperClass::Data CommandTapperClass::_running = {.command = nullptr, .num_of_taps = 0, .tap_speed_ms = 0};
     CommandTapperClass::State CommandTapperClass::_state = CommandTapperClass::State::NotRunning;
     TimerHandle_t CommandTapperClass::_timer_handle = nullptr;
     StaticTimer_t CommandTapperClass::_timer_buffer;
@@ -68,18 +67,18 @@ namespace hidpg
       // キューが空で今動いてるコマンドと同じならタップ回数を足す
       if (_deque.empty() && _running.command == command && _running.tap_speed_ms == tap_speed_ms)
       {
-        _running.num_of_taps = constrain(_running.num_of_taps + n_times, 0, UINT8_MAX);
+        _running.num_of_taps = std::min(_running.num_of_taps + n_times, UINT8_MAX);
         return true;
       }
 
       // キューが空でないならキューの最後のコマンドと比較して同じならタップ回数を足す
       if (_deque.empty() == false)
       {
-        Info &last = _deque.back();
+        Data &last = _deque.back();
 
         if (last.command == command && last.tap_speed_ms == tap_speed_ms)
         {
-          last.num_of_taps = constrain(last.num_of_taps + n_times, 0, UINT8_MAX);
+          last.num_of_taps = std::min(last.num_of_taps + n_times, UINT8_MAX);
           return true;
         }
       }
@@ -87,7 +86,7 @@ namespace hidpg
       // キューに空きがあるなら追加
       if (_deque.available())
       {
-        Info data = {
+        Data data = {
             .command = command,
             .num_of_taps = n_times,
             .tap_speed_ms = tap_speed_ms,

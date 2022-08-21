@@ -554,7 +554,7 @@ namespace hidpg
 
         Hid.waitReady();
         _read_encoder_step_cb(encoder_id, step);
-        uint8_t step_u8 = constrain(abs(step), 0, UINT8_MAX);
+        uint8_t step_u8 = std::min<int32_t>(abs(step), UINT8_MAX);
 
         if (step >= 0)
         {

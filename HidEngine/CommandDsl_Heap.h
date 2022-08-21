@@ -24,7 +24,6 @@
 
 #pragma once
 
-#include "ArduinoMacro.h"
 #include "Command.h"
 #include "HidEngine.h"
 #include "etl/array.h"
@@ -159,7 +158,7 @@ namespace hidpg
 
   static inline NotNullCommandPtr RD_ROT(int16_t deci_degree)
   {
-    deci_degree = constrain(deci_degree, -3600, 3600);
+    deci_degree = etl::clamp<int16_t>(deci_degree, -3600, 3600);
     return (new Internal::RadialRotate(deci_degree));
   }
 

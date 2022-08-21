@@ -30,12 +30,12 @@ using namespace hidpg::Internal;
 namespace hidpg
 {
   StaticTimer_t TimerMixin::_timer_buffers[HID_ENGINE_TIMER_MIXIN_MAX_TIMER_COUNT];
-  TimerMixin::Info TimerMixin::_info_buffers[HID_ENGINE_TIMER_MIXIN_MAX_TIMER_COUNT];
-  etl::forward_list<TimerMixin::Info *, HID_ENGINE_TIMER_MIXIN_MAX_TIMER_COUNT> TimerMixin::_pool;
+  TimerMixin::Data TimerMixin::_data_buffers[HID_ENGINE_TIMER_MIXIN_MAX_TIMER_COUNT];
+  etl::forward_list<TimerMixin::Data *, HID_ENGINE_TIMER_MIXIN_MAX_TIMER_COUNT> TimerMixin::_pool;
 
   void TimerMixin::timer_callback(TimerHandle_t timer_handle)
   {
-    Info *data = static_cast<TimerMixin::Info *>(pvTimerGetTimerID(timer_handle));
+    Data *data = static_cast<TimerMixin::Data *>(pvTimerGetTimerID(timer_handle));
 
     // Software Timersのスタックを消費しないようにstaticで宣言
     static EventData evt;
@@ -54,10 +54,10 @@ namespace hidpg
   {
     for (int i = 0; i < HID_ENGINE_TIMER_MIXIN_MAX_TIMER_COUNT; i++)
     {
-      _info_buffers[i].cls = nullptr;
-      _info_buffers[i].timer_number = 0;
-      _info_buffers[i].timer_handle = xTimerCreateStatic("TimerMixin", 1, pdFALSE, &(_info_buffers[i]), timer_callback, &(_timer_buffers[i]));
-      _pool.push_front(&(_info_buffers[i]));
+      _data_buffers[i].cls = nullptr;
+      _data_buffers[i].timer_number = 0;
+      _data_buffers[i].timer_handle = xTimerCreateStatic("TimerMixin", 1, pdFALSE, &(_data_buffers[i]), timer_callback, &(_timer_buffers[i]));
+      _pool.push_front(&(_data_buffers[i]));
     }
   }
 
@@ -72,7 +72,7 @@ namespace hidpg
       return false;
     }
 
-    Info *data = _pool.front();
+    Data *data = _pool.front();
     _pool.pop_front();
 
     data->cls = this;

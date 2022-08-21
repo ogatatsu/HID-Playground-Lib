@@ -664,8 +664,8 @@ namespace hidpg
       {
         if (id == mouse_id)
         {
-          _delta_x_sum = constrain(_delta_x_sum + delta_x, INT16_MIN, INT16_MAX);
-          _delta_y_sum = constrain(_delta_y_sum + delta_y, INT16_MIN, INT16_MAX);
+          _delta_x_sum = etl::clamp(_delta_x_sum + delta_x, INT16_MIN, INT16_MAX);
+          _delta_y_sum = etl::clamp(_delta_y_sum + delta_y, INT16_MIN, INT16_MAX);
           if (abs(_delta_x_sum) >= _move_threshold || abs(_delta_y_sum) >= _move_threshold)
           {
             if (_state == State::Pressed)

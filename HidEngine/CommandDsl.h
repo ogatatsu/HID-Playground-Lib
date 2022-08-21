@@ -207,7 +207,7 @@ namespace hidpg
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
     NotNullCommandPtr new_RadialRotate(int16_t deci_degree)
     {
-      deci_degree = constrain(deci_degree, -3600, 3600);
+      deci_degree = etl::clamp<int16_t>(deci_degree, -3600, 3600);
 
       static uint8_t buf[sizeof(RadialRotate)];
       return new (buf) RadialRotate(deci_degree);

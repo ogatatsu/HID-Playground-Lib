@@ -24,6 +24,7 @@
 
 #include "Layer.h"
 #include "ArduinoMacro.h"
+#include "etl/algorithm.h"
 
 namespace hidpg
 {
@@ -125,7 +126,7 @@ namespace hidpg
 
   layer_bitmap_t LayerClass::getState()
   {
-    uint8_t dflt = constrain(_default, 0, HID_ENGINE_LAYER_SIZE - 1);
+    uint8_t dflt = etl::clamp<uint8_t>(_default, 0, HID_ENGINE_LAYER_SIZE - 1);
 
     layer_bitmap_t result = (1UL << dflt) | _toggle;
 

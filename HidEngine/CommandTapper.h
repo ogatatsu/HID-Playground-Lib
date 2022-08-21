@@ -42,7 +42,7 @@ namespace hidpg
       static void onTimer();
       static void timer_callback(TimerHandle_t timer_handle);
 
-      struct Info
+      struct Data
       {
         Command *command;
         uint8_t num_of_taps;
@@ -57,8 +57,8 @@ namespace hidpg
         ChangeCommandInTheNext,
       };
 
-      static etl::deque<Info, HID_ENGINE_COMMAND_TAPPER_QUEUE_SIZE> _deque;
-      static Info _running;
+      static etl::deque<Data, HID_ENGINE_COMMAND_TAPPER_QUEUE_SIZE> _deque;
+      static Data _running;
       static State _state;
       static TimerHandle_t _timer_handle;
       static StaticTimer_t _timer_buffer;
