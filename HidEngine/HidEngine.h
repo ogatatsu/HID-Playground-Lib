@@ -147,7 +147,7 @@ namespace hidpg
 
     public:
       using read_mouse_delta_callback_t = void (*)(uint8_t mouse_id, int16_t &delta_x, int16_t &delta_y);
-      using read_encoder_step_callback_t = void (*)(uint8_t encoder_id, int32_t &step);
+      using read_encoder_step_callback_t = void (*)(uint8_t encoder_id, int16_t &step);
 
       static void setKeymap(etl::span<Key> keymap);
       static void setComboMap(etl::span<Combo> combo_map);

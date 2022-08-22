@@ -308,11 +308,18 @@ namespace hidpg
     //------------------------------------------------------------------+
     void HidEngineClass::mouseMove_impl(uint8_t mouse_id)
     {
+      if (_read_mouse_delta_cb == nullptr)
+      {
+        return;
+      }
+
       Hid.waitReady();
       int16_t delta_x = 0, delta_y = 0;
-      if (_read_mouse_delta_cb != nullptr)
+      _read_mouse_delta_cb(mouse_id, delta_x, delta_y);
+
+      if (delta_x == 0 && delta_y == 0)
       {
-        _read_mouse_delta_cb(mouse_id, delta_x, delta_y);
+        return;
       }
 
       BeforeMouseMoveEventListener::_notifyBeforeMouseMove(mouse_id, delta_x, delta_y);
@@ -375,10 +382,7 @@ namespace hidpg
       }
       else
       {
-        if (!(delta_x == 0 && delta_y == 0))
-        {
-          Hid.mouseMove(delta_x, delta_y);
-        }
+        Hid.mouseMove(delta_x, delta_y);
       }
     }
 
@@ -532,38 +536,38 @@ namespace hidpg
     //------------------------------------------------------------------+
     void HidEngineClass::rotateEncoder_impl(uint8_t encoder_id)
     {
-      Encoder *curr_encoder = nullptr;
-
-      for (auto &encoder : _encoder_map)
-      {
-        if (encoder.encoder_id == encoder_id)
-        {
-          curr_encoder = &encoder;
-          break;
-        }
-      }
-
-      if (curr_encoder == nullptr)
+      if (_read_encoder_step_cb == nullptr)
       {
         return;
       }
 
-      if (_read_encoder_step_cb != nullptr)
+      Encoder *encoder = nullptr;
+      for (auto &enc : _encoder_map)
       {
-        int32_t step;
-
-        Hid.waitReady();
-        _read_encoder_step_cb(encoder_id, step);
-        uint8_t step_u8 = std::min<int32_t>(abs(step), UINT8_MAX);
-
-        if (step >= 0)
+        if (enc.encoder_id == encoder_id)
         {
-          CommandTapper.tap(curr_encoder->clockwise_command, step_u8);
+          encoder = &enc;
+          break;
         }
-        else
-        {
-          CommandTapper.tap(curr_encoder->counterclockwise_command, step_u8);
-        }
+      }
+
+      if (encoder == nullptr)
+      {
+        return;
+      }
+
+      Hid.waitReady();
+      int16_t step = 0;
+      _read_encoder_step_cb(encoder_id, step);
+      uint8_t step_u8 = std::min(abs(step), UINT8_MAX);
+
+      if (step > 0)
+      {
+        CommandTapper.tap(encoder->clockwise_command, step_u8);
+      }
+      else if (step < 0)
+      {
+        CommandTapper.tap(encoder->counterclockwise_command, step_u8);
       }
     }
 
