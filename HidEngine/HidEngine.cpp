@@ -158,11 +158,12 @@ namespace hidpg
       {
       case Action::Press:
       {
-        // コンボ実行中のidは新しい入力は受け付けない
+        // コンボ実行中のid（片方のキーだけreleaseされて再度pressされた。）の場合は新しいコンボを開始しないで通常のKeyPress
         for (auto &combo : success_combo_list)
         {
           if (combo.first_key_id == key_id || combo.second_key_id == key_id)
           {
+            performKeyPress(key_id.value());
             return;
           }
         }
@@ -212,7 +213,7 @@ namespace hidpg
         // combo実行中のidがreleaseされた場合
         for (auto &combo : success_combo_list)
         {
-          if (combo.first_key_id == key_id)
+          if (combo.first_key_id == key_id && combo.first_id_rereased == false)
           {
             combo.first_id_rereased = true;
 
@@ -226,7 +227,7 @@ namespace hidpg
             return;
           }
 
-          if (combo.second_key_id == key_id)
+          if (combo.second_key_id == key_id && combo.second_id_rereased == false)
           {
             combo.second_id_rereased = true;
 
