@@ -326,14 +326,11 @@ namespace hidpg
 
       // gesture_mapからgesture_idとmouse_idが一致するアイテムを検索
       Gesture *gesture = nullptr;
-      if (_started_gesture_id_list.empty() == false)
+      for (auto &started_id : _started_gesture_id_list)
       {
-        // 実行中のジェスチャーの中で一番上を取得
-        GestureID curr_gst_id = _started_gesture_id_list.back();
-
         for (auto &gst : _gesture_map)
         {
-          if ((gst.gesture_id == curr_gst_id.id) && (gst.mouse_id == mouse_id))
+          if ((started_id.id == gst.gesture_id) && (gst.mouse_id == mouse_id))
           {
             gesture = &gst;
             break;
@@ -419,6 +416,8 @@ namespace hidpg
         gesture.total_distance_x -= gesture.distance;
       }
 
+      processPreCommandJustBeforeFirstGesture(gesture);
+
       uint8_t n_times = static_cast<uint8_t>(std::min<int32_t>(abs(gesture.total_distance_x / gesture.distance), UINT8_MAX));
       gesture.total_distance_x %= gesture.distance;
       CommandTapper.tap(command, n_times);
@@ -438,6 +437,8 @@ namespace hidpg
         gesture.total_distance_y -= gesture.distance;
       }
 
+      processPreCommandJustBeforeFirstGesture(gesture);
+
       uint8_t n_times = static_cast<uint8_t>(std::min<int32_t>(abs(gesture.total_distance_y / gesture.distance), UINT8_MAX));
       gesture.total_distance_y %= gesture.distance;
       CommandTapper.tap(command, n_times);
@@ -448,9 +449,21 @@ namespace hidpg
       }
     }
 
+    void HidEngineClass::processPreCommandJustBeforeFirstGesture(Gesture &gesture)
+    {
+      if (gesture.is_pre_command_pressed == false && gesture.pre_command_timing == PreCommandTiming::JustBeforeFirstGesture)
+      {
+        gesture.is_pre_command_pressed = true;
+        if (gesture.pre_command != nullptr)
+        {
+          gesture.pre_command->press();
+        }
+      }
+    }
+
     bool HidEngineClass::processPreCommandInsteadOfFirstGesture(Gesture &gesture)
     {
-      if (gesture.pre_command_timing == PreCommandTiming::InsteadOfFirstGesture && gesture.is_pre_command_pressed == false)
+      if (gesture.is_pre_command_pressed == false && gesture.pre_command_timing == PreCommandTiming::InsteadOfFirstGesture)
       {
         gesture.is_pre_command_pressed = true;
         if (gesture.pre_command != nullptr)
@@ -471,7 +484,7 @@ namespace hidpg
         return;
       }
 
-      _started_gesture_id_list.push_back(gesture_id);
+      _started_gesture_id_list.push_front(gesture_id);
 
       // pre_command
       for (auto &gesture : _gesture_map)

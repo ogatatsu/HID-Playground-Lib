@@ -71,6 +71,7 @@ namespace hidpg
   enum class PreCommandTiming : uint8_t
   {
     Immediately,
+    JustBeforeFirstGesture,
     InsteadOfFirstGesture,
   };
 
@@ -182,6 +183,7 @@ namespace hidpg
       static void processGestureY(Gesture &gesture);
       static void performGestureX(Gesture &gesture, Command *command);
       static void performGestureY(Gesture &gesture, Command *command);
+      static void processPreCommandJustBeforeFirstGesture(Gesture &gesture);
       static bool processPreCommandInsteadOfFirstGesture(Gesture &gesture);
 
       static void rotateEncoder_impl(uint8_t encoder_id);
