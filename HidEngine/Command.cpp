@@ -527,16 +527,21 @@ namespace hidpg
       for (auto &pair : _pairs)
       {
         pair.hold_command->setParent(this);
-        pair.tap_command->setParent(this);
+        if (pair.tap_command != nullptr)
+        {
+          pair.tap_command->setParent(this);
+        }
       }
     }
 
     void TapDance::processTap()
     {
       _state = State::Unexecuted;
-      Command *cmd = _pairs[_idx_count].tap_command;
-      cmd->press();
-      cmd->release();
+      Command &cmd = (_pairs[_idx_count].tap_command != nullptr)
+                         ? *(_pairs[_idx_count].tap_command)
+                         : *(_pairs[_idx_count].hold_command.get());
+      cmd.press();
+      cmd.release();
       _idx_count = -1;
       stopListenBeforeOtherCommandPress();
       if (_mouse_ids.size() != 0)

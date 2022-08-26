@@ -379,8 +379,9 @@ namespace hidpg
     public:
       struct Pair
       {
-        NotNullCommandPtr hold_command;
-        NotNullCommandPtr tap_command;
+        Pair(NotNullCommandPtr hold_command, CommandPtr tap_command = nullptr) : hold_command(hold_command), tap_command(tap_command) {}
+        const NotNullCommandPtr hold_command;
+        const CommandPtr tap_command;
       };
 
       TapDance(etl::span<Pair> pairs, etl::span<uint8_t> mouse_ids, uint16_t move_threshold, TapHoldBehavior behavior);
