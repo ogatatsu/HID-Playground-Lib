@@ -74,7 +74,7 @@ namespace hidpg
     return (new Internal::Layering(Layer2, *_commands));
   }
 
-  static inline NotNullCommandPtr LT(uint8_t layer_number, Command *command, TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
+  static inline NotNullCommandPtr LT(uint8_t layer_number, NotNullCommandPtr command, TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
   {
     auto pairs = new etl::vector<Internal::TapDance::Pair, 1>{
         {command, new Internal::SwitchLayer(Layer, layer_number)},
@@ -84,7 +84,7 @@ namespace hidpg
     return (new Internal::TapDance(*pairs, *mouse_ids, 0, behavior));
   }
 
-  static inline NotNullCommandPtr LT1(uint8_t layer_number, Command *command, TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
+  static inline NotNullCommandPtr LT1(uint8_t layer_number, NotNullCommandPtr command, TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
   {
     auto pairs = new etl::vector<Internal::TapDance::Pair, 1>{
         {command, new Internal::SwitchLayer(Layer1, layer_number)},
@@ -94,7 +94,7 @@ namespace hidpg
     return (new Internal::TapDance(*pairs, *mouse_ids, 0, behavior));
   }
 
-  static inline NotNullCommandPtr LT2(uint8_t layer_number, Command *command, TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
+  static inline NotNullCommandPtr LT2(uint8_t layer_number, NotNullCommandPtr command, TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
   {
     auto pairs = new etl::vector<Internal::TapDance::Pair, 1>{
         {command, new Internal::SwitchLayer(Layer2, layer_number)},

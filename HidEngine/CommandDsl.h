@@ -84,7 +84,7 @@ namespace hidpg
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    Command *new_LayerTap(LayerClass &layer, uint8_t layer_number, Command *command, TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
+    NotNullCommandPtr new_LayerTap(LayerClass &layer, uint8_t layer_number, NotNullCommandPtr command, TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
     {
       static uint8_t cmd_buf[sizeof(SwitchLayer)];
       static etl::vector<Internal::TapDance::Pair, 1> pairs{
