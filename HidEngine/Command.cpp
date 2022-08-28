@@ -38,21 +38,21 @@ namespace hidpg
   //------------------------------------------------------------------+
   // Command
   //------------------------------------------------------------------+
-  Command::Command() : _parent(nullptr), _state(State::Released), _notified(false)
+  Command::Command() : _parent(nullptr), _state(State::Released)
   {
   }
 
   void Command::press(uint8_t n_times)
   {
-    if (_state == State::Released && _notified == false && CommandHook::_isHooked(*this) == false)
+    if (_state == State::Released && CommandHook::_isHooked(*this) == false)
     {
-      _notified = true;
+      _state = State::Notified;
       BeforeOtherCommandPressEventListener::_notifyOtherCommandPress(*this);
     }
 
     if (CommandHook::_tryHookPress(*this) == false)
     {
-      if (_state == State::Released && CommandHook::_isHooked(*this) == false)
+      if (_state == State::Notified && CommandHook::_isHooked(*this) == false)
       {
         _state = State::Pressed;
         onPress(n_times);
@@ -63,8 +63,6 @@ namespace hidpg
   uint8_t Command::release()
   {
     uint8_t result = 1;
-
-    _notified = false;
 
     if (CommandHook::_tryHookRelease(*this) == false)
     {
@@ -510,7 +508,7 @@ namespace hidpg
     TapDance::TapDance(etl::span<Pair> pairs,
                        etl::span<uint8_t> mouse_ids,
                        uint16_t move_threshold,
-                       TapHoldBehavior behavior)
+                       HoldTapBehavior behavior)
         : TimerMixin(),
           BeforeOtherCommandPressEventListener(this),
           BeforeMouseMoveEventListener(),
@@ -534,72 +532,98 @@ namespace hidpg
       }
     }
 
-    void TapDance::processTap()
+    void TapDance::performTap()
     {
-      _state = State::Unexecuted;
       Command &cmd = (_pairs[_idx_count].tap_command != nullptr)
                          ? *(_pairs[_idx_count].tap_command)
                          : *(_pairs[_idx_count].hold_command.get());
       cmd.press();
       cmd.release();
+
       _idx_count = -1;
+      stopTimer();
       stopListenBeforeOtherCommandPress();
-      if (_mouse_ids.size() != 0)
-      {
-        stopListenBeforeMouseMove();
-      }
+      stopListenBeforeMouseMove();
     }
 
-    void TapDance::processHoldPress()
+    void TapDance::performHoldPress()
     {
-      _state = State::DecidedToHold;
       _running_command = _pairs[_idx_count].hold_command;
-      _idx_count = -1;
       _running_command->press();
+
+      _idx_count = -1;
+      stopTimer();
+      stopListenBeforeOtherCommandPress();
+      stopListenBeforeMouseMove();
     }
 
-    void TapDance::processHoldRelease()
+    void TapDance::performHoldRelease()
     {
-      _state = State::Unexecuted;
       _running_command->release();
-      stopListenBeforeOtherCommandPress();
-      if (_mouse_ids.size() != 0)
+    }
+
+    bool TapDance::checkMoveThreshold(BeforeMouseMoveArgs &args)
+    {
+      for (uint8_t id : _mouse_ids)
       {
-        stopListenBeforeMouseMove();
+        if (id == args.mouse_id)
+        {
+          _delta_x_sum = etl::clamp(_delta_x_sum + args.delta_x, INT16_MIN, INT16_MAX);
+          _delta_y_sum = etl::clamp(_delta_y_sum + args.delta_y, INT16_MIN, INT16_MAX);
+          if (abs(_delta_x_sum) >= _move_threshold || abs(_delta_y_sum) >= _move_threshold)
+          {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    void TapDance::processTapDance(Action action, ArgsType args)
+    {
+      if (_behavior == HoldTapBehavior::HoldPreferred)
+      {
+        processHoldPreferredBehavior(action, args);
+      }
+      else if (_behavior == HoldTapBehavior::Balanced)
+      {
+        processBalancedBehavior(action, args);
       }
     }
 
-    void TapDance::onPress(uint8_t n_times)
+    void TapDance::processHoldPreferredBehavior(Action action, ArgsType &args)
     {
-      if (_state == State::Unexecuted)
+      switch (Context(action, _state))
       {
+      case Context(Action::Press, State::Unexecuted):
+      {
+        _state = State::Pressed;
         startListenBeforeOtherCommandPress();
-        if (_mouse_ids.size() != 0)
+        if (_mouse_ids.empty() == false)
         {
           _delta_x_sum = 0;
           _delta_y_sum = 0;
           startListenBeforeMouseMove();
         }
+        _idx_count++;
+        startTimer(HID_ENGINE_TAPPING_TERM_MS);
       }
-      if (_state == State::Unexecuted || _state == State::TapOrNextCommand)
+      break;
+
+      case Context(Action::Press, State::TapOrNextCommand):
       {
         _state = State::Pressed;
         _idx_count++;
         startTimer(HID_ENGINE_TAPPING_TERM_MS);
       }
-    }
+      break;
 
-    uint8_t TapDance::onRelease()
-    {
-      if (_state == State::DecidedToHold)
-      {
-        processHoldRelease();
-      }
-      else if (_state == State::Pressed)
+      case Context(Action::Release, State::Pressed):
       {
         if (_idx_count == _pairs.size() - 1)
         {
-          processTap();
+          _state = State::Unexecuted;
+          performTap();
         }
         else
         {
@@ -607,98 +631,247 @@ namespace hidpg
           startTimer(HID_ENGINE_TAPPING_TERM_MS);
         }
       }
-      else if (_state == State::Hook)
+      break;
+
+      case Context(Action::Release, State::DecidedToHold):
       {
-        processTap();
+        _state = State::Unexecuted;
+        performHoldRelease();
+      }
+      break;
+
+      case Context(Action::Timer, State::Pressed):
+      {
+        _state = State::DecidedToHold;
+        performHoldPress();
+      }
+      break;
+
+      case Context(Action::Timer, State::TapOrNextCommand):
+      {
+        _state = State::Unexecuted;
+        performTap();
+      }
+      break;
+
+      case Context(Action::BeforeOtherCommandPress, State::Pressed):
+      {
+        _state = State::DecidedToHold;
+        performHoldPress();
+      }
+      break;
+
+      case Context(Action::BeforeOtherCommandPress, State::TapOrNextCommand):
+      {
+        _state = State::Unexecuted;
+        performTap();
+      }
+      break;
+
+      case Context(Action::BeforeMouseMove, State::Pressed):
+      {
+        if (checkMoveThreshold(etl::get<BeforeMouseMoveArgs>(args)))
+        {
+          _state = State::DecidedToHold;
+          performHoldPress();
+        }
+      }
+      break;
+
+      case Context(Action::BeforeMouseMove, State::TapOrNextCommand):
+      {
+        if (checkMoveThreshold(etl::get<BeforeMouseMoveArgs>(args)))
+        {
+          _state = State::Unexecuted;
+          performTap();
+        }
+      }
+      break;
+
+      default:
+        break;
+      }
+    }
+
+    void TapDance::processBalancedBehavior(Action action, ArgsType &args)
+    {
+      switch (Context(action, _state))
+      {
+      case Context(Action::Press, State::Unexecuted):
+      {
+        _state = State::Pressed;
+        startListenBeforeOtherCommandPress();
+        if (_mouse_ids.empty() == false)
+        {
+          _delta_x_sum = 0;
+          _delta_y_sum = 0;
+          startListenBeforeMouseMove();
+        }
+        _idx_count++;
+        startTimer(HID_ENGINE_TAPPING_TERM_MS);
+      }
+      break;
+
+      case Context(Action::Press, State::TapOrNextCommand):
+      {
+        _state = State::Pressed;
+        _idx_count++;
+        startTimer(HID_ENGINE_TAPPING_TERM_MS);
+      }
+      break;
+
+      case Context(Action::Release, State::Pressed):
+      {
+        if (_idx_count == _pairs.size() - 1)
+        {
+          _state = State::Unexecuted;
+          performTap();
+        }
+        else
+        {
+          _state = State::TapOrNextCommand;
+          startTimer(HID_ENGINE_TAPPING_TERM_MS);
+        }
+      }
+      break;
+
+      case Context(Action::Release, State::DecidedToHold):
+      {
+        _state = State::Unexecuted;
+        performHoldRelease();
+      }
+      break;
+
+      case Context(Action::Release, State::Hook):
+      {
+        _state = State::Unexecuted;
+        performTap();
         stopHook();
         _hooked_command->press();
       }
+      break;
+
+      case Context(Action::Timer, State::Pressed):
+      {
+        _state = State::DecidedToHold;
+        performHoldPress();
+      }
+      break;
+
+      case Context(Action::Timer, State::TapOrNextCommand):
+      {
+        _state = State::Unexecuted;
+        performTap();
+      }
+      break;
+
+      case Context(Action::Timer, State::Hook):
+      {
+        _state = State::DecidedToHold;
+        performHoldPress();
+        stopHook();
+        _hooked_command->press();
+      }
+      break;
+
+      case Context(Action::BeforeOtherCommandPress, State::Pressed):
+      {
+        BeforeOtherCommandPressArgs &_args = etl::get<BeforeOtherCommandPressArgs>(args);
+        if (startHook(_args.command))
+        {
+          _state = State::Hook;
+          _hooked_command = &_args.command;
+        }
+      }
+      break;
+
+      case Context(Action::BeforeOtherCommandPress, State::TapOrNextCommand):
+      {
+        _state = State::Unexecuted;
+        performTap();
+      }
+      break;
+
+      case Context(Action::BeforeOtherCommandPress, State::Hook):
+      {
+        _state = State::DecidedToHold;
+        performHoldPress();
+        stopHook();
+        _hooked_command->press();
+      }
+      break;
+
+      case Context(Action::BeforeMouseMove, State::Pressed):
+      {
+        if (checkMoveThreshold(etl::get<BeforeMouseMoveArgs>(args)))
+        {
+          _state = State::DecidedToHold;
+          performHoldPress();
+        }
+      }
+      break;
+
+      case Context(Action::BeforeMouseMove, State::TapOrNextCommand):
+      {
+        if (checkMoveThreshold(etl::get<BeforeMouseMoveArgs>(args)))
+        {
+          _state = State::Unexecuted;
+          performTap();
+        }
+      }
+      break;
+
+      case Context(Action::HookRelease, State::Hook):
+      {
+        _state = State::DecidedToHold;
+        performHoldPress();
+        stopHook();
+        _hooked_command->press();
+        _hooked_command->release();
+      }
+      break;
+
+      default:
+        break;
+      }
+    }
+
+    void TapDance::onPress(uint8_t n_times)
+    {
+      processTapDance(Action::Press, nullptr);
+    }
+
+    uint8_t TapDance::onRelease()
+    {
+      processTapDance(Action::Release, nullptr);
       return 1;
     }
 
     void TapDance::onTimer()
     {
-      if (_state == State::Pressed)
-      {
-        processHoldPress();
-      }
-      else if (_state == State::TapOrNextCommand)
-      {
-        processTap();
-      }
-      else if (_state == State::Hook)
-      {
-        processHoldPress();
-        stopHook();
-        _hooked_command->press();
-      }
+      processTapDance(Action::Timer, nullptr);
     }
 
     void TapDance::onBeforeOtherCommandPress(Command &command)
     {
-      if (_state == State::Pressed)
-      {
-        if (_behavior == TapHoldBehavior::Balanced)
-        {
-          if (startHook(command))
-          {
-            _state = State::Hook;
-            _hooked_command = &command;
-          }
-        }
-        else
-        {
-          processHoldPress();
-        }
-      }
-      else if (_state == State::TapOrNextCommand)
-      {
-        processTap();
-      }
-      else if (_state == State::Hook)
-      {
-        processHoldPress();
-        stopHook();
-        _hooked_command->press();
-      }
+      BeforeOtherCommandPressArgs args{.command = command};
+      processTapDance(Action::BeforeOtherCommandPress, args);
     }
 
     void TapDance::onBeforeMouseMove(uint8_t mouse_id, int16_t delta_x, int16_t delta_y)
     {
-      for (uint8_t id : _mouse_ids)
-      {
-        if (id == mouse_id)
-        {
-          _delta_x_sum = etl::clamp(_delta_x_sum + delta_x, INT16_MIN, INT16_MAX);
-          _delta_y_sum = etl::clamp(_delta_y_sum + delta_y, INT16_MIN, INT16_MAX);
-          if (abs(_delta_x_sum) >= _move_threshold || abs(_delta_y_sum) >= _move_threshold)
-          {
-            if (_state == State::Pressed)
-            {
-              processHoldPress();
-            }
-            else if (_state == State::TapOrNextCommand)
-            {
-              processTap();
-            }
-          }
-        }
-      }
+      BeforeMouseMoveArgs args{.mouse_id = mouse_id, .delta_x = delta_x, .delta_y = delta_y};
+      processTapDance(Action::BeforeMouseMove, args);
     }
 
     void TapDance::onHookPress()
     {
+      processTapDance(Action::HookPress, nullptr);
     }
 
     void TapDance::onHookRelease()
     {
-      if (_state == State::Hook)
-      {
-        processHoldPress();
-        stopHook();
-        _hooked_command->press();
-        _hooked_command->release();
-      }
+      processTapDance(Action::HookRelease, nullptr);
     }
 
     //------------------------------------------------------------------+

@@ -61,7 +61,7 @@ namespace hidpg
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    NotNullCommandPtr new_ModifierTap(Modifiers modifiers, NotNullCommandPtr command, TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
+    NotNullCommandPtr new_ModifierTap(Modifiers modifiers, NotNullCommandPtr command, HoldTapBehavior behavior = HoldTapBehavior::HoldPreferred)
     {
       static uint8_t cmd_buf[sizeof(ModifierKey)];
       static etl::vector<Internal::TapDance::Pair, 1> pairs{
@@ -84,7 +84,7 @@ namespace hidpg
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    NotNullCommandPtr new_LayerTap(LayerClass &layer, uint8_t layer_number, NotNullCommandPtr command, TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
+    NotNullCommandPtr new_LayerTap(LayerClass &layer, uint8_t layer_number, NotNullCommandPtr command, HoldTapBehavior behavior = HoldTapBehavior::HoldPreferred)
     {
       static uint8_t cmd_buf[sizeof(SwitchLayer)];
       static etl::vector<Internal::TapDance::Pair, 1> pairs{
@@ -132,7 +132,7 @@ namespace hidpg
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3, size_t N>
-    NotNullCommandPtr new_TapDance(const TapDance::Pair (&pairs)[N], TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
+    NotNullCommandPtr new_TapDance(const TapDance::Pair (&pairs)[N], HoldTapBehavior behavior = HoldTapBehavior::HoldPreferred)
     {
       static etl::vector<Internal::TapDance::Pair, N> _pairs{std::begin(pairs), std::end(pairs)};
       static etl::span<uint8_t> mouse_ids;
@@ -145,7 +145,7 @@ namespace hidpg
     NotNullCommandPtr new_TapDanceDecideWithMouseMove(const TapDance::Pair (&pairs)[N1],
                                                       const uint8_t (&mouse_ids)[N2],
                                                       uint16_t move_threshold = 4,
-                                                      TapHoldBehavior behavior = TapHoldBehavior::HoldPreferred)
+                                                      HoldTapBehavior behavior = HoldTapBehavior::HoldPreferred)
     {
       static etl::vector<Internal::TapDance::Pair, N1> _pairs{std::begin(pairs), std::end(pairs)};
       static etl::array<uint8_t, N2> _mouse_ids;

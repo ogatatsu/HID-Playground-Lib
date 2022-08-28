@@ -32,6 +32,7 @@
 #include "etl/intrusive_list.h"
 #include "etl/optional.h"
 #include "etl/span.h"
+#include "etl/variant.h"
 #include "gsl/gsl-lite.hpp"
 #include <stddef.h>
 
@@ -62,13 +63,13 @@ namespace hidpg
   private:
     enum class State
     {
+      Notified,
       Pressed,
       Released,
     };
 
     Command *_parent;
     State _state;
-    bool _notified;
   };
 
   using CommandPtr = Command *;
@@ -207,7 +208,7 @@ namespace hidpg
     State _state;
   };
 
-  enum class TapHoldBehavior
+  enum class HoldTapBehavior
   {
     HoldPreferred,
     Balanced,
@@ -384,13 +385,11 @@ namespace hidpg
         const CommandPtr tap_command;
       };
 
-      TapDance(etl::span<Pair> pairs, etl::span<uint8_t> mouse_ids, uint16_t move_threshold, TapHoldBehavior behavior);
+      TapDance(etl::span<Pair> pairs, etl::span<uint8_t> mouse_ids, uint16_t move_threshold, HoldTapBehavior behavior);
 
     protected:
       void onPress(uint8_t n_times) override;
       uint8_t onRelease() override;
-
-    protected:
       void onTimer() override;
       void onBeforeOtherCommandPress(Command &command) override;
       void onBeforeMouseMove(uint8_t mouse_id, int16_t delta_x, int16_t delta_y) override;
@@ -398,25 +397,61 @@ namespace hidpg
       void onHookRelease() override;
 
     private:
-      void processTap();
-      void processHoldPress();
-      void processHoldRelease();
-
-      enum class State : uint8_t
+      struct BeforeMouseMoveArgs
       {
-        Unexecuted,
-        Pressed,
-        Hook,
-        TapOrNextCommand,
-        DecidedToHold,
+        const uint8_t mouse_id;
+        const int16_t delta_x;
+        const int16_t delta_y;
       };
+
+      struct BeforeOtherCommandPressArgs
+      {
+        Command &command;
+      };
+
+      using ArgsType = etl::variant<BeforeMouseMoveArgs, BeforeOtherCommandPressArgs, nullptr_t>;
+
+      // clang-format off
+      enum class Action : uint32_t
+      {
+        Press                   = 0b1,
+        Release                 = 0b10,
+        Timer                   = 0b100,
+        BeforeOtherCommandPress = 0b1000,
+        BeforeMouseMove         = 0b10000,
+        HookPress               = 0b100000,
+        HookRelease             = 0b1000000,
+      };
+
+      enum class State : uint32_t
+      {
+        Unexecuted              = 0b10000000,
+        Pressed                 = 0b100000000,
+        Hook                    = 0b1000000000,
+        TapOrNextCommand        = 0b10000000000,
+        DecidedToHold           = 0b100000000000,
+      };
+      // clang-format on
+
+      static constexpr uint32_t Context(Action action, State state)
+      {
+        return static_cast<uint32_t>(static_cast<uint32_t>(action) | static_cast<uint32_t>(state));
+      }
+
+      void performTap();
+      void performHoldPress();
+      void performHoldRelease();
+      bool checkMoveThreshold(BeforeMouseMoveArgs &args);
+      void processTapDance(Action action, ArgsType args);
+      void processHoldPreferredBehavior(Action action, ArgsType &args);
+      void processBalancedBehavior(Action action, ArgsType &args);
 
       Command *_running_command;
       Command *_hooked_command;
       const etl::span<Pair> _pairs;
       const etl::span<uint8_t> _mouse_ids;
       const uint16_t _move_threshold;
-      const TapHoldBehavior _behavior;
+      const HoldTapBehavior _behavior;
       int16_t _delta_x_sum;
       int16_t _delta_y_sum;
       size_t _idx_count;
