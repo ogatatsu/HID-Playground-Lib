@@ -45,20 +45,75 @@ namespace hidpg
   };
 
   // Combo
+  enum class ComboBehavior : uint8_t
+  {
+    AnyOrder_SlowRelease = 0b00,
+    AnyOrder_FastRelease = 0b01,
+    SpecifiedOrder_SlowRelease = 0b10,
+    SpecifiedOrder_FastRelease = 0b11,
+  };
+
   using ComboLink = etl::bidirectional_link<COMBO_LINK_ID>;
 
   struct Combo : public ComboLink
   {
-    Combo(uint8_t first_key_id, uint8_t second_key_id, NotNullCommandPtr command, uint32_t combo_term_ms)
-        : first_key_id(first_key_id), second_key_id(second_key_id), command(command), combo_term_ms(combo_term_ms) {}
+    Combo(uint8_t first_key_id,
+          uint8_t second_key_id,
+          NotNullCommandPtr command,
+          uint32_t combo_term_ms,
+          ComboBehavior combo_behavior)
+        : first_id(first_key_id),
+          second_id(second_key_id),
+          command(command),
+          combo_term_ms(combo_term_ms),
+          behavior(combo_behavior) {}
 
-    const uint8_t first_key_id;
-    const uint8_t second_key_id;
+    const uint8_t first_id;
+    const uint8_t second_id;
     const NotNullCommandPtr command;
     const uint32_t combo_term_ms;
+    const ComboBehavior behavior;
 
     bool first_id_rereased;
     bool second_id_rereased;
+
+    bool isSpecifiedOrder()
+    {
+      return static_cast<uint8_t>(behavior) & 0b10;
+    }
+
+    bool isAnyOrder()
+    {
+      return !isSpecifiedOrder();
+    }
+
+    bool isFastRelease()
+    {
+      return static_cast<uint8_t>(behavior) & 0b01;
+    }
+
+    bool isSlowRelease()
+    {
+      return !isFastRelease();
+    }
+
+    bool isMatchFirstID(uint8_t id)
+    {
+      if (isSpecifiedOrder())
+      {
+        return first_id == id;
+      }
+      return first_id == id || second_id == id;
+    }
+
+    bool isMatchIDs(uint8_t fst, uint8_t snd)
+    {
+      if (isSpecifiedOrder())
+      {
+        return first_id == fst && second_id == snd;
+      }
+      return (first_id == fst && second_id == snd) || (first_id == snd && second_id == fst);
+    }
   };
 
   // Gesture

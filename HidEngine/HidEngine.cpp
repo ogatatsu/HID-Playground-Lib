@@ -161,7 +161,7 @@ namespace hidpg
         // コンボ実行中のid（片方のキーだけreleaseされて再度pressされた。）の場合は新しいコンボを開始しないで通常のKeyPress
         for (auto &combo : success_combo_list)
         {
-          if (combo.first_key_id == key_id || combo.second_key_id == key_id)
+          if (combo.first_id == key_id || combo.second_id == key_id)
           {
             performKeyPress(key_id.value());
             return;
@@ -173,7 +173,7 @@ namespace hidpg
         {
           for (auto &combo : _combo_map)
           {
-            if (combo.first_key_id == key_id)
+            if (combo.isMatchFirstID(key_id.value()))
             {
               // first_id success
               first_commbo_id = key_id;
@@ -189,7 +189,7 @@ namespace hidpg
         // second_id check
         for (auto &combo : _combo_map)
         {
-          if (combo.first_key_id == first_commbo_id && combo.second_key_id == key_id)
+          if (combo.isMatchIDs(first_commbo_id.value(), key_id.value()))
           {
             // combo success
             combo.first_id_rereased = false;
@@ -213,28 +213,36 @@ namespace hidpg
         // combo実行中のidがreleaseされた場合
         for (auto &combo : success_combo_list)
         {
-          if (combo.first_key_id == key_id && combo.first_id_rereased == false)
+          if (combo.first_id == key_id && combo.first_id_rereased == false)
           {
             combo.first_id_rereased = true;
 
-            if (combo.first_id_rereased && combo.second_id_rereased)
+            if ((combo.isFastRelease() && combo.second_id_rereased == false) ||
+                (combo.isSlowRelease() && combo.second_id_rereased))
             {
               combo.command->release();
+            }
 
+            if (combo.second_id_rereased)
+            {
               auto i_item = etl::intrusive_list<Combo, ComboLink>::iterator(combo);
               success_combo_list.erase(i_item);
             }
             return;
           }
 
-          if (combo.second_key_id == key_id && combo.second_id_rereased == false)
+          if (combo.second_id == key_id && combo.second_id_rereased == false)
           {
             combo.second_id_rereased = true;
 
-            if (combo.first_id_rereased && combo.second_id_rereased)
+            if ((combo.isFastRelease() && combo.first_id_rereased == false) ||
+                (combo.isSlowRelease() && combo.first_id_rereased))
             {
               combo.command->release();
+            }
 
+            if (combo.first_id_rereased)
+            {
               auto i_item = etl::intrusive_list<Combo, ComboLink>::iterator(combo);
               success_combo_list.erase(i_item);
             }
