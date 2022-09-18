@@ -27,12 +27,7 @@
 #include "CommandTapper.h"
 #include "HidCore.h"
 #include "HidEngineTask.h"
-#include <stdint.h>
-
-extern "C"
-{
-  uint32_t millis();
-}
+#include "utility.h"
 
 namespace hidpg
 {
@@ -49,7 +44,7 @@ namespace hidpg
 
     HidEngineClass::ComboTermTimer HidEngineClass::_combo_term_timer;
 
-    etl::intrusive_list<GestureID, GestureIDLink> HidEngineClass::_started_gesture_id_list;
+    etl::intrusive_list<GestureID> HidEngineClass::_started_gesture_id_list;
 
     void HidEngineClass::setKeymap(etl::span<Key> keymap)
     {
@@ -152,7 +147,7 @@ namespace hidpg
     void HidEngineClass::processComboAndKey(Action action, etl::optional<uint8_t> key_id)
     {
       static etl::optional<uint8_t> first_commbo_id;
-      static etl::intrusive_list<Combo, ComboLink> success_combo_list;
+      static etl::intrusive_list<Combo> success_combo_list;
 
       switch (action)
       {
@@ -225,7 +220,7 @@ namespace hidpg
 
             if (combo.second_id_rereased)
             {
-              auto i_item = etl::intrusive_list<Combo, ComboLink>::iterator(combo);
+              auto i_item = etl::intrusive_list<Combo>::iterator(combo);
               success_combo_list.erase(i_item);
             }
             return;
@@ -243,7 +238,7 @@ namespace hidpg
 
             if (combo.first_id_rereased)
             {
-              auto i_item = etl::intrusive_list<Combo, ComboLink>::iterator(combo);
+              auto i_item = etl::intrusive_list<Combo>::iterator(combo);
               success_combo_list.erase(i_item);
             }
             return;
@@ -333,62 +328,71 @@ namespace hidpg
 
       BeforeMouseMoveEventListener::_notifyBeforeMouseMove(mouse_id, delta_x, delta_y);
 
-      // gesture_mapからgesture_idとmouse_idが一致するアイテムを検索
-      Gesture *gesture = nullptr;
+      Gesture *gesture = getCurrentGesture(mouse_id);
+
+      if (gesture != nullptr)
+      {
+        processGesture(*gesture, delta_x, delta_y);
+      }
+      else
+      {
+        Hid.mouseMove(delta_x, delta_y);
+      }
+    }
+
+    Gesture *HidEngineClass::getCurrentGesture(uint8_t mouse_id)
+    {
       for (auto &started_id : _started_gesture_id_list)
       {
         for (auto &gst : _gesture_map)
         {
           if ((started_id.id == gst.gesture_id) && (gst.mouse_id == mouse_id))
           {
-            gesture = &gst;
-            break;
+            return &gst;
           }
         }
       }
 
-      if (gesture != nullptr)
+      return nullptr;
+    }
+
+    void HidEngineClass::processGesture(Gesture &gesture, int16_t delta_x, int16_t delta_y)
+    {
+      if (gesture.instead_of_first_gesture_millis.has_value())
       {
-        if (gesture->instead_of_first_gesture_millis.has_value())
+        uint32_t curr_millis = millis();
+        if (static_cast<uint32_t>(curr_millis - gesture.instead_of_first_gesture_millis.value()) <= HID_ENGINE_WAIT_TIME_AFTER_INSTEAD_OF_FIRST_GESTURE_MS)
         {
-          uint32_t curr_millis = millis();
-          if (static_cast<uint32_t>(curr_millis - gesture->instead_of_first_gesture_millis.value()) <= HID_ENGINE_WAIT_TIME_AFTER_INSTEAD_OF_FIRST_GESTURE_MS)
-          {
-            return;
-          }
-
-          gesture->instead_of_first_gesture_millis = etl::nullopt;
+          return;
         }
 
-        // 逆方向に動いたら距離をリセット
-        if (bitRead(gesture->total_distance_x ^ static_cast<int32_t>(delta_x), 31))
-        {
-          gesture->total_distance_x = 0;
-        }
-        if (bitRead(gesture->total_distance_y ^ static_cast<int32_t>(delta_y), 31))
-        {
-          gesture->total_distance_y = 0;
-        }
+        gesture.instead_of_first_gesture_millis = etl::nullopt;
+      }
 
-        // 距離を足す
-        gesture->total_distance_x += delta_x;
-        gesture->total_distance_y += delta_y;
+      // 逆方向に動いたら距離をリセット
+      if (bitRead(gesture.total_distance_x ^ static_cast<int32_t>(delta_x), 31))
+      {
+        gesture.total_distance_x = 0;
+      }
+      if (bitRead(gesture.total_distance_y ^ static_cast<int32_t>(delta_y), 31))
+      {
+        gesture.total_distance_y = 0;
+      }
 
-        // 直近のマウスの移動距離の大きさによって実行する順序を変える
-        if (abs(delta_x) >= abs(delta_y))
-        {
-          processGestureX(*gesture);
-          processGestureY(*gesture);
-        }
-        else
-        {
-          processGestureY(*gesture);
-          processGestureX(*gesture);
-        }
+      // 距離を足す
+      gesture.total_distance_x += delta_x;
+      gesture.total_distance_y += delta_y;
+
+      // 直近のマウスの移動距離の大きさによって実行する順序を変える
+      if (abs(delta_x) >= abs(delta_y))
+      {
+        processGestureX(gesture);
+        processGestureY(gesture);
       }
       else
       {
-        Hid.mouseMove(delta_x, delta_y);
+        processGestureY(gesture);
+        processGestureX(gesture);
       }
     }
 
@@ -460,7 +464,8 @@ namespace hidpg
 
     void HidEngineClass::processPreCommandJustBeforeFirstGesture(Gesture &gesture)
     {
-      if (gesture.is_pre_command_pressed == false && gesture.pre_command_timing == PreCommandTiming::JustBeforeFirstGesture)
+      if ((gesture.is_pre_command_pressed == false) &&
+          (gesture.pre_command_timing == PreCommandTiming::JustBeforeFirstGesture))
       {
         gesture.is_pre_command_pressed = true;
         if (gesture.pre_command != nullptr)
@@ -472,7 +477,8 @@ namespace hidpg
 
     bool HidEngineClass::processPreCommandInsteadOfFirstGesture(Gesture &gesture)
     {
-      if (gesture.is_pre_command_pressed == false && gesture.pre_command_timing == PreCommandTiming::InsteadOfFirstGesture)
+      if ((gesture.is_pre_command_pressed == false) &&
+          (gesture.pre_command_timing == PreCommandTiming::InsteadOfFirstGesture))
       {
         gesture.is_pre_command_pressed = true;
         if (gesture.pre_command != nullptr)
@@ -520,7 +526,7 @@ namespace hidpg
         return;
       }
 
-      auto i_item = etl::intrusive_list<GestureID, GestureIDLink>::iterator(gesture_id);
+      auto i_item = etl::intrusive_list<GestureID>::iterator(gesture_id);
       _started_gesture_id_list.erase(i_item);
       gesture_id.clear();
 
@@ -591,174 +597,6 @@ namespace hidpg
       {
         CommandTapper.tap(encoder->counterclockwise_command, step_u8);
       }
-    }
-
-    //------------------------------------------------------------------+
-    // GestureCommand
-    //------------------------------------------------------------------+
-    GestureCommand::GestureCommand(uint8_t gesture_id) : _gesture_id(gesture_id)
-    {
-    }
-
-    void GestureCommand::onPress(uint8_t n_times)
-    {
-      HidEngine.startGesture(_gesture_id);
-    }
-
-    uint8_t GestureCommand::onRelease()
-    {
-      HidEngine.stopGesture(_gesture_id);
-      return 1;
-    }
-
-    //------------------------------------------------------------------+
-    // GestureOr
-    //------------------------------------------------------------------+
-    GestureOr::GestureOr(uint8_t gesture_id, NotNullCommandPtr command)
-        : BeforeOtherCommandPressEventListener(this), BeforeGestureEventListener(), _gesture_id(gesture_id), _command(command), _state(State::Unexecuted)
-    {
-      _command->setParent(this);
-    }
-
-    void GestureOr::onPress(uint8_t n_times)
-    {
-      _state = State::Pressed;
-      HidEngine.startGesture(_gesture_id);
-      startListen();
-    }
-
-    uint8_t GestureOr::onRelease()
-    {
-      if (_state == State::Pressed)
-      {
-        _state = State::Unexecuted;
-        HidEngine.stopGesture(_gesture_id);
-        stopListen();
-        CommandTapper.tap(_command);
-      }
-      else if (_state == State::OtherCommandPressed)
-      {
-        _state = State::Unexecuted;
-        _command->release();
-      }
-      else if (_state == State::Gestured)
-      {
-        _state = State::Unexecuted;
-        HidEngine.stopGesture(_gesture_id);
-      }
-
-      return 1;
-    }
-
-    void GestureOr::onBeforeOtherCommandPress(Command &command)
-    {
-      if (_state == State::Pressed)
-      {
-        _state = State::OtherCommandPressed;
-        HidEngine.stopGesture(_gesture_id);
-        stopListen();
-        _command->press();
-      }
-    }
-
-    void GestureOr::onBeforeGesture(uint8_t gesture_id, uint8_t mouse_id)
-    {
-      if (_state == State::Pressed)
-      {
-        _state = State::Gestured;
-        stopListen();
-      }
-    }
-
-    void GestureOr::startListen()
-    {
-      startListenBeforeOtherCommandPress();
-      startListenBeforeGesture();
-    }
-
-    void GestureOr::stopListen()
-    {
-      stopListenBeforeOtherCommandPress();
-      stopListenBeforeGesture();
-    }
-
-    //------------------------------------------------------------------+
-    // GestureOrNK
-    //------------------------------------------------------------------+
-    GestureOrNK::GestureOrNK(uint8_t gesture_id, KeyCode key_code)
-        : BeforeOtherCommandPressEventListener(this), BeforeGestureEventListener(), _gesture_id(gesture_id), _nk_command(key_code), _state(State::Unexecuted)
-    {
-      _nk_command.setParent(this);
-    }
-
-    void GestureOrNK::onPress(uint8_t n_times)
-    {
-      if (Hid.isModifiersSet())
-      {
-        _state = State::PressedWithModifiers;
-        _nk_command.press();
-      }
-      else
-      {
-        _state = State::Pressed;
-        HidEngine.startGesture(_gesture_id);
-        startListen();
-      }
-    }
-
-    uint8_t GestureOrNK::onRelease()
-    {
-      if (_state == State::Pressed)
-      {
-        _state = State::Unexecuted;
-        HidEngine.stopGesture(_gesture_id);
-        stopListen();
-        CommandTapper.tap(&_nk_command);
-      }
-      else if (_state == State::OtherCommandPressed || _state == State::PressedWithModifiers)
-      {
-        _state = State::Unexecuted;
-        _nk_command.release();
-      }
-      else if (_state == State::Gestured)
-      {
-        _state = State::Unexecuted;
-        HidEngine.stopGesture(_gesture_id);
-      }
-
-      return 1;
-    }
-
-    void GestureOrNK::onBeforeOtherCommandPress(Command &command)
-    {
-      if (_state == State::Pressed)
-      {
-        _state = State::OtherCommandPressed;
-        HidEngine.stopGesture(_gesture_id);
-        stopListen();
-        _nk_command.press();
-      }
-    }
-
-    void GestureOrNK::onBeforeGesture(uint8_t gesture_id, uint8_t mouse_id)
-    {
-      if (_state == State::Pressed)
-      {
-        _state = State::Gestured;
-        stopListen();
-      }
-    }
-
-    void GestureOrNK::startListen()
-    {
-      startListenBeforeOtherCommandPress();
-      startListenBeforeGesture();
-    }
-
-    void GestureOrNK::stopListen()
-    {
-      stopListenBeforeOtherCommandPress();
-      stopListenBeforeGesture();
     }
 
   } // namespace Internal

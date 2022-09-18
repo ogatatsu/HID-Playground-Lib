@@ -24,10 +24,8 @@
 
 #pragma once
 
-#include "Command.h"
-#include "HidEngine.h"
+#include "CommandImpl.h"
 #include "etl/array.h"
-#include "etl/optional.h"
 #include "etl/vector.h"
 
 namespace hidpg

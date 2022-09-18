@@ -29,7 +29,6 @@
 namespace hidpg
 {
   // clang-format off
-  static constexpr KeyCode None            = KeyCode::None;
 
   static constexpr KeyCode A               = KeyCode::A;
   static constexpr KeyCode B               = KeyCode::B;

@@ -22,8 +22,11 @@
   THE SOFTWARE.
 */
 
-#include "Command.h"
+#include "CommandBase.h"
+#include "FreeRTOS.h"
+#include "HidEngine_config.h"
 #include "etl/deque.h"
+#include "timers.h"
 
 namespace hidpg
 {

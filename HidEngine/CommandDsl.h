@@ -24,12 +24,10 @@
 
 #pragma once
 
-#include "Command.h"
-#include "HidEngine.h"
+#include "CommandImpl.h"
 #include "consthash/cityhash64.hxx"
 #include "consthash/crc64.hxx"
 #include "etl/array.h"
-#include "etl/optional.h"
 #include "etl/vector.h"
 #include <new>
 

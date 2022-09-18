@@ -25,7 +25,7 @@
 
 #pragma once
 
-#include "Command.h"
+#include "CommandBase.h"
 #include "Set.h"
 #include "TimerMixin.h"
 #include "queue.h"

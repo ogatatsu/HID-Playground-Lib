@@ -23,7 +23,6 @@
 */
 
 #include "CommandTapper.h"
-#include "FreeRTOS.h"
 #include "HidEngineTask.h"
 
 namespace hidpg

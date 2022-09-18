@@ -23,7 +23,7 @@
 */
 #pragma once
 
-#include "Command.h"
+#include "CommandBase.h"
 
 namespace hidpg::Internal
 {

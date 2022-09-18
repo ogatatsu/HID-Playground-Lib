@@ -24,17 +24,18 @@
 
 #pragma once
 
-#include "Command.h"
+#include "CommandBase.h"
 #include "HidReporter.h"
 #include "Set.h"
+#include "TimerMixin.h"
 #include "etl/optional.h"
-
-#define GESTURE_ID_LINK_ID 0
-#define COMBO_LINK_ID 0
+#include "etl/span.h"
 
 namespace hidpg
 {
+  // ------------------------------------------------------------------+
   // Key
+  // ------------------------------------------------------------------+
   struct Key
   {
     Key(uint8_t key_id, NotNullCommandPtr command)
@@ -44,7 +45,9 @@ namespace hidpg
     const NotNullCommandPtr command;
   };
 
+  // ------------------------------------------------------------------+
   // Combo
+  // ------------------------------------------------------------------+
   enum class ComboBehavior : uint8_t
   {
     AnyOrder_SlowRelease = 0b00,
@@ -53,9 +56,7 @@ namespace hidpg
     SpecifiedOrder_FastRelease = 0b11,
   };
 
-  using ComboLink = etl::bidirectional_link<COMBO_LINK_ID>;
-
-  struct Combo : public ComboLink
+  struct Combo : public etl::bidirectional_link<0>
   {
     Combo(uint8_t first_key_id,
           uint8_t second_key_id,
@@ -116,7 +117,9 @@ namespace hidpg
     }
   };
 
+  // ------------------------------------------------------------------+
   // Gesture
+  // ------------------------------------------------------------------+
   enum class AngleSnap : uint8_t
   {
     Enable,
@@ -174,26 +177,33 @@ namespace hidpg
     etl::optional<uint32_t> instead_of_first_gesture_millis;
   };
 
-  using GestureIDLink = etl::bidirectional_link<GESTURE_ID_LINK_ID>;
-
-  struct GestureID : public GestureIDLink
+  struct GestureID : public etl::bidirectional_link<0>
   {
     GestureID(uint8_t id) : id(id) { clear(); }
 
     const uint8_t id;
   };
 
+  // ------------------------------------------------------------------+
   // Encoder
+  // ------------------------------------------------------------------+
   struct Encoder
   {
-    Encoder(uint8_t encoder_id, NotNullCommandPtr counterclockwise_command, NotNullCommandPtr clockwise_command)
-        : encoder_id(encoder_id), counterclockwise_command(counterclockwise_command), clockwise_command(clockwise_command) {}
+    Encoder(uint8_t encoder_id,
+            NotNullCommandPtr counterclockwise_command,
+            NotNullCommandPtr clockwise_command)
+        : encoder_id(encoder_id),
+          counterclockwise_command(counterclockwise_command),
+          clockwise_command(clockwise_command) {}
 
     const uint8_t encoder_id;
     const NotNullCommandPtr counterclockwise_command;
     const NotNullCommandPtr clockwise_command;
   };
 
+  // ------------------------------------------------------------------+
+  // HidEngineClass
+  // ------------------------------------------------------------------+
   namespace Internal
   {
 
@@ -234,6 +244,8 @@ namespace hidpg
       static void performKeyRelease(uint8_t key_id);
 
       static void mouseMove_impl(uint8_t mouse_id);
+      static Gesture *getCurrentGesture(uint8_t mouse_id);
+      static void processGesture(Gesture &gesture, int16_t delta_x, int16_t delta_y);
       static void processGestureX(Gesture &gesture);
       static void processGestureY(Gesture &gesture);
       static void performGestureX(Gesture &gesture, Command *command);
@@ -260,84 +272,7 @@ namespace hidpg
       static ComboTermTimer _combo_term_timer;
       static void startComboTermTimer(uint32_t ms) { _combo_term_timer.startTimer(ms); };
 
-      static etl::intrusive_list<GestureID, GestureIDLink> _started_gesture_id_list;
-    };
-
-    //------------------------------------------------------------------+
-    // GestureCommand
-    //------------------------------------------------------------------+
-    class GestureCommand : public Command
-    {
-    public:
-      GestureCommand(uint8_t gesture_id);
-
-    protected:
-      void onPress(uint8_t n_times) override;
-      uint8_t onRelease() override;
-
-    private:
-      GestureID _gesture_id;
-    };
-
-    //------------------------------------------------------------------+
-    // GestureOr
-    //------------------------------------------------------------------+
-    class GestureOr : public Command, public BeforeOtherCommandPressEventListener, public BeforeGestureEventListener
-    {
-    public:
-      GestureOr(uint8_t gesture_id, NotNullCommandPtr command);
-
-    protected:
-      void onPress(uint8_t n_times) override;
-      uint8_t onRelease() override;
-      void onBeforeOtherCommandPress(Command &command) override;
-      void onBeforeGesture(uint8_t gesture_id, uint8_t mouse_id) override;
-      void startListen();
-      void stopListen();
-
-    private:
-      enum class State : uint8_t
-      {
-        Unexecuted,
-        Pressed,
-        OtherCommandPressed,
-        Gestured,
-      };
-
-      GestureID _gesture_id;
-      NotNullCommandPtr _command;
-      State _state;
-    };
-
-    //------------------------------------------------------------------+
-    // GestureOrNK
-    //------------------------------------------------------------------+
-    class GestureOrNK : public Command, public BeforeOtherCommandPressEventListener, public BeforeGestureEventListener
-    {
-    public:
-      GestureOrNK(uint8_t gesture_id, KeyCode key_code);
-
-    protected:
-      void onPress(uint8_t n_times) override;
-      uint8_t onRelease() override;
-      void onBeforeOtherCommandPress(Command &command) override;
-      void onBeforeGesture(uint8_t gesture_id, uint8_t mouse_id) override;
-      void startListen();
-      void stopListen();
-
-    private:
-      enum class State : uint8_t
-      {
-        Unexecuted,
-        Pressed,
-        PressedWithModifiers,
-        OtherCommandPressed,
-        Gestured,
-      };
-
-      GestureID _gesture_id;
-      NormalKey _nk_command;
-      State _state;
+      static etl::intrusive_list<GestureID> _started_gesture_id_list;
     };
 
   } // namespace Internal
