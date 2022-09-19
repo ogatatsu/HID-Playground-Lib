@@ -128,10 +128,10 @@ namespace hidpg
   }
 
   template <uint8_t N1, uint8_t N2>
-  static NotNullCommandPtr TDDM(const Internal::TapDance::Pair (&pairs)[N1],
-                                const uint8_t (&mouse_ids)[N2],
-                                uint16_t move_threshold = 4,
-                                HoldTapBehavior behavior = HoldTapBehavior::HoldPreferred)
+  static NotNullCommandPtr TD_DM(const Internal::TapDance::Pair (&pairs)[N1],
+                                 const uint8_t (&mouse_ids)[N2],
+                                 uint16_t move_threshold = 4,
+                                 HoldTapBehavior behavior = HoldTapBehavior::HoldPreferred)
   {
     auto _pairs = new etl::vector<Internal::TapDance::Pair, N1>{std::begin(pairs), std::end(pairs)};
     auto _mouse_ids = new etl::array<uint8_t, N2>;
