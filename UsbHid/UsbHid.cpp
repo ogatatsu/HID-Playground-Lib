@@ -28,6 +28,8 @@
 #include "HidReportDescriptor.h"
 #include "semphr.h"
 
+#define REPORT_READY_TIMEOUT_MS 1000
+
 namespace
 {
   SemaphoreHandle_t report_ready_sem;
@@ -41,7 +43,7 @@ namespace
 
   bool wait_report_ready()
   {
-    if (xSemaphoreTake(report_ready_sem, pdMS_TO_TICKS(10)) == pdTRUE)
+    if (xSemaphoreTake(report_ready_sem, pdMS_TO_TICKS(REPORT_READY_TIMEOUT_MS)) == pdTRUE)
     {
       return true;
     }
