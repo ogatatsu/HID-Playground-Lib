@@ -22,6 +22,8 @@
   THE SOFTWARE.
 */
 
+#pragma once
+
 // タスクのスタックサイズ
 #ifndef ROTARY_ENCODER_TASK_STACK_SIZE
 #define ROTARY_ENCODER_TASK_STACK_SIZE 128
