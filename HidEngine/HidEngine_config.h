@@ -34,6 +34,11 @@
 #define HID_ENGINE_TAP_SPEED_MS 1
 #endif
 
+// KeyboardReportはこの値より早く次のレポートを送らない
+#ifndef HID_ENGINE_KEYBOARD_REPORT_MIN_INTERVAL_MS
+#define HID_ENGINE_KEYBOARD_REPORT_MIN_INTERVAL_MS 10
+#endif
+
 // CommandTapper内部で使われているキューの最大サイズ
 #ifndef HID_ENGINE_COMMAND_TAPPER_QUEUE_SIZE
 #define HID_ENGINE_COMMAND_TAPPER_QUEUE_SIZE 32
