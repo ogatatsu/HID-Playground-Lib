@@ -30,11 +30,44 @@
 
 #define BEFORE_OTHER_COMMAND_PRESS_EVENT_LISTENER_LINK_ID 0
 #define BEFORE_MOUSE_MOVE_EVENT_LISTENER_LINK_ID 1
-#define BEFORE_GESTURE_EVENT_LISTENER_LINK_ID 2
-#define COMMAND_HOOK_LINK_ID 3
+#define BEFORE_ROTATE_ENCODER_EVENT_LISTENER_LINK_ID 2
+#define BEFORE_GESTURE_EVENT_LISTENER_LINK_ID 3
+#define COMMAND_HOOK_LINK_ID 4
 
 namespace hidpg
 {
+
+  struct MouseId
+  {
+    uint8_t value;
+
+    bool operator==(const MouseId &rhs) const { return value == rhs.value; }
+    bool operator!=(const MouseId &rhs) const { return value != rhs.value; }
+  };
+
+  struct GestureId
+  {
+    uint8_t value;
+
+    bool operator==(const GestureId &rhs) const { return value == rhs.value; }
+    bool operator!=(const GestureId &rhs) const { return value != rhs.value; }
+  };
+
+  struct EncoderId
+  {
+    uint8_t value;
+
+    bool operator==(const EncoderId &rhs) const { return value == rhs.value; }
+    bool operator!=(const EncoderId &rhs) const { return value != rhs.value; }
+  };
+
+  struct EncoderShiftId
+  {
+    uint8_t value;
+    
+    bool operator==(const EncoderShiftId &rhs) const { return value == rhs.value; }
+    bool operator!=(const EncoderShiftId &rhs) const { return value != rhs.value; }
+  };
 
   //------------------------------------------------------------------+
   // Command
@@ -110,15 +143,44 @@ namespace hidpg
   {
   public:
     BeforeMouseMoveEventListener();
-    static void _notifyBeforeMouseMove(uint8_t mouse_id, int16_t delta_x, int16_t delta_y);
+    static void _notifyBeforeMouseMove(MouseId mouse_id, int16_t delta_x, int16_t delta_y);
 
   protected:
     bool startListenBeforeMouseMove();
     bool stopListenBeforeMouseMove();
-    virtual void onBeforeMouseMove(uint8_t mouse_id, int16_t delta_x, int16_t delta_y) = 0;
+    virtual void onBeforeMouseMove(MouseId mouse_id, int16_t delta_x, int16_t delta_y) = 0;
 
   private:
     using List = etl::intrusive_list<BeforeMouseMoveEventListener, BeforeMouseMoveEventListenerLink>;
+
+    // Construct On First Use Idiom
+    static List &_listener_list()
+    {
+      static List list;
+      return list;
+    };
+
+    bool _is_listen;
+  };
+
+  //------------------------------------------------------------------+
+  // BeforeRotateEncoderEventListener
+  //------------------------------------------------------------------+
+  using BeforeRotateEncoderEventListenerLink = etl::bidirectional_link<BEFORE_ROTATE_ENCODER_EVENT_LISTENER_LINK_ID>;
+
+  class BeforeRotateEncoderEventListener : public BeforeRotateEncoderEventListenerLink
+  {
+  public:
+    BeforeRotateEncoderEventListener();
+    static void _notifyBeforeRotateEncoder(EncoderId encoder_id, int16_t step);
+
+  protected:
+    bool startListenBeforeRotateEncoder();
+    bool stopListenBeforeRotateEncoder();
+    virtual void onBeforeRotateEncoder(EncoderId encoder_id, int16_t step) = 0;
+
+  private:
+    using List = etl::intrusive_list<BeforeRotateEncoderEventListener, BeforeRotateEncoderEventListenerLink>;
 
     // Construct On First Use Idiom
     static List &_listener_list()
@@ -139,12 +201,12 @@ namespace hidpg
   {
   public:
     BeforeGestureEventListener();
-    static void _notifyBeforeGesture(uint8_t gesture_id, uint8_t mouse_id);
+    static void _notifyBeforeGesture(GestureId gesture_id, MouseId mouse_id);
 
   protected:
     bool startListenBeforeGesture();
     bool stopListenBeforeGesture();
-    virtual void onBeforeGesture(uint8_t gesture_id, uint8_t mouse_id) = 0;
+    virtual void onBeforeGesture(GestureId gesture_id, MouseId mouse_id) = 0;
 
   private:
     using List = etl::intrusive_list<BeforeGestureEventListener, BeforeGestureEventListenerLink>;

@@ -51,12 +51,12 @@ namespace hidpg
 
     struct MouseMoveEventData
     {
-      uint8_t mouse_id;
+      MouseId mouse_id;
     };
 
     struct RotateEncoderEventData
     {
-      uint8_t encoder_id;
+      EncoderId encoder_id;
     };
 
     struct TimerEventData

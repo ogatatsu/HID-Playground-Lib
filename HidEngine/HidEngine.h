@@ -98,7 +98,7 @@ namespace hidpg
       return !isFastRelease();
     }
 
-    bool isMatchFirstID(uint8_t id)
+    bool isMatchFirstId(uint8_t id)
     {
       if (isSpecifiedOrder())
       {
@@ -107,7 +107,7 @@ namespace hidpg
       return first_id == id || second_id == id;
     }
 
-    bool isMatchIDs(uint8_t fst, uint8_t snd)
+    bool isMatchIds(uint8_t fst, uint8_t snd)
     {
       if (isSpecifiedOrder())
       {
@@ -126,25 +126,35 @@ namespace hidpg
     Disable,
   };
 
-  enum class PreCommandTiming : uint8_t
+  enum class Timing : uint8_t
   {
     Immediately,
-    JustBeforeFirstGesture,
-    InsteadOfFirstGesture,
+    JustBeforeFirstAction,
+    InsteadOfFirstAction,
+  };
+
+  struct PreCommand
+  {
+    PreCommand(NotNullCommandPtr command, Timing timing)
+        : command(command), timing(timing), is_pressed(false) {}
+
+    const NotNullCommandPtr command;
+    const Timing timing;
+
+    bool is_pressed;
   };
 
   struct Gesture
   {
-    Gesture(uint8_t gesture_id,
-            uint8_t mouse_id,
+    Gesture(GestureId gesture_id,
+            MouseId mouse_id,
             uint16_t distance,
             AngleSnap angle_snap,
-            Command *up_command,
-            Command *down_command,
-            Command *left_command,
-            Command *right_command,
-            Command *pre_command,
-            PreCommandTiming pre_command_timing)
+            CommandPtr up_command,
+            CommandPtr down_command,
+            CommandPtr left_command,
+            CommandPtr right_command,
+            etl::optional<PreCommand> pre_command = etl::nullopt)
         : gesture_id(gesture_id),
           mouse_id(mouse_id),
           distance(distance),
@@ -154,51 +164,75 @@ namespace hidpg
           left_command(left_command),
           right_command(right_command),
           pre_command(pre_command),
-          pre_command_timing(pre_command_timing),
-          is_pre_command_pressed(false),
           total_distance_x(0),
           total_distance_y(0),
-          instead_of_first_gesture_millis(etl::nullopt) {}
+          instead_of_first_gesture_millis(etl::nullopt)
+    {
+    }
 
-    const uint8_t gesture_id;
-    const uint8_t mouse_id;
+    const GestureId gesture_id;
+    const MouseId mouse_id;
     const uint16_t distance;
     const AngleSnap angle_snap;
     const CommandPtr up_command;
     const CommandPtr down_command;
     const CommandPtr left_command;
     const CommandPtr right_command;
-    const CommandPtr pre_command;
-    const PreCommandTiming pre_command_timing;
 
-    bool is_pre_command_pressed;
+    etl::optional<PreCommand> pre_command;
     int32_t total_distance_x;
     int32_t total_distance_y;
     etl::optional<uint32_t> instead_of_first_gesture_millis;
   };
 
-  struct GestureID : public etl::bidirectional_link<0>
+  struct GestureIdLink : public etl::bidirectional_link<0>
   {
-    GestureID(uint8_t id) : id(id) { clear(); }
+    GestureIdLink(uint8_t value) : value(value) { clear(); }
 
-    const uint8_t id;
+    const uint8_t value;
   };
 
   // ------------------------------------------------------------------+
   // Encoder
   // ------------------------------------------------------------------+
-  struct Encoder
+  struct EncoderShift
   {
-    Encoder(uint8_t encoder_id,
-            NotNullCommandPtr counterclockwise_command,
-            NotNullCommandPtr clockwise_command)
-        : encoder_id(encoder_id),
+    EncoderShift(EncoderShiftId encoder_shift_id,
+                 EncoderId encoder_id,
+                 NotNullCommandPtr counterclockwise_command,
+                 NotNullCommandPtr clockwise_command,
+                 etl::optional<PreCommand> pre_command = etl::nullopt)
+        : encoder_shift_id(encoder_shift_id),
+          encoder_id(encoder_id),
           counterclockwise_command(counterclockwise_command),
-          clockwise_command(clockwise_command) {}
+          clockwise_command(clockwise_command),
+          pre_command(pre_command)
+    {
+    }
 
-    const uint8_t encoder_id;
+    const EncoderShiftId encoder_shift_id;
+    const EncoderId encoder_id;
     const NotNullCommandPtr counterclockwise_command;
     const NotNullCommandPtr clockwise_command;
+
+    etl::optional<PreCommand> pre_command;
+  };
+
+  struct Encoder : public EncoderShift
+  {
+    Encoder(EncoderId encoder_id,
+            NotNullCommandPtr counterclockwise_command,
+            NotNullCommandPtr clockwise_command)
+        : EncoderShift(EncoderShiftId{0}, encoder_id, counterclockwise_command, clockwise_command, etl::nullopt)
+    {
+    }
+  };
+
+  struct EncoderShiftIdLink : public etl::bidirectional_link<0>
+  {
+    EncoderShiftIdLink(uint8_t value) : value(value) { clear(); }
+
+    const uint8_t value;
   };
 
   // ------------------------------------------------------------------+
@@ -212,23 +246,27 @@ namespace hidpg
       friend class HidEngineTaskClass;
 
     public:
-      using read_mouse_delta_callback_t = void (*)(uint8_t mouse_id, int16_t &delta_x, int16_t &delta_y);
-      using read_encoder_step_callback_t = void (*)(uint8_t encoder_id, int16_t &step);
+      using read_mouse_delta_callback_t = void (*)(MouseId mouse_id, int16_t &delta_x, int16_t &delta_y);
+      using read_encoder_step_callback_t = void (*)(EncoderId encoder_id, int16_t &step);
 
       static void setKeymap(etl::span<Key> keymap);
       static void setComboMap(etl::span<Combo> combo_map);
       static void setGestureMap(etl::span<Gesture> gesture_map);
       static void setEncoderMap(etl::span<Encoder> encoder_map);
+      static void setEncoderShiftMap(etl::span<hidpg::EncoderShift> encoder_shift_map);
       static void setHidReporter(HidReporter *hid_reporter);
       static void start();
       static void applyToKeymap(const Set &key_ids);
-      static void mouseMove(uint8_t mouse_id);
-      static void rotateEncoder(uint8_t encoder_id);
+      static void mouseMove(MouseId mouse_id);
+      static void rotateEncoder(EncoderId encoder_id);
       static void setReadMouseDeltaCallback(read_mouse_delta_callback_t cb);
       static void setReadEncoderStepCallback(read_encoder_step_callback_t cb);
 
-      static void startGesture(GestureID &gesture_id);
-      static void stopGesture(GestureID &gesture_id);
+      static void startGesture(GestureIdLink &gesture_id);
+      static void stopGesture(GestureIdLink &gesture_id);
+
+      static void startEncoderShift(EncoderShiftIdLink &encoder_shift_id);
+      static void stopEncoderShift(EncoderShiftIdLink &encoder_shift_id);
 
     private:
       enum class Action
@@ -243,8 +281,8 @@ namespace hidpg
       static void performKeyPress(uint8_t key_id);
       static void performKeyRelease(uint8_t key_id);
 
-      static void mouseMove_impl(uint8_t mouse_id);
-      static Gesture *getCurrentGesture(uint8_t mouse_id);
+      static void mouseMove_impl(MouseId mouse_id);
+      static Gesture *getCurrentGesture(MouseId mouse_id);
       static void processGesture(Gesture &gesture, int16_t delta_x, int16_t delta_y);
       static void processGestureX(Gesture &gesture);
       static void processGestureY(Gesture &gesture);
@@ -253,12 +291,14 @@ namespace hidpg
       static void processPreCommandJustBeforeFirstGesture(Gesture &gesture);
       static bool processPreCommandInsteadOfFirstGesture(Gesture &gesture);
 
-      static void rotateEncoder_impl(uint8_t encoder_id);
+      static void rotateEncoder_impl(EncoderId encoder_id);
+      static EncoderShift *getCurrentEncoder(EncoderId encoder_id);
 
       static etl::span<Key> _keymap;
       static etl::span<Combo> _combo_map;
       static etl::span<Gesture> _gesture_map;
       static etl::span<Encoder> _encoder_map;
+      static etl::span<EncoderShift> _encoder_shift_map;
 
       static read_mouse_delta_callback_t _read_mouse_delta_cb;
       static read_encoder_step_callback_t _read_encoder_step_cb;
@@ -272,7 +312,8 @@ namespace hidpg
       static ComboTermTimer _combo_term_timer;
       static void startComboTermTimer(uint32_t ms) { _combo_term_timer.startTimer(ms); };
 
-      static etl::intrusive_list<GestureID> _started_gesture_id_list;
+      static etl::intrusive_list<GestureIdLink> _started_gesture_id_list;
+      static etl::intrusive_list<EncoderShiftIdLink> _started_encoder_shift_id_list;
     };
 
   } // namespace Internal

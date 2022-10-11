@@ -26,6 +26,7 @@
 
 namespace hidpg
 {
+
   //------------------------------------------------------------------+
   // Command
   //------------------------------------------------------------------+
@@ -155,11 +156,53 @@ namespace hidpg
     return true;
   }
 
-  void BeforeMouseMoveEventListener::_notifyBeforeMouseMove(uint8_t mouse_id, int16_t delta_x, int16_t delta_y)
+  void BeforeMouseMoveEventListener::_notifyBeforeMouseMove(MouseId mouse_id, int16_t delta_x, int16_t delta_y)
   {
     for (BeforeMouseMoveEventListener &listener : _listener_list())
     {
       listener.onBeforeMouseMove(mouse_id, delta_x, delta_y);
+    }
+  }
+
+  //------------------------------------------------------------------+
+  // BeforeRotateEncoderEventListener
+  //------------------------------------------------------------------+
+  BeforeRotateEncoderEventListener::BeforeRotateEncoderEventListener() : _is_listen(false)
+  {
+  }
+
+  bool BeforeRotateEncoderEventListener::startListenBeforeRotateEncoder()
+  {
+    if (_is_listen)
+    {
+      return false;
+    }
+
+    _listener_list().push_back(*this);
+    _is_listen = true;
+
+    return true;
+  }
+
+  bool BeforeRotateEncoderEventListener::stopListenBeforeRotateEncoder()
+  {
+    if (_is_listen == false)
+    {
+      return false;
+    }
+
+    auto i_item = List::iterator(*this);
+    _listener_list().erase(i_item);
+    _is_listen = false;
+
+    return true;
+  }
+
+  void BeforeRotateEncoderEventListener::_notifyBeforeRotateEncoder(EncoderId encoder_id, int16_t step)
+  {
+    for (BeforeRotateEncoderEventListener &listener : _listener_list())
+    {
+      listener.onBeforeRotateEncoder(encoder_id, step);
     }
   }
 
@@ -197,7 +240,7 @@ namespace hidpg
     return true;
   }
 
-  void BeforeGestureEventListener::_notifyBeforeGesture(uint8_t gesture_id, uint8_t mouse_id)
+  void BeforeGestureEventListener::_notifyBeforeGesture(GestureId gesture_id, MouseId mouse_id)
   {
     for (BeforeGestureEventListener &listener : _listener_list())
     {

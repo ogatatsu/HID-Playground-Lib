@@ -65,7 +65,7 @@ namespace hidpg
       static etl::vector<Internal::TapDance::Pair, 1> pairs{
           {command, new (cmd_buf) Internal::ModifierKey(modifiers)},
       };
-      static etl::span<uint8_t> mouse_ids;
+      static etl::span<MouseId> mouse_ids;
       static uint8_t buf[sizeof(TapDance)];
 
       return new (buf) TapDance(pairs, mouse_ids, 0, behavior);
@@ -88,7 +88,7 @@ namespace hidpg
       static etl::vector<Internal::TapDance::Pair, 1> pairs{
           {command, new (cmd_buf) SwitchLayer(layer, layer_number)},
       };
-      static etl::span<uint8_t> mouse_ids;
+      static etl::span<MouseId> mouse_ids;
       static uint8_t buf[sizeof(TapDance)];
 
       return new (buf) TapDance(pairs, mouse_ids, 0, behavior);
@@ -133,7 +133,7 @@ namespace hidpg
     NotNullCommandPtr new_TapDance(const TapDance::Pair (&pairs)[N], HoldTapBehavior behavior = HoldTapBehavior::HoldPreferred)
     {
       static etl::vector<Internal::TapDance::Pair, N> _pairs{std::begin(pairs), std::end(pairs)};
-      static etl::span<uint8_t> mouse_ids;
+      static etl::span<MouseId> mouse_ids;
       static uint8_t buf[sizeof(TapDance)];
 
       return new (buf) TapDance(_pairs, mouse_ids, 0, behavior);
@@ -141,12 +141,12 @@ namespace hidpg
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3, size_t N1, size_t N2>
     NotNullCommandPtr new_TapDanceDecideWithMouseMove(const TapDance::Pair (&pairs)[N1],
-                                                      const uint8_t (&mouse_ids)[N2],
+                                                      const MouseId (&mouse_ids)[N2],
                                                       uint16_t move_threshold = 4,
                                                       HoldTapBehavior behavior = HoldTapBehavior::HoldPreferred)
     {
       static etl::vector<Internal::TapDance::Pair, N1> _pairs{std::begin(pairs), std::end(pairs)};
-      static etl::array<uint8_t, N2> _mouse_ids;
+      static etl::array<MouseId, N2> _mouse_ids;
       _mouse_ids.assign(std::begin(mouse_ids), std::end(mouse_ids));
       static uint8_t buf[sizeof(TapDance)];
 
@@ -281,24 +281,31 @@ namespace hidpg
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    NotNullCommandPtr new_GestureCommand(uint8_t gesture_id)
+    NotNullCommandPtr new_GestureCommand(GestureId gesture_id)
     {
       static uint8_t buf[sizeof(GestureCommand)];
       return new (buf) GestureCommand(gesture_id);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    NotNullCommandPtr new_GestureOr(uint8_t gesture_id, NotNullCommandPtr command)
+    NotNullCommandPtr new_GestureOr(GestureId gesture_id, NotNullCommandPtr command)
     {
       static uint8_t buf[sizeof(GestureOr)];
       return new (buf) GestureOr(gesture_id, command);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    NotNullCommandPtr new_GestureOrNK(uint8_t gesture_id, KeyCode key_code)
+    NotNullCommandPtr new_GestureOrNK(GestureId gesture_id, KeyCode key_code)
     {
       static uint8_t buf[sizeof(GestureOrNK)];
       return new (buf) GestureOrNK(gesture_id, key_code);
+    }
+
+    template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
+    NotNullCommandPtr new_EncoderShift(EncoderShiftId encoder_shift_id)
+    {
+      static uint8_t buf[sizeof(EncoderShift)];
+      return new (buf) EncoderShift(encoder_shift_id);
     }
 
   } // namespace Internal
@@ -411,6 +418,9 @@ namespace hidpg
 
 // GestureOrNK
 #define GST_OR_NK(gesture_id, key_code) (Internal::new_GestureOrNK<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(gesture_id, key_code))
+
+// EncoderShift
+#define ENC(encoder_shift_id) (Internal::new_EncoderShift<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(encoder_shift_id))
 
 // nullptr alias (_ * 7)
 #define _______ (nullptr)

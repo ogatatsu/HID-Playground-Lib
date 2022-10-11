@@ -38,13 +38,15 @@ namespace hidpg
     etl::span<Combo> HidEngineClass::_combo_map;
     etl::span<Gesture> HidEngineClass::_gesture_map;
     etl::span<Encoder> HidEngineClass::_encoder_map;
+    etl::span<EncoderShift> HidEngineClass::_encoder_shift_map;
 
     HidEngineClass::read_mouse_delta_callback_t HidEngineClass::_read_mouse_delta_cb = nullptr;
     HidEngineClass::read_encoder_step_callback_t HidEngineClass::_read_encoder_step_cb = nullptr;
 
     HidEngineClass::ComboTermTimer HidEngineClass::_combo_term_timer;
 
-    etl::intrusive_list<GestureID> HidEngineClass::_started_gesture_id_list;
+    etl::intrusive_list<GestureIdLink> HidEngineClass::_started_gesture_id_list;
+    etl::intrusive_list<EncoderShiftIdLink> HidEngineClass::_started_encoder_shift_id_list;
 
     void HidEngineClass::setKeymap(etl::span<Key> keymap)
     {
@@ -66,6 +68,11 @@ namespace hidpg
       _encoder_map = encoder_map;
     }
 
+    void HidEngineClass::setEncoderShiftMap(etl::span<EncoderShift> encoder_shift_map)
+    {
+      _encoder_shift_map = encoder_shift_map;
+    }
+
     void HidEngineClass::setHidReporter(HidReporter *hid_reporter)
     {
       Hid.setReporter(hid_reporter);
@@ -84,7 +91,7 @@ namespace hidpg
       HidEngineTask.enqueEvent(evt);
     }
 
-    void HidEngineClass::mouseMove(uint8_t mouse_id)
+    void HidEngineClass::mouseMove(MouseId mouse_id)
     {
       EventData evt;
       evt.event_type = EventType::MouseMove;
@@ -92,7 +99,7 @@ namespace hidpg
       HidEngineTask.enqueEvent(evt);
     }
 
-    void HidEngineClass::rotateEncoder(uint8_t encoder_id)
+    void HidEngineClass::rotateEncoder(EncoderId encoder_id)
     {
       EventData evt;
       evt.event_type = EventType::RotateEncoder;
@@ -168,7 +175,7 @@ namespace hidpg
         {
           for (auto &combo : _combo_map)
           {
-            if (combo.isMatchFirstID(key_id.value()))
+            if (combo.isMatchFirstId(key_id.value()))
             {
               // first_id success
               first_commbo_id = key_id;
@@ -184,7 +191,7 @@ namespace hidpg
         // second_id check
         for (auto &combo : _combo_map)
         {
-          if (combo.isMatchIDs(first_commbo_id.value(), key_id.value()))
+          if (combo.isMatchIds(first_commbo_id.value(), key_id.value()))
           {
             // combo success
             combo.first_id_rereased = false;
@@ -310,7 +317,7 @@ namespace hidpg
     //------------------------------------------------------------------+
     // MouseMove
     //------------------------------------------------------------------+
-    void HidEngineClass::mouseMove_impl(uint8_t mouse_id)
+    void HidEngineClass::mouseMove_impl(MouseId mouse_id)
     {
       if (_read_mouse_delta_cb == nullptr)
       {
@@ -340,15 +347,15 @@ namespace hidpg
       }
     }
 
-    Gesture *HidEngineClass::getCurrentGesture(uint8_t mouse_id)
+    Gesture *HidEngineClass::getCurrentGesture(MouseId mouse_id)
     {
-      for (auto &started_id : _started_gesture_id_list)
+      for (auto &started_gesture_id : _started_gesture_id_list)
       {
-        for (auto &gst : _gesture_map)
+        for (auto &gesture : _gesture_map)
         {
-          if ((started_id.id == gst.gesture_id) && (gst.mouse_id == mouse_id))
+          if ((started_gesture_id.value == gesture.gesture_id.value) && (gesture.mouse_id == mouse_id))
           {
-            return &gst;
+            return &gesture;
           }
         }
       }
@@ -464,27 +471,24 @@ namespace hidpg
 
     void HidEngineClass::processPreCommandJustBeforeFirstGesture(Gesture &gesture)
     {
-      if ((gesture.is_pre_command_pressed == false) &&
-          (gesture.pre_command_timing == PreCommandTiming::JustBeforeFirstGesture))
+      if (gesture.pre_command.has_value() &&
+          gesture.pre_command.value().is_pressed == false &&
+          gesture.pre_command.value().timing == Timing::JustBeforeFirstAction)
       {
-        gesture.is_pre_command_pressed = true;
-        if (gesture.pre_command != nullptr)
-        {
-          gesture.pre_command->press();
-        }
+        gesture.pre_command.value().is_pressed = true;
+        gesture.pre_command.value().command->press();
       }
     }
 
     bool HidEngineClass::processPreCommandInsteadOfFirstGesture(Gesture &gesture)
     {
-      if ((gesture.is_pre_command_pressed == false) &&
-          (gesture.pre_command_timing == PreCommandTiming::InsteadOfFirstGesture))
+      if (gesture.pre_command.has_value() &&
+          gesture.pre_command.value().is_pressed == false &&
+          gesture.pre_command.value().timing == Timing::InsteadOfFirstAction)
       {
-        gesture.is_pre_command_pressed = true;
-        if (gesture.pre_command != nullptr)
-        {
-          gesture.pre_command->press();
-        }
+        gesture.pre_command.value().is_pressed = true;
+        gesture.pre_command.value().command->press();
+
         gesture.instead_of_first_gesture_millis = millis();
         return true;
       }
@@ -492,7 +496,7 @@ namespace hidpg
       return false;
     }
 
-    void HidEngineClass::startGesture(GestureID &gesture_id)
+    void HidEngineClass::startGesture(GestureIdLink &gesture_id)
     {
       if (gesture_id.is_linked())
       {
@@ -504,36 +508,32 @@ namespace hidpg
       // pre_command
       for (auto &gesture : _gesture_map)
       {
-        if (gesture.gesture_id == gesture_id.id)
+        if (gesture.gesture_id.value == gesture_id.value &&
+            gesture.pre_command.has_value() &&
+            gesture.pre_command.value().timing == Timing::Immediately &&
+            gesture.pre_command.value().is_pressed == false)
         {
-          if (gesture.pre_command_timing == PreCommandTiming::Immediately &&
-              gesture.is_pre_command_pressed == false)
-          {
-            gesture.is_pre_command_pressed = true;
-            if (gesture.pre_command != nullptr)
-            {
-              gesture.pre_command->press();
-            }
-          }
+          gesture.pre_command.value().is_pressed = true;
+          gesture.pre_command.value().command->press();
         }
       }
     }
 
-    void HidEngineClass::stopGesture(GestureID &gesture_id)
+    void HidEngineClass::stopGesture(GestureIdLink &gesture_id)
     {
       if (gesture_id.is_linked() == false)
       {
         return;
       }
 
-      auto i_item = etl::intrusive_list<GestureID>::iterator(gesture_id);
+      auto i_item = etl::intrusive_list<GestureIdLink>::iterator(gesture_id);
       _started_gesture_id_list.erase(i_item);
       gesture_id.clear();
 
       // 同じidが同時に押されることもあり得るので最後に押されていたかチェック
       for (auto &started_id : _started_gesture_id_list)
       {
-        if (started_id.id == gesture_id.id)
+        if (started_id.value == gesture_id.value)
         {
           return;
         }
@@ -542,19 +542,17 @@ namespace hidpg
       // 最後のidならclean up
       for (auto &gesture : _gesture_map)
       {
-        if (gesture.gesture_id == gesture_id.id)
+        if (gesture.gesture_id.value == gesture_id.value)
         {
-          if (gesture.is_pre_command_pressed == true)
+          if (gesture.pre_command.has_value() &&
+              gesture.pre_command.value().is_pressed == true)
           {
-            gesture.is_pre_command_pressed = false;
-            if (gesture.pre_command != nullptr)
-            {
-              gesture.pre_command->release();
-            }
+            gesture.pre_command.value().is_pressed = false;
+            gesture.pre_command.value().command->release();
+            gesture.instead_of_first_gesture_millis = etl::nullopt;
           }
           gesture.total_distance_x = 0;
           gesture.total_distance_y = 0;
-          gesture.instead_of_first_gesture_millis = etl::nullopt;
         }
       }
     }
@@ -562,24 +560,9 @@ namespace hidpg
     //------------------------------------------------------------------+
     // RotateEncoder
     //------------------------------------------------------------------+
-    void HidEngineClass::rotateEncoder_impl(uint8_t encoder_id)
+    void HidEngineClass::rotateEncoder_impl(EncoderId encoder_id)
     {
       if (_read_encoder_step_cb == nullptr)
-      {
-        return;
-      }
-
-      Encoder *encoder = nullptr;
-      for (auto &enc : _encoder_map)
-      {
-        if (enc.encoder_id == encoder_id)
-        {
-          encoder = &enc;
-          break;
-        }
-      }
-
-      if (encoder == nullptr)
       {
         return;
       }
@@ -587,7 +570,38 @@ namespace hidpg
       Hid.waitReady();
       int16_t step = 0;
       _read_encoder_step_cb(encoder_id, step);
+
+      if (step == 0)
+      {
+        return;
+      }
+
+      BeforeRotateEncoderEventListener::_notifyBeforeRotateEncoder(encoder_id, step);
+
+      EncoderShift *encoder = getCurrentEncoder(encoder_id);
+
+      if (encoder == nullptr)
+      {
+        return;
+      }
+
       uint8_t step_u8 = std::min(abs(step), UINT8_MAX);
+
+      if (encoder->pre_command.has_value() &&
+          encoder->pre_command.value().is_pressed == false)
+      {
+        encoder->pre_command.value().is_pressed = true;
+        encoder->pre_command.value().command->press();
+
+        if (encoder->pre_command.value().timing == Timing::InsteadOfFirstAction)
+        {
+          step_u8--;
+          if (step_u8 == 0)
+          {
+            return;
+          }
+        }
+      }
 
       if (step > 0)
       {
@@ -596,6 +610,89 @@ namespace hidpg
       else if (step < 0)
       {
         CommandTapper.tap(encoder->counterclockwise_command, step_u8);
+      }
+    }
+
+    EncoderShift *HidEngineClass::getCurrentEncoder(EncoderId encoder_id)
+    {
+      EncoderShift *dflt = nullptr;
+
+      for (auto &encoder : _encoder_map)
+      {
+        if (encoder.encoder_id == encoder_id)
+        {
+          dflt = &encoder;
+          break;
+        }
+      }
+
+      for (auto &started_encoder_shift_id : _started_encoder_shift_id_list)
+      {
+        for (auto &encoder : _encoder_shift_map)
+        {
+          if ((started_encoder_shift_id.value == encoder.encoder_shift_id.value) && (encoder.encoder_id == encoder_id))
+          {
+            return &encoder;
+          }
+        }
+      }
+
+      return dflt;
+    }
+
+    void HidEngineClass::startEncoderShift(EncoderShiftIdLink &encoder_shift_id)
+    {
+      if (encoder_shift_id.is_linked())
+      {
+        return;
+      }
+
+      _started_encoder_shift_id_list.push_front(encoder_shift_id);
+
+      // pre_command
+      for (auto &encoder : _encoder_shift_map)
+      {
+        if (encoder.encoder_shift_id.value == encoder_shift_id.value &&
+            encoder.pre_command.has_value() &&
+            encoder.pre_command.value().timing == Timing::Immediately &&
+            encoder.pre_command.value().is_pressed == false)
+        {
+          encoder.pre_command.value().is_pressed = true;
+          encoder.pre_command.value().command->press();
+        }
+      }
+    }
+
+    void HidEngineClass::stopEncoderShift(EncoderShiftIdLink &encoder_shift_id)
+    {
+      if (encoder_shift_id.is_linked() == false)
+      {
+        return;
+      }
+
+      auto i_item = etl::intrusive_list<EncoderShiftIdLink>::iterator(encoder_shift_id);
+      _started_encoder_shift_id_list.erase(i_item);
+      encoder_shift_id.clear();
+
+      // 同じidが同時に押されることもあり得るので最後に押されていたかチェック
+      for (auto &started_id : _started_encoder_shift_id_list)
+      {
+        if (started_id.value == encoder_shift_id.value)
+        {
+          return;
+        }
+      }
+
+      // 最後のidならclean up
+      for (auto &encoder : _encoder_shift_map)
+      {
+        if (encoder.encoder_shift_id.value == encoder_shift_id.value &&
+            encoder.pre_command.has_value() &&
+            encoder.pre_command.value().is_pressed == true)
+        {
+          encoder.pre_command.value().is_pressed = false;
+          encoder.pre_command.value().command->release();
+        }
       }
     }
 

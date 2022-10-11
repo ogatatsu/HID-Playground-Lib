@@ -43,7 +43,7 @@ namespace hidpg
     auto pairs = new etl::vector<Internal::TapDance::Pair, 1>{
         {command, new Internal::ModifierKey(modifiers)},
     };
-    auto mouse_ids = new etl::span<uint8_t>;
+    auto mouse_ids = new etl::span<MouseId>;
 
     return (new Internal::TapDance(*pairs, *mouse_ids, 0, behavior));
   }
@@ -77,7 +77,7 @@ namespace hidpg
     auto pairs = new etl::vector<Internal::TapDance::Pair, 1>{
         {command, new Internal::SwitchLayer(Layer, layer_number)},
     };
-    auto mouse_ids = new etl::span<uint8_t>;
+    auto mouse_ids = new etl::span<MouseId>;
 
     return (new Internal::TapDance(*pairs, *mouse_ids, 0, behavior));
   }
@@ -87,7 +87,7 @@ namespace hidpg
     auto pairs = new etl::vector<Internal::TapDance::Pair, 1>{
         {command, new Internal::SwitchLayer(Layer1, layer_number)},
     };
-    auto mouse_ids = new etl::span<uint8_t>;
+    auto mouse_ids = new etl::span<MouseId>;
 
     return (new Internal::TapDance(*pairs, *mouse_ids, 0, behavior));
   }
@@ -97,7 +97,7 @@ namespace hidpg
     auto pairs = new etl::vector<Internal::TapDance::Pair, 1>{
         {command, new Internal::SwitchLayer(Layer2, layer_number)},
     };
-    auto mouse_ids = new etl::span<uint8_t>;
+    auto mouse_ids = new etl::span<MouseId>;
 
     return (new Internal::TapDance(*pairs, *mouse_ids, 0, behavior));
   }
@@ -122,19 +122,19 @@ namespace hidpg
   static NotNullCommandPtr TD(const Internal::TapDance::Pair (&pairs)[N], HoldTapBehavior behavior = HoldTapBehavior::HoldPreferred)
   {
     auto _pairs = new etl::vector<Internal::TapDance::Pair, N>{std::begin(pairs), std::end(pairs)};
-    auto mouse_ids = new etl::span<uint8_t>;
+    auto mouse_ids = new etl::span<MouseId>;
 
     return (new Internal::TapDance(*_pairs, *mouse_ids, 0, behavior));
   }
 
   template <uint8_t N1, uint8_t N2>
   static NotNullCommandPtr TD_DM(const Internal::TapDance::Pair (&pairs)[N1],
-                                 const uint8_t (&mouse_ids)[N2],
+                                 const MouseId (&mouse_ids)[N2],
                                  uint16_t move_threshold = 4,
                                  HoldTapBehavior behavior = HoldTapBehavior::HoldPreferred)
   {
     auto _pairs = new etl::vector<Internal::TapDance::Pair, N1>{std::begin(pairs), std::end(pairs)};
-    auto _mouse_ids = new etl::array<uint8_t, N2>;
+    auto _mouse_ids = new etl::array<MouseId, N2>;
     _mouse_ids->assign(std::begin(mouse_ids), std::end(mouse_ids));
 
     return (new Internal::TapDance(*_pairs, *_mouse_ids, move_threshold, behavior));
@@ -193,11 +193,13 @@ namespace hidpg
 
   static inline NotNullCommandPtr NOP() { return (new Internal::NoOperation()); }
 
-  static inline NotNullCommandPtr GST(uint8_t gesture_id) { return (new Internal::GestureCommand(gesture_id)); }
+  static inline NotNullCommandPtr GST(GestureId gesture_id) { return (new Internal::GestureCommand(gesture_id)); }
 
-  static inline NotNullCommandPtr GST_OR(uint8_t gesture_id, NotNullCommandPtr command) { return (new Internal::GestureOr(gesture_id, command)); }
+  static inline NotNullCommandPtr GST_OR(GestureId gesture_id, NotNullCommandPtr command) { return (new Internal::GestureOr(gesture_id, command)); }
 
-  static inline NotNullCommandPtr GST_OR_NK(uint8_t gesture_id, KeyCode key_code) { return (new Internal::GestureOrNK(gesture_id, key_code)); }
+  static inline NotNullCommandPtr GST_OR_NK(GestureId gesture_id, KeyCode key_code) { return (new Internal::GestureOrNK(gesture_id, key_code)); }
+
+  static inline NotNullCommandPtr ENC(EncoderShiftId encoder_shift_id) { return (new Internal::EncoderShift(encoder_shift_id)); }
 
 // nullptr alias (_ * 7)
 #define _______ (nullptr)

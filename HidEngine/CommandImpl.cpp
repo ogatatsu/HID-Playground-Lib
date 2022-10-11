@@ -233,7 +233,7 @@ namespace hidpg::Internal
   // TapDance
   //------------------------------------------------------------------+
   TapDance::TapDance(etl::span<Pair> pairs,
-                     etl::span<uint8_t> mouse_ids,
+                     etl::span<MouseId> mouse_ids,
                      uint16_t move_threshold,
                      HoldTapBehavior behavior)
       : TimerMixin(),
@@ -270,6 +270,7 @@ namespace hidpg::Internal
     _idx_count = -1;
     stopTimer();
     stopListenBeforeOtherCommandPress();
+    stopListenBeforeRotateEncoder();
     stopListenBeforeMouseMove();
   }
 
@@ -281,6 +282,7 @@ namespace hidpg::Internal
     _idx_count = -1;
     stopTimer();
     stopListenBeforeOtherCommandPress();
+    stopListenBeforeRotateEncoder();
     stopListenBeforeMouseMove();
   }
 
@@ -291,7 +293,7 @@ namespace hidpg::Internal
 
   bool TapDance::checkMoveThreshold(BeforeMouseMoveArgs &args)
   {
-    for (uint8_t id : _mouse_ids)
+    for (auto &id : _mouse_ids)
     {
       if (id == args.mouse_id)
       {
@@ -332,6 +334,7 @@ namespace hidpg::Internal
         _delta_y_sum = 0;
         startListenBeforeMouseMove();
       }
+      startListenBeforeRotateEncoder();
       _idx_count++;
       startTimer(HID_ENGINE_TAPPING_TERM_MS);
     }
@@ -415,6 +418,20 @@ namespace hidpg::Internal
     }
     break;
 
+    case Context(Action::BeforeRotateEncoder, State::Pressed):
+    {
+      _state = State::DecidedToHold;
+      performHoldPress();
+    }
+    break;
+
+    case Context(Action::BeforeRotateEncoder, State::TapOrNextCommand):
+    {
+      _state = State::Unexecuted;
+      performTap();
+    }
+    break;
+
     default:
       break;
     }
@@ -434,6 +451,7 @@ namespace hidpg::Internal
         _delta_y_sum = 0;
         startListenBeforeMouseMove();
       }
+      startListenBeforeRotateEncoder();
       _idx_count++;
       startTimer(HID_ENGINE_TAPPING_TERM_MS);
     }
@@ -548,6 +566,20 @@ namespace hidpg::Internal
     }
     break;
 
+    case Context(Action::BeforeRotateEncoder, State::Pressed):
+    {
+      _state = State::DecidedToHold;
+      performHoldPress();
+    }
+    break;
+
+    case Context(Action::BeforeRotateEncoder, State::TapOrNextCommand):
+    {
+      _state = State::Unexecuted;
+      performTap();
+    }
+    break;
+
     case Context(Action::HookRelease, State::Hook):
     {
       _state = State::DecidedToHold;
@@ -585,10 +617,16 @@ namespace hidpg::Internal
     processTapDance(Action::BeforeOtherCommandPress, args);
   }
 
-  void TapDance::onBeforeMouseMove(uint8_t mouse_id, int16_t delta_x, int16_t delta_y)
+  void TapDance::onBeforeMouseMove(MouseId mouse_id, int16_t delta_x, int16_t delta_y)
   {
     BeforeMouseMoveArgs args{.mouse_id = mouse_id, .delta_x = delta_x, .delta_y = delta_y};
     processTapDance(Action::BeforeMouseMove, args);
+  }
+
+  void TapDance::onBeforeRotateEncoder(EncoderId encoder_id, int16_t step)
+  {
+    BeforeRotateEncoderArgs args{.encoder_id = encoder_id, .step = step};
+    processTapDance(Action::BeforeRotateEncoder, args);
   }
 
   void TapDance::onHookPress()
@@ -1013,7 +1051,7 @@ namespace hidpg::Internal
   //------------------------------------------------------------------+
   // GestureCommand
   //------------------------------------------------------------------+
-  GestureCommand::GestureCommand(uint8_t gesture_id) : _gesture_id(gesture_id)
+  GestureCommand::GestureCommand(GestureId gesture_id) : _gesture_id(gesture_id.value)
   {
   }
 
@@ -1031,10 +1069,10 @@ namespace hidpg::Internal
   //------------------------------------------------------------------+
   // GestureOr
   //------------------------------------------------------------------+
-  GestureOr::GestureOr(uint8_t gesture_id, NotNullCommandPtr command)
+  GestureOr::GestureOr(GestureId gesture_id, NotNullCommandPtr command)
       : BeforeOtherCommandPressEventListener(this),
         BeforeGestureEventListener(),
-        _gesture_id(gesture_id),
+        _gesture_id(gesture_id.value),
         _command(command),
         _state(State::Unexecuted)
   {
@@ -1082,7 +1120,7 @@ namespace hidpg::Internal
     }
   }
 
-  void GestureOr::onBeforeGesture(uint8_t gesture_id, uint8_t mouse_id)
+  void GestureOr::onBeforeGesture(GestureId gesture_id, MouseId mouse_id)
   {
     if (_state == State::Pressed)
     {
@@ -1106,10 +1144,10 @@ namespace hidpg::Internal
   //------------------------------------------------------------------+
   // GestureOrNK
   //------------------------------------------------------------------+
-  GestureOrNK::GestureOrNK(uint8_t gesture_id, KeyCode key_code)
+  GestureOrNK::GestureOrNK(GestureId gesture_id, KeyCode key_code)
       : BeforeOtherCommandPressEventListener(this),
         BeforeGestureEventListener(),
-        _gesture_id(gesture_id),
+        _gesture_id(gesture_id.value),
         _nk_command(key_code),
         _state(State::Unexecuted)
   {
@@ -1165,7 +1203,7 @@ namespace hidpg::Internal
     }
   }
 
-  void GestureOrNK::onBeforeGesture(uint8_t gesture_id, uint8_t mouse_id)
+  void GestureOrNK::onBeforeGesture(GestureId gesture_id, MouseId mouse_id)
   {
     if (_state == State::Pressed)
     {
@@ -1184,6 +1222,24 @@ namespace hidpg::Internal
   {
     stopListenBeforeOtherCommandPress();
     stopListenBeforeGesture();
+  }
+
+  //------------------------------------------------------------------+
+  // EncoderShift
+  //------------------------------------------------------------------+
+  EncoderShift::EncoderShift(EncoderShiftId encoder_shift_id) : _encoder_shift_id_link(encoder_shift_id.value)
+  {
+  }
+
+  void EncoderShift::onPress(uint8_t n_times)
+  {
+    HidEngine.startEncoderShift(_encoder_shift_id_link);
+  }
+
+  uint8_t EncoderShift::onRelease()
+  {
+    HidEngine.stopEncoderShift(_encoder_shift_id_link);
+    return 1;
   }
 
 } // namespace hidpg::Internal
