@@ -88,6 +88,7 @@ namespace hidpg::Internal
   {
   public:
     Layering(LayerClass &layer, etl::span<CommandPtr> commands);
+    void setKeyId(uint8_t) override;
 
   protected:
     void onPress(uint8_t n_times) override;
@@ -156,6 +157,7 @@ namespace hidpg::Internal
   {
   public:
     Tap(NotNullCommandPtr command, uint8_t n_times, uint16_t tap_speed_ms);
+    void setKeyId(uint8_t) override;
 
   protected:
     void onPress(uint8_t n_times) override;
@@ -173,6 +175,7 @@ namespace hidpg::Internal
   {
   public:
     TapWhenReleased(NotNullCommandPtr command, uint8_t n_times, uint16_t tap_speed_ms);
+    void setKeyId(uint8_t) override;
 
   protected:
     uint8_t onRelease() override;
@@ -188,10 +191,9 @@ namespace hidpg::Internal
   //------------------------------------------------------------------+
   class TapDance : public Command,
                    public TimerMixin,
-                   public BeforeOtherCommandPressEventListener,
+                   public BeforeOtherKeyPressEventListener,
                    public BeforeMovePointerEventListener,
-                   public BeforeRotateEncoderEventListener,
-                   public CommandHook
+                   public BeforeRotateEncoderEventListener
   {
   public:
     struct Pair
@@ -201,21 +203,24 @@ namespace hidpg::Internal
       const CommandPtr tap_command;
     };
 
-    TapDance(etl::span<Pair> pairs, etl::span<PointingDeviceId> pointing_device_ids, uint16_t move_threshold, HoldTapBehavior behavior);
+    TapDance(etl::span<Pair> pairs, etl::span<PointingDeviceId> pointing_device_ids, uint16_t move_threshold);
+    void setKeyId(uint8_t) override;
 
   protected:
     void onPress(uint8_t n_times) override;
     uint8_t onRelease() override;
     void onTimer() override;
-    void onBeforeOtherCommandPress(Command &command) override;
+    void onBeforeOtherKeyPress(uint8_t key_id) override;
     void onBeforeMovePointer(PointingDeviceId pointing_device_id, int16_t delta_x, int16_t delta_y) override;
     void onBeforeRotateEncoder(EncoderId encoder_id, int16_t step) override;
 
-    void onHookPress() override;
-    void onHookRelease() override;
-
   private:
-    struct BeforeMouseMoveArgs
+    struct BeforeOtherKeyPressArgs
+    {
+      const uint8_t key_id;
+    };
+
+    struct BeforeMovePointerArgs
     {
       const PointingDeviceId pointing_device_id;
       const int16_t delta_x;
@@ -228,12 +233,7 @@ namespace hidpg::Internal
       const int16_t step;
     };
 
-    struct BeforeOtherCommandPressArgs
-    {
-      Command &command;
-    };
-
-    using ArgsType = etl::variant<BeforeOtherCommandPressArgs, BeforeMouseMoveArgs, BeforeRotateEncoderArgs, nullptr_t>;
+    using ArgsType = etl::variant<BeforeOtherKeyPressArgs, BeforeMovePointerArgs, BeforeRotateEncoderArgs, nullptr_t>;
 
     // clang-format off
       enum class Action : uint32_t
@@ -241,20 +241,17 @@ namespace hidpg::Internal
         Press                   = 0b1,
         Release                 = 0b10,
         Timer                   = 0b100,
-        BeforeOtherCommandPress = 0b1000,
+        BeforeOtherKeyPress     = 0b1000,
         BeforeMouseMove         = 0b10000,
         BeforeRotateEncoder     = 0b100000,
-        HookPress               = 0b1000000,
-        HookRelease             = 0b10000000,
       };
 
       enum class State : uint32_t
       {
-        Unexecuted              = 0b100000000,
-        Pressed                 = 0b1000000000,
-        Hook                    = 0b10000000000,
-        TapOrNextCommand        = 0b100000000000,
-        DecidedToHold           = 0b1000000000000,
+        Unexecuted              = 0b1000000,
+        Pressed                 = 0b10000000,
+        TapOrNextCommand        = 0b100000000,
+        DecidedToHold           = 0b1000000000,
       };
     // clang-format on
 
@@ -266,17 +263,14 @@ namespace hidpg::Internal
     void performTap();
     void performHoldPress();
     void performHoldRelease();
-    bool checkMoveThreshold(BeforeMouseMoveArgs &args);
+    bool checkMoveThreshold(BeforeMovePointerArgs &args);
     void processTapDance(Action action, ArgsType args);
-    void processHoldPreferredBehavior(Action action, ArgsType &args);
-    void processBalancedBehavior(Action action, ArgsType &args);
 
     Command *_running_command;
     Command *_hooked_command;
     const etl::span<Pair> _pairs;
     const etl::span<PointingDeviceId> _pointing_device_ids;
     const uint16_t _move_threshold;
-    const HoldTapBehavior _behavior;
     int16_t _delta_x_sum;
     int16_t _delta_y_sum;
     size_t _idx_count;
@@ -290,6 +284,7 @@ namespace hidpg::Internal
   {
   public:
     TapOrHold(NotNullCommandPtr tap_command, unsigned int ms, NotNullCommandPtr hold_command);
+    void setKeyId(uint8_t) override;
 
   protected:
     void onPress(uint8_t n_times) override;
@@ -431,6 +426,9 @@ namespace hidpg::Internal
   {
   public:
     OnceEvery(NotNullCommandPtr command, uint32_t ms);
+    void setKeyId(uint8_t) override;
+
+  protected:
     void onPress(uint8_t n_times) override;
     uint8_t onRelease() override;
 
@@ -448,6 +446,9 @@ namespace hidpg::Internal
   {
   public:
     NTimesEvery(NotNullCommandPtr command, uint32_t _ms);
+    void setKeyId(uint8_t) override;
+
+  protected:
     void onPress(uint8_t n_times) override;
     uint8_t onRelease() override;
 
@@ -465,6 +466,7 @@ namespace hidpg::Internal
   {
   public:
     If(bool (*func)(), NotNullCommandPtr true_command, NotNullCommandPtr false_command);
+    void setKeyId(uint8_t) override;
 
   protected:
     void onPress(uint8_t n_times) override;
@@ -484,6 +486,7 @@ namespace hidpg::Internal
   {
   public:
     Multi(etl::span<NotNullCommandPtr> commands);
+    void setKeyId(uint8_t key_id) override;
 
   protected:
     void onPress(uint8_t n_times) override;
@@ -500,6 +503,7 @@ namespace hidpg::Internal
   {
   public:
     Toggle(NotNullCommandPtr command);
+    void setKeyId(uint8_t) override;
 
   protected:
     void onPress(uint8_t n_times) override;
@@ -516,6 +520,7 @@ namespace hidpg::Internal
   {
   public:
     Repeat(NotNullCommandPtr command, uint32_t delay_ms, uint32_t interval_ms);
+    void setKeyId(uint8_t) override;
 
   protected:
     void onPress(uint8_t n_times) override;
@@ -535,6 +540,7 @@ namespace hidpg::Internal
   {
   public:
     Cycle(etl::span<NotNullCommandPtr> commands);
+    void setKeyId(uint8_t) override;
 
   protected:
     void onPress(uint8_t n_times) override;
@@ -552,6 +558,7 @@ namespace hidpg::Internal
   {
   public:
     CyclePhaseShift(etl::span<NotNullCommandPtr> commands);
+    void setKeyId(uint8_t) override;
 
   protected:
     void onPress(uint8_t n_times) override;
@@ -573,96 +580,93 @@ namespace hidpg::Internal
   };
 
   //------------------------------------------------------------------+
-  // GestureCommand
+  // Shift
   //------------------------------------------------------------------+
-  class GestureCommand : public Command
+  using ShiftId = etl::variant<KeyShiftId, EncoderShiftId, GestureId>;
+  using ShiftIdLink = etl::variant<KeyShiftIdLink, EncoderShiftIdLink, GestureIdLink>;
+
+  struct ShiftIds1
   {
-  public:
-    GestureCommand(GestureId gesture_id);
+    ShiftIds1(ShiftId shift_id0)
+        : id0(shift_id0) {}
 
-  protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
-
-  private:
-    GestureIdLink _gesture_id;
+    ShiftId id0;
   };
 
-  //------------------------------------------------------------------+
-  // GestureOr
-  //------------------------------------------------------------------+
-  class GestureOr : public Command, public BeforeOtherCommandPressEventListener, public BeforeGestureEventListener
+  struct ShiftIds2
   {
-  public:
-    GestureOr(GestureId gesture_id, NotNullCommandPtr command);
+    ShiftIds2(ShiftId shift_id0,
+              ShiftId shift_id1)
+        : id0(shift_id0),
+          id1(shift_id1) {}
 
-  protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
-    void onBeforeOtherCommandPress(Command &command) override;
-    void onBeforeGesture(GestureId gesture_id, PointingDeviceId pointing_device_id) override;
-    void startListen();
-    void stopListen();
-
-  private:
-    enum class State : uint8_t
-    {
-      Unexecuted,
-      Pressed,
-      OtherCommandPressed,
-      Gestured,
-    };
-
-    GestureIdLink _gesture_id;
-    NotNullCommandPtr _command;
-    State _state;
+    ShiftId id0;
+    ShiftId id1;
   };
 
-  //------------------------------------------------------------------+
-  // GestureOrNK
-  //------------------------------------------------------------------+
-  class GestureOrNK : public Command, public BeforeOtherCommandPressEventListener, public BeforeGestureEventListener
+  struct ShiftIds3
   {
-  public:
-    GestureOrNK(GestureId gesture_id, KeyCode key_code);
+    ShiftIds3(ShiftId shift_id0,
+              ShiftId shift_id1,
+              ShiftId shift_id2)
+        : id0(shift_id0),
+          id1(shift_id1),
+          id2(shift_id2) {}
 
-  protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
-    void onBeforeOtherCommandPress(Command &command) override;
-    void onBeforeGesture(GestureId gesture_id, PointingDeviceId pointing_device_id) override;
-    void startListen();
-    void stopListen();
-
-  private:
-    enum class State : uint8_t
-    {
-      Unexecuted,
-      Pressed,
-      PressedWithModifiers,
-      OtherCommandPressed,
-      Gestured,
-    };
-
-    GestureIdLink _gesture_id;
-    NormalKey _nk_command;
-    State _state;
+    ShiftId id0;
+    ShiftId id1;
+    ShiftId id2;
   };
 
-  //------------------------------------------------------------------+
-  // EncoderShift
-  //------------------------------------------------------------------+
-  class EncoderShift : public Command
+  struct ShiftIds4
+  {
+    ShiftIds4(ShiftId shift_id0,
+              ShiftId shift_id1,
+              ShiftId shift_id2,
+              ShiftId shift_id3)
+        : id0(shift_id0),
+          id1(shift_id1),
+          id2(shift_id2),
+          id3(shift_id3) {}
+
+    ShiftId id0;
+    ShiftId id1;
+    ShiftId id2;
+    ShiftId id3;
+  };
+
+  struct ShiftIds5
+  {
+    ShiftIds5(ShiftId shift_id0,
+              ShiftId shift_id1,
+              ShiftId shift_id2,
+              ShiftId shift_id3,
+              ShiftId shift_id4)
+        : id0(shift_id0),
+          id1(shift_id1),
+          id2(shift_id2),
+          id3(shift_id3),
+          id4(shift_id4) {}
+
+    ShiftId id0;
+    ShiftId id1;
+    ShiftId id2;
+    ShiftId id3;
+    ShiftId id4;
+  };
+
+  class Shift : public Command
   {
   public:
-    EncoderShift(EncoderShiftId encoder_shift_id);
+    Shift(etl::span<ShiftIdLink> shift_id_links);
+    static ShiftIdLink IdToLink(ShiftId shift_id);
 
   protected:
     void onPress(uint8_t n_times) override;
     uint8_t onRelease() override;
 
   private:
-    EncoderShiftIdLink _encoder_shift_id_link;
+    const etl::span<ShiftIdLink> _shift_id_links;
   };
 
 } // namespace hidpg::Internal

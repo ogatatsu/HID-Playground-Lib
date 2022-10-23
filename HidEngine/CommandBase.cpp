@@ -30,25 +30,16 @@ namespace hidpg
   //------------------------------------------------------------------+
   // Command
   //------------------------------------------------------------------+
-  Command::Command() : _parent(nullptr), _state(State::Released)
+  Command::Command() : _is_pressed(false)
   {
   }
 
   void Command::press(uint8_t n_times)
   {
-    if (_state == State::Released && CommandHook::_isHooked(*this) == false)
+    if (_is_pressed == false)
     {
-      _state = State::Notified;
-      BeforeOtherCommandPressEventListener::_notifyOtherCommandPress(*this);
-    }
-
-    if (CommandHook::_tryHookPress(*this) == false)
-    {
-      if (_state == State::Notified && CommandHook::_isHooked(*this) == false)
-      {
-        _state = State::Pressed;
-        onPress(n_times);
-      }
+      _is_pressed = true;
+      onPress(n_times);
     }
   }
 
@@ -56,26 +47,23 @@ namespace hidpg
   {
     uint8_t result = 1;
 
-    if (CommandHook::_tryHookRelease(*this) == false)
+    if (_is_pressed)
     {
-      if (_state == State::Pressed && CommandHook::_isHooked(*this) == false)
-      {
-        _state = State::Released;
-        result = onRelease();
-      }
+      _is_pressed = false;
+      result = onRelease();
     }
 
     return result;
   }
 
   //------------------------------------------------------------------+
-  // BeforeOtherCommandPressEventListener
+  // BeforeOtherKeyPressEventListener
   //------------------------------------------------------------------+
-  BeforeOtherCommandPressEventListener::BeforeOtherCommandPressEventListener(Command *command) : _command(command), _is_listen(false)
+  BeforeOtherKeyPressEventListener::BeforeOtherKeyPressEventListener(Command *command) : _command(command), _is_listen(false)
   {
   }
 
-  bool BeforeOtherCommandPressEventListener::startListenBeforeOtherCommandPress()
+  bool BeforeOtherKeyPressEventListener::startListenBeforeOtherKeyPress()
   {
     if (_is_listen)
     {
@@ -88,7 +76,7 @@ namespace hidpg
     return true;
   }
 
-  bool BeforeOtherCommandPressEventListener::stopListenBeforeOtherCommandPress()
+  bool BeforeOtherKeyPressEventListener::stopListenBeforeOtherKeyPress()
   {
     if (_is_listen == false)
     {
@@ -102,24 +90,15 @@ namespace hidpg
     return true;
   }
 
-  void BeforeOtherCommandPressEventListener::_notifyOtherCommandPress(Command &press_command)
+  void BeforeOtherKeyPressEventListener::_notifyBeforeOtherKeyPress(uint8_t key_id)
   {
-    for (BeforeOtherCommandPressEventListener &listener : _listener_list())
+    for (auto &listener : _listener_list())
     {
-      if (getRootCommand(listener._command) != getRootCommand(&press_command))
+      if (listener._command->getKeyId() != key_id)
       {
-        listener.onBeforeOtherCommandPress(press_command);
+        listener.onBeforeOtherKeyPress(key_id);
       }
     }
-  }
-
-  Command *BeforeOtherCommandPressEventListener::getRootCommand(Command *command)
-  {
-    while (command->getParent() != nullptr)
-    {
-      command = command->getParent();
-    }
-    return command;
   }
 
   //------------------------------------------------------------------+
@@ -246,93 +225,6 @@ namespace hidpg
     {
       listener.onBeforeGesture(gesture_id, pointing_device_id);
     }
-  }
-
-  //------------------------------------------------------------------+
-  // CommandHook
-  //------------------------------------------------------------------+
-  CommandHook::CommandHook() : _is_hook(false), _hooked_command(nullptr), _state(State::Invalid)
-  {
-  }
-
-  bool CommandHook::startHook(Command &command)
-  {
-    if (_is_hook)
-    {
-      return false;
-    }
-
-    for (CommandHook &cmd : _hooker_list())
-    {
-      if (cmd._hooked_command == &command)
-      {
-        return false;
-      }
-    }
-
-    _hooked_command = &command;
-    _hooker_list().push_back(*this);
-    _is_hook = true;
-    _state = State::Invalid;
-
-    return true;
-  }
-
-  bool CommandHook::stopHook()
-  {
-    if (_is_hook == false)
-    {
-      return false;
-    }
-
-    _hooked_command = nullptr;
-    auto i_item = List::iterator(*this);
-    _hooker_list().erase(i_item);
-    _is_hook = false;
-
-    return true;
-  }
-
-  bool CommandHook::_tryHookPress(Command &command)
-  {
-    for (CommandHook &cmd : _hooker_list())
-    {
-      if (cmd._hooked_command == &command &&
-          (cmd._state == State::Invalid || cmd._state == State::Released))
-      {
-        cmd._state = State::Pressed;
-        cmd.onHookPress();
-        return true;
-      }
-    }
-    return false;
-  }
-
-  bool CommandHook::_tryHookRelease(Command &command)
-  {
-    for (CommandHook &cmd : _hooker_list())
-    {
-      if (cmd._hooked_command == &command &&
-          (cmd._state == State::Invalid || cmd._state == State::Pressed))
-      {
-        cmd._state = State::Released;
-        cmd.onHookRelease();
-        return true;
-      }
-    }
-    return false;
-  }
-
-  bool CommandHook::_isHooked(Command &command)
-  {
-    for (CommandHook &cmd : _hooker_list())
-    {
-      if (cmd._hooked_command == &command)
-      {
-        return true;
-      }
-    }
-    return false;
   }
 
 } // namespace hidpg

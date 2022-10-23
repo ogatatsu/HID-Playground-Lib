@@ -30,19 +30,78 @@
 #include "TimerMixin.h"
 #include "etl/optional.h"
 #include "etl/span.h"
+#include "etl/vector.h"
+#include <tuple>
 
 namespace hidpg
 {
   // ------------------------------------------------------------------+
   // Key
   // ------------------------------------------------------------------+
-  struct Key
+  enum class Timing : uint8_t
+  {
+    Immediately,
+    JustBeforeFirstAction,
+    InsteadOfFirstAction,
+  };
+
+  enum class KeymapOverlay : uint8_t
+  {
+    Enable,
+    Disable,
+  };
+
+  struct PreCommand
+  {
+    PreCommand(NotNullCommandPtr command, Timing timing)
+        : command(command), timing(timing), is_pressed(false) {}
+
+    const NotNullCommandPtr command;
+    const Timing timing;
+
+    bool is_pressed;
+  };
+
+  struct Key : public etl::bidirectional_link<0>
   {
     Key(uint8_t key_id, NotNullCommandPtr command)
-        : key_id(key_id), command(command) {}
+        : etl::bidirectional_link<0>(), key_id(key_id), command(command)
+    {
+      command->setKeyId(key_id);
+    }
 
     const uint8_t key_id;
     const NotNullCommandPtr command;
+  };
+
+  struct KeyShift
+  {
+    KeyShift(KeyShiftId key_shift_id,
+             KeymapOverlay keymap_overlay,
+             etl::span<Key> keymap,
+             etl::optional<PreCommand> pre_command = etl::nullopt)
+        : key_shift_id(key_shift_id),
+          keymap_overlay(keymap_overlay),
+          keymap(keymap),
+          pre_command(pre_command)
+    {
+      for (auto &key : keymap)
+      {
+        key.command->setKeyId(key.key_id);
+      }
+    }
+
+    const KeyShiftId key_shift_id;
+    const KeymapOverlay keymap_overlay;
+    const etl::span<Key> keymap;
+    etl::optional<PreCommand> pre_command;
+  };
+
+  struct KeyShiftIdLink : public etl::bidirectional_link<0>
+  {
+    KeyShiftIdLink(uint8_t value = 0) : etl::bidirectional_link<0>(), value(value) { clear(); }
+
+    const uint8_t value;
   };
 
   // ------------------------------------------------------------------+
@@ -67,7 +126,9 @@ namespace hidpg
           second_id(second_key_id),
           command(command),
           combo_term_ms(combo_term_ms),
-          behavior(combo_behavior) {}
+          behavior(combo_behavior)
+    {
+    }
 
     const uint8_t first_id;
     const uint8_t second_id;
@@ -109,24 +170,6 @@ namespace hidpg
   {
     Enable,
     Disable,
-  };
-
-  enum class Timing : uint8_t
-  {
-    Immediately,
-    JustBeforeFirstAction,
-    InsteadOfFirstAction,
-  };
-
-  struct PreCommand
-  {
-    PreCommand(NotNullCommandPtr command, Timing timing)
-        : command(command), timing(timing), is_pressed(false) {}
-
-    const NotNullCommandPtr command;
-    const Timing timing;
-
-    bool is_pressed;
   };
 
   struct Gesture
@@ -172,7 +215,7 @@ namespace hidpg
 
   struct GestureIdLink : public etl::bidirectional_link<0>
   {
-    GestureIdLink(uint8_t value) : value(value) { clear(); }
+    GestureIdLink(uint8_t value = 0) : value(value) { clear(); }
 
     const uint8_t value;
   };
@@ -215,7 +258,7 @@ namespace hidpg
 
   struct EncoderShiftIdLink : public etl::bidirectional_link<0>
   {
-    EncoderShiftIdLink(uint8_t value) : value(value) { clear(); }
+    EncoderShiftIdLink(uint8_t value = 0) : value(value) { clear(); }
 
     const uint8_t value;
   };
@@ -235,6 +278,7 @@ namespace hidpg
       using read_encoder_step_callback_t = void (*)(EncoderId encoder_id, int16_t &step);
 
       static void setKeymap(etl::span<Key> keymap);
+      static void setKeyShiftMap(etl::span<KeyShift> key_shift_map);
       static void setComboMap(etl::span<Combo> combo_map);
       static void setGestureMap(etl::span<Gesture> gesture_map);
       static void setEncoderMap(etl::span<Encoder> encoder_map);
@@ -247,9 +291,10 @@ namespace hidpg
       static void setReadPointerDeltaCallback(read_pointer_delta_callback_t cb);
       static void setReadEncoderStepCallback(read_encoder_step_callback_t cb);
 
+      static void startKeyShift(KeyShiftIdLink &key_shift_id);
+      static void stopKeyShift(KeyShiftIdLink &key_shift_id);
       static void startGesture(GestureIdLink &gesture_id);
       static void stopGesture(GestureIdLink &gesture_id);
-
       static void startEncoderShift(EncoderShiftIdLink &encoder_shift_id);
       static void stopEncoderShift(EncoderShiftIdLink &encoder_shift_id);
 
@@ -265,6 +310,7 @@ namespace hidpg
       static void processComboAndKey(Action action, etl::optional<uint8_t> key_id);
       static void performKeyPress(uint8_t key_id);
       static void performKeyRelease(uint8_t key_id);
+      static std::tuple<KeyShift *, Key *> getCurrentKey(uint8_t key_id);
 
       static void movePointer_impl(PointingDeviceId pointing_device_id);
       static Gesture *getCurrentGesture(PointingDeviceId pointing_device_id);
@@ -280,6 +326,7 @@ namespace hidpg
       static EncoderShift *getCurrentEncoder(EncoderId encoder_id);
 
       static etl::span<Key> _keymap;
+      static etl::span<KeyShift> _key_shift_map;
       static etl::span<Combo> _combo_map;
       static etl::span<Gesture> _gesture_map;
       static etl::span<Encoder> _encoder_map;
@@ -297,6 +344,8 @@ namespace hidpg
       static ComboTermTimer _combo_term_timer;
       static void startComboTermTimer(uint32_t ms) { _combo_term_timer.startTimer(ms); };
 
+      static etl::intrusive_list<Key> _pressed_key_list;
+      static etl::intrusive_list<KeyShiftIdLink> _started_key_shift_id_list;
       static etl::intrusive_list<GestureIdLink> _started_gesture_id_list;
       static etl::intrusive_list<EncoderShiftIdLink> _started_encoder_shift_id_list;
     };

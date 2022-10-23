@@ -98,11 +98,17 @@ namespace hidpg::Internal
   //------------------------------------------------------------------+
   Layering::Layering(LayerClass &layer, const etl::span<CommandPtr> commands) : _layer(layer), _commands(commands)
   {
-    for (auto command : _commands)
+  }
+
+  void Layering::setKeyId(uint8_t key_id)
+  {
+    Command::setKeyId(key_id);
+
+    for (auto &command : _commands)
     {
       if (command != nullptr)
       {
-        command->setParent(this);
+        command->setKeyId(key_id);
       }
     }
   }
@@ -206,7 +212,12 @@ namespace hidpg::Internal
   Tap::Tap(NotNullCommandPtr command, uint8_t n_times, uint16_t tap_speed_ms)
       : _command(command), _n_times(n_times), _tap_speed_ms(tap_speed_ms)
   {
-    _command->setParent(this);
+  }
+
+  void Tap::setKeyId(uint8_t key_id)
+  {
+    Command::setKeyId(key_id);
+    _command->setKeyId(key_id);
   }
 
   void Tap::onPress(uint8_t n_times)
@@ -220,7 +231,12 @@ namespace hidpg::Internal
   TapWhenReleased::TapWhenReleased(NotNullCommandPtr command, uint8_t n_times, uint16_t tap_speed_ms)
       : _command(command), _n_times(n_times), _tap_speed_ms(tap_speed_ms)
   {
-    _command->setParent(this);
+  }
+
+  void TapWhenReleased::setKeyId(uint8_t key_id)
+  {
+    Command::setKeyId(key_id);
+    _command->setKeyId(key_id);
   }
 
   uint8_t TapWhenReleased::onRelease()
@@ -234,27 +250,30 @@ namespace hidpg::Internal
   //------------------------------------------------------------------+
   TapDance::TapDance(etl::span<Pair> pairs,
                      etl::span<PointingDeviceId> pointing_device_ids,
-                     uint16_t move_threshold,
-                     HoldTapBehavior behavior)
+                     uint16_t move_threshold)
       : TimerMixin(),
-        BeforeOtherCommandPressEventListener(this),
+        BeforeOtherKeyPressEventListener(this),
         BeforeMovePointerEventListener(),
-        CommandHook(),
         _pairs(pairs),
         _pointing_device_ids(pointing_device_ids),
         _move_threshold(move_threshold),
-        _behavior(behavior),
         _delta_x_sum(0),
         _delta_y_sum(0),
         _idx_count(-1),
         _state(State::Unexecuted)
   {
+  }
+
+  void TapDance::setKeyId(uint8_t key_id)
+  {
+    Command::setKeyId(key_id);
+
     for (auto &pair : _pairs)
     {
-      pair.hold_command->setParent(this);
+      pair.hold_command->setKeyId(key_id);
       if (pair.tap_command != nullptr)
       {
-        pair.tap_command->setParent(this);
+        pair.tap_command->setKeyId(key_id);
       }
     }
   }
@@ -269,7 +288,7 @@ namespace hidpg::Internal
 
     _idx_count = -1;
     stopTimer();
-    stopListenBeforeOtherCommandPress();
+    stopListenBeforeOtherKeyPress();
     stopListenBeforeRotateEncoder();
     stopListenBeforeMovePointer();
   }
@@ -281,7 +300,7 @@ namespace hidpg::Internal
 
     _idx_count = -1;
     stopTimer();
-    stopListenBeforeOtherCommandPress();
+    stopListenBeforeOtherKeyPress();
     stopListenBeforeRotateEncoder();
     stopListenBeforeMovePointer();
   }
@@ -291,7 +310,7 @@ namespace hidpg::Internal
     _running_command->release();
   }
 
-  bool TapDance::checkMoveThreshold(BeforeMouseMoveArgs &args)
+  bool TapDance::checkMoveThreshold(BeforeMovePointerArgs &args)
   {
     for (auto &id : _pointing_device_ids)
     {
@@ -310,24 +329,12 @@ namespace hidpg::Internal
 
   void TapDance::processTapDance(Action action, ArgsType args)
   {
-    if (_behavior == HoldTapBehavior::HoldPreferred)
-    {
-      processHoldPreferredBehavior(action, args);
-    }
-    else if (_behavior == HoldTapBehavior::Balanced)
-    {
-      processBalancedBehavior(action, args);
-    }
-  }
-
-  void TapDance::processHoldPreferredBehavior(Action action, ArgsType &args)
-  {
     switch (Context(action, _state))
     {
     case Context(Action::Press, State::Unexecuted):
     {
       _state = State::Pressed;
-      startListenBeforeOtherCommandPress();
+      startListenBeforeOtherKeyPress();
       if (_pointing_device_ids.empty() == false)
       {
         _delta_x_sum = 0;
@@ -384,14 +391,14 @@ namespace hidpg::Internal
     }
     break;
 
-    case Context(Action::BeforeOtherCommandPress, State::Pressed):
+    case Context(Action::BeforeOtherKeyPress, State::Pressed):
     {
       _state = State::DecidedToHold;
       performHoldPress();
     }
     break;
 
-    case Context(Action::BeforeOtherCommandPress, State::TapOrNextCommand):
+    case Context(Action::BeforeOtherKeyPress, State::TapOrNextCommand):
     {
       _state = State::Unexecuted;
       performTap();
@@ -400,7 +407,7 @@ namespace hidpg::Internal
 
     case Context(Action::BeforeMouseMove, State::Pressed):
     {
-      if (checkMoveThreshold(etl::get<BeforeMouseMoveArgs>(args)))
+      if (checkMoveThreshold(etl::get<BeforeMovePointerArgs>(args)))
       {
         _state = State::DecidedToHold;
         performHoldPress();
@@ -410,7 +417,7 @@ namespace hidpg::Internal
 
     case Context(Action::BeforeMouseMove, State::TapOrNextCommand):
     {
-      if (checkMoveThreshold(etl::get<BeforeMouseMoveArgs>(args)))
+      if (checkMoveThreshold(etl::get<BeforeMovePointerArgs>(args)))
       {
         _state = State::Unexecuted;
         performTap();
@@ -429,164 +436,6 @@ namespace hidpg::Internal
     {
       _state = State::Unexecuted;
       performTap();
-    }
-    break;
-
-    default:
-      break;
-    }
-  }
-
-  void TapDance::processBalancedBehavior(Action action, ArgsType &args)
-  {
-    switch (Context(action, _state))
-    {
-    case Context(Action::Press, State::Unexecuted):
-    {
-      _state = State::Pressed;
-      startListenBeforeOtherCommandPress();
-      if (_pointing_device_ids.empty() == false)
-      {
-        _delta_x_sum = 0;
-        _delta_y_sum = 0;
-        startListenBeforeMovePointer();
-      }
-      startListenBeforeRotateEncoder();
-      _idx_count++;
-      startTimer(HID_ENGINE_TAPPING_TERM_MS);
-    }
-    break;
-
-    case Context(Action::Press, State::TapOrNextCommand):
-    {
-      _state = State::Pressed;
-      _idx_count++;
-      startTimer(HID_ENGINE_TAPPING_TERM_MS);
-    }
-    break;
-
-    case Context(Action::Release, State::Pressed):
-    {
-      if (_idx_count == _pairs.size() - 1)
-      {
-        _state = State::Unexecuted;
-        performTap();
-      }
-      else
-      {
-        _state = State::TapOrNextCommand;
-        startTimer(HID_ENGINE_TAPPING_TERM_MS);
-      }
-    }
-    break;
-
-    case Context(Action::Release, State::DecidedToHold):
-    {
-      _state = State::Unexecuted;
-      performHoldRelease();
-    }
-    break;
-
-    case Context(Action::Release, State::Hook):
-    {
-      _state = State::Unexecuted;
-      performTap();
-      stopHook();
-      _hooked_command->press();
-    }
-    break;
-
-    case Context(Action::Timer, State::Pressed):
-    {
-      _state = State::DecidedToHold;
-      performHoldPress();
-    }
-    break;
-
-    case Context(Action::Timer, State::TapOrNextCommand):
-    {
-      _state = State::Unexecuted;
-      performTap();
-    }
-    break;
-
-    case Context(Action::Timer, State::Hook):
-    {
-      _state = State::DecidedToHold;
-      performHoldPress();
-      stopHook();
-      _hooked_command->press();
-    }
-    break;
-
-    case Context(Action::BeforeOtherCommandPress, State::Pressed):
-    {
-      BeforeOtherCommandPressArgs &_args = etl::get<BeforeOtherCommandPressArgs>(args);
-      if (startHook(_args.command))
-      {
-        _state = State::Hook;
-        _hooked_command = &_args.command;
-      }
-    }
-    break;
-
-    case Context(Action::BeforeOtherCommandPress, State::TapOrNextCommand):
-    {
-      _state = State::Unexecuted;
-      performTap();
-    }
-    break;
-
-    case Context(Action::BeforeOtherCommandPress, State::Hook):
-    {
-      _state = State::DecidedToHold;
-      performHoldPress();
-      stopHook();
-      _hooked_command->press();
-    }
-    break;
-
-    case Context(Action::BeforeMouseMove, State::Pressed):
-    {
-      if (checkMoveThreshold(etl::get<BeforeMouseMoveArgs>(args)))
-      {
-        _state = State::DecidedToHold;
-        performHoldPress();
-      }
-    }
-    break;
-
-    case Context(Action::BeforeMouseMove, State::TapOrNextCommand):
-    {
-      if (checkMoveThreshold(etl::get<BeforeMouseMoveArgs>(args)))
-      {
-        _state = State::Unexecuted;
-        performTap();
-      }
-    }
-    break;
-
-    case Context(Action::BeforeRotateEncoder, State::Pressed):
-    {
-      _state = State::DecidedToHold;
-      performHoldPress();
-    }
-    break;
-
-    case Context(Action::BeforeRotateEncoder, State::TapOrNextCommand):
-    {
-      _state = State::Unexecuted;
-      performTap();
-    }
-    break;
-
-    case Context(Action::HookRelease, State::Hook):
-    {
-      _state = State::DecidedToHold;
-      performHoldPress();
-      stopHook();
-      _hooked_command->press();
-      _hooked_command->release();
     }
     break;
 
@@ -611,15 +460,15 @@ namespace hidpg::Internal
     processTapDance(Action::Timer, nullptr);
   }
 
-  void TapDance::onBeforeOtherCommandPress(Command &command)
+  void TapDance::onBeforeOtherKeyPress(uint8_t key_id)
   {
-    BeforeOtherCommandPressArgs args{.command = command};
-    processTapDance(Action::BeforeOtherCommandPress, args);
+    BeforeOtherKeyPressArgs args{.key_id = key_id};
+    processTapDance(Action::BeforeOtherKeyPress, args);
   }
 
   void TapDance::onBeforeMovePointer(PointingDeviceId pointing_device_id, int16_t delta_x, int16_t delta_y)
   {
-    BeforeMouseMoveArgs args{.pointing_device_id = pointing_device_id, .delta_x = delta_x, .delta_y = delta_y};
+    BeforeMovePointerArgs args{.pointing_device_id = pointing_device_id, .delta_x = delta_x, .delta_y = delta_y};
     processTapDance(Action::BeforeMouseMove, args);
   }
 
@@ -629,24 +478,19 @@ namespace hidpg::Internal
     processTapDance(Action::BeforeRotateEncoder, args);
   }
 
-  void TapDance::onHookPress()
-  {
-    processTapDance(Action::HookPress, nullptr);
-  }
-
-  void TapDance::onHookRelease()
-  {
-    processTapDance(Action::HookRelease, nullptr);
-  }
-
   //------------------------------------------------------------------+
   // TapOrHold
   //------------------------------------------------------------------+
   TapOrHold::TapOrHold(NotNullCommandPtr tap_command, unsigned int ms, NotNullCommandPtr hold_command)
       : TimerMixin(), _tap_command(tap_command), _hold_command(hold_command), _ms(ms), _state(State::Unexecuted)
   {
-    _tap_command->setParent(this);
-    _hold_command->setParent(this);
+  }
+
+  void TapOrHold::setKeyId(uint8_t key_id)
+  {
+    Command::setKeyId(key_id);
+    _tap_command->setKeyId(key_id);
+    _hold_command->setKeyId(key_id);
   }
 
   void TapOrHold::onPress(uint8_t n_times)
@@ -813,7 +657,12 @@ namespace hidpg::Internal
   OnceEvery::OnceEvery(NotNullCommandPtr command, uint32_t ms)
       : _command(command), _ms(ms), _last_press_millis(0), _has_pressed(false)
   {
-    _command->setParent(this);
+  }
+
+  void OnceEvery::setKeyId(uint8_t key_id)
+  {
+    Command::setKeyId(key_id);
+    _command->setKeyId(key_id);
   }
 
   void OnceEvery::onPress(uint8_t n_times)
@@ -844,7 +693,12 @@ namespace hidpg::Internal
   NTimesEvery::NTimesEvery(NotNullCommandPtr command, uint32_t ms)
       : _command(command), _ms(ms), _last_press_millis(0), _has_pressed(false)
   {
-    _command->setParent(this);
+  }
+
+  void NTimesEvery::setKeyId(uint8_t key_id)
+  {
+    Command::setKeyId(key_id);
+    _command->setKeyId(key_id);
   }
 
   void NTimesEvery::onPress(uint8_t n_times)
@@ -877,8 +731,13 @@ namespace hidpg::Internal
   If::If(bool (*func)(), NotNullCommandPtr true_command, NotNullCommandPtr false_command)
       : _func(func), _true_command(true_command), _false_command(false_command)
   {
-    _true_command->setParent(this);
-    _false_command->setParent(this);
+  }
+
+  void If::setKeyId(uint8_t key_id)
+  {
+    Command::setKeyId(key_id);
+    _true_command->setKeyId(key_id);
+    _false_command->setKeyId(key_id);
   }
 
   void If::onPress(uint8_t n_times)
@@ -898,9 +757,15 @@ namespace hidpg::Internal
   Multi::Multi(etl::span<NotNullCommandPtr> commands)
       : _commands(commands)
   {
+  }
+
+  void Multi::setKeyId(uint8_t key_id)
+  {
+    Command::setKeyId(key_id);
+
     for (auto &command : _commands)
     {
-      command->setParent(this);
+      command->setKeyId(key_id);
     }
   }
 
@@ -927,7 +792,12 @@ namespace hidpg::Internal
   Toggle::Toggle(NotNullCommandPtr command)
       : _command(command), _is_pressed(false)
   {
-    _command->setParent(this);
+  }
+
+  void Toggle::setKeyId(uint8_t key_id)
+  {
+    Command::setKeyId(key_id);
+    _command->setKeyId(key_id);
   }
 
   void Toggle::onPress(uint8_t n_times)
@@ -950,6 +820,12 @@ namespace hidpg::Internal
   Repeat::Repeat(NotNullCommandPtr command, uint32_t delay_ms, uint32_t interval_ms)
       : TimerMixin(), _command(command), _delay_ms(delay_ms), _interval_ms(interval_ms)
   {
+  }
+
+  void Repeat::setKeyId(uint8_t key_id)
+  {
+    Command::setKeyId(key_id);
+    _command->setKeyId(key_id);
   }
 
   void Repeat::onPress(uint8_t n_times)
@@ -976,9 +852,15 @@ namespace hidpg::Internal
   Cycle::Cycle(etl::span<NotNullCommandPtr> commands)
       : _commands(commands), _idx(0)
   {
+  }
+
+  void Cycle::setKeyId(uint8_t key_id)
+  {
+    Command::setKeyId(key_id);
+
     for (auto &command : _commands)
     {
-      command->setParent(this);
+      command->setKeyId(key_id);
     }
   }
 
@@ -1011,9 +893,15 @@ namespace hidpg::Internal
   CyclePhaseShift::CyclePhaseShift(etl::span<NotNullCommandPtr> commands)
       : _commands(commands), _idx(_commands.size() - 1)
   {
+  }
+
+  void CyclePhaseShift::setKeyId(uint8_t key_id)
+  {
+    Command::setKeyId(key_id);
+
     for (auto &command : _commands)
     {
-      command->setParent(this);
+      command->setKeyId(key_id);
     }
   }
 
@@ -1049,197 +937,67 @@ namespace hidpg::Internal
   }
 
   //------------------------------------------------------------------+
-  // GestureCommand
+  // Shift
   //------------------------------------------------------------------+
-  GestureCommand::GestureCommand(GestureId gesture_id) : _gesture_id(gesture_id.value)
+  Shift::Shift(etl::span<ShiftIdLink> shift_id_links) : _shift_id_links(shift_id_links)
   {
   }
 
-  void GestureCommand::onPress(uint8_t n_times)
+  void Shift::onPress(uint8_t n_times)
   {
-    HidEngine.startGesture(_gesture_id);
-  }
-
-  uint8_t GestureCommand::onRelease()
-  {
-    HidEngine.stopGesture(_gesture_id);
-    return 1;
-  }
-
-  //------------------------------------------------------------------+
-  // GestureOr
-  //------------------------------------------------------------------+
-  GestureOr::GestureOr(GestureId gesture_id, NotNullCommandPtr command)
-      : BeforeOtherCommandPressEventListener(this),
-        BeforeGestureEventListener(),
-        _gesture_id(gesture_id.value),
-        _command(command),
-        _state(State::Unexecuted)
-  {
-    _command->setParent(this);
-  }
-
-  void GestureOr::onPress(uint8_t n_times)
-  {
-    _state = State::Pressed;
-    HidEngine.startGesture(_gesture_id);
-    startListen();
-  }
-
-  uint8_t GestureOr::onRelease()
-  {
-    if (_state == State::Pressed)
+    for (auto &shift_id_link : _shift_id_links)
     {
-      _state = State::Unexecuted;
-      HidEngine.stopGesture(_gesture_id);
-      stopListen();
-      CommandTapper.tap(_command);
+      if (auto key_shift_id_link = etl::get_if<KeyShiftIdLink>(&shift_id_link))
+      {
+        HidEngine.startKeyShift(*key_shift_id_link);
+      }
+      else if (auto encoder_shift_id_link = etl::get_if<EncoderShiftIdLink>(&shift_id_link))
+      {
+        HidEngine.startEncoderShift(*encoder_shift_id_link);
+      }
+      else if (auto gesture_id_link = etl::get_if<GestureIdLink>(&shift_id_link))
+      {
+        HidEngine.startGesture(*gesture_id_link);
+      }
     }
-    else if (_state == State::OtherCommandPressed)
+  }
+
+  uint8_t Shift::onRelease()
+  {
+    for (auto &shift_id_link : _shift_id_links)
     {
-      _state = State::Unexecuted;
-      _command->release();
-    }
-    else if (_state == State::Gestured)
-    {
-      _state = State::Unexecuted;
-      HidEngine.stopGesture(_gesture_id);
+      if (auto key_shift_id_link = etl::get_if<KeyShiftIdLink>(&shift_id_link))
+      {
+        HidEngine.stopKeyShift(*key_shift_id_link);
+      }
+      else if (auto encoder_shift_id_link = etl::get_if<EncoderShiftIdLink>(&shift_id_link))
+      {
+        HidEngine.stopEncoderShift(*encoder_shift_id_link);
+      }
+      else if (auto gesture_id_link = etl::get_if<GestureIdLink>(&shift_id_link))
+      {
+        HidEngine.stopGesture(*gesture_id_link);
+      }
     }
 
     return 1;
   }
 
-  void GestureOr::onBeforeOtherCommandPress(Command &command)
+  ShiftIdLink Shift::IdToLink(ShiftId shift_id)
   {
-    if (_state == State::Pressed)
+    if (auto key_shift_id = etl::get_if<KeyShiftId>(&shift_id))
     {
-      _state = State::OtherCommandPressed;
-      HidEngine.stopGesture(_gesture_id);
-      stopListen();
-      _command->press();
+      return KeyShiftIdLink{key_shift_id->value};
     }
-  }
-
-  void GestureOr::onBeforeGesture(GestureId gesture_id, PointingDeviceId pointing_device_id)
-  {
-    if (_state == State::Pressed)
+    else if (auto encoder_shift_id = etl::get_if<EncoderShiftId>(&shift_id))
     {
-      _state = State::Gestured;
-      stopListen();
-    }
-  }
-
-  void GestureOr::startListen()
-  {
-    startListenBeforeOtherCommandPress();
-    startListenBeforeGesture();
-  }
-
-  void GestureOr::stopListen()
-  {
-    stopListenBeforeOtherCommandPress();
-    stopListenBeforeGesture();
-  }
-
-  //------------------------------------------------------------------+
-  // GestureOrNK
-  //------------------------------------------------------------------+
-  GestureOrNK::GestureOrNK(GestureId gesture_id, KeyCode key_code)
-      : BeforeOtherCommandPressEventListener(this),
-        BeforeGestureEventListener(),
-        _gesture_id(gesture_id.value),
-        _nk_command(key_code),
-        _state(State::Unexecuted)
-  {
-    _nk_command.setParent(this);
-  }
-
-  void GestureOrNK::onPress(uint8_t n_times)
-  {
-    if (Hid.isModifiersSet())
-    {
-      _state = State::PressedWithModifiers;
-      _nk_command.press();
+      return EncoderShiftIdLink{encoder_shift_id->value};
     }
     else
     {
-      _state = State::Pressed;
-      HidEngine.startGesture(_gesture_id);
-      startListen();
+      auto gesture_id = etl::get<GestureId>(shift_id);
+      return GestureIdLink{gesture_id.value};
     }
-  }
-
-  uint8_t GestureOrNK::onRelease()
-  {
-    if (_state == State::Pressed)
-    {
-      _state = State::Unexecuted;
-      HidEngine.stopGesture(_gesture_id);
-      stopListen();
-      CommandTapper.tap(&_nk_command);
-    }
-    else if (_state == State::OtherCommandPressed || _state == State::PressedWithModifiers)
-    {
-      _state = State::Unexecuted;
-      _nk_command.release();
-    }
-    else if (_state == State::Gestured)
-    {
-      _state = State::Unexecuted;
-      HidEngine.stopGesture(_gesture_id);
-    }
-
-    return 1;
-  }
-
-  void GestureOrNK::onBeforeOtherCommandPress(Command &command)
-  {
-    if (_state == State::Pressed)
-    {
-      _state = State::OtherCommandPressed;
-      HidEngine.stopGesture(_gesture_id);
-      stopListen();
-      _nk_command.press();
-    }
-  }
-
-  void GestureOrNK::onBeforeGesture(GestureId gesture_id, PointingDeviceId pointing_device_id)
-  {
-    if (_state == State::Pressed)
-    {
-      _state = State::Gestured;
-      stopListen();
-    }
-  }
-
-  void GestureOrNK::startListen()
-  {
-    startListenBeforeOtherCommandPress();
-    startListenBeforeGesture();
-  }
-
-  void GestureOrNK::stopListen()
-  {
-    stopListenBeforeOtherCommandPress();
-    stopListenBeforeGesture();
-  }
-
-  //------------------------------------------------------------------+
-  // EncoderShift
-  //------------------------------------------------------------------+
-  EncoderShift::EncoderShift(EncoderShiftId encoder_shift_id) : _encoder_shift_id_link(encoder_shift_id.value)
-  {
-  }
-
-  void EncoderShift::onPress(uint8_t n_times)
-  {
-    HidEngine.startEncoderShift(_encoder_shift_id_link);
-  }
-
-  uint8_t EncoderShift::onRelease()
-  {
-    HidEngine.stopEncoderShift(_encoder_shift_id_link);
-    return 1;
   }
 
 } // namespace hidpg::Internal

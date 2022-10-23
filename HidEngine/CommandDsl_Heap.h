@@ -38,14 +38,14 @@ namespace hidpg
 
   static inline NotNullCommandPtr CK(Modifiers modifiers, KeyCode key_code) { return (new Internal::CombinationKey(modifiers, key_code)); }
 
-  static inline NotNullCommandPtr MT(Modifiers modifiers, NotNullCommandPtr command, HoldTapBehavior behavior = HoldTapBehavior::HoldPreferred)
+  static inline NotNullCommandPtr MT(Modifiers modifiers, NotNullCommandPtr command)
   {
     auto pairs = new etl::vector<Internal::TapDance::Pair, 1>{
         {new Internal::ModifierKey(modifiers), command},
     };
     auto pointing_device_ids = new etl::span<PointingDeviceId>;
 
-    return (new Internal::TapDance(*pairs, *pointing_device_ids, 0, behavior));
+    return (new Internal::TapDance(*pairs, *pointing_device_ids, 0));
   }
 
   static inline NotNullCommandPtr LY(const CommandPtr (&commands)[HID_ENGINE_LAYER_SIZE])
@@ -72,34 +72,34 @@ namespace hidpg
     return (new Internal::Layering(Layer2, *_commands));
   }
 
-  static inline NotNullCommandPtr LT(uint8_t layer_number, NotNullCommandPtr command, HoldTapBehavior behavior = HoldTapBehavior::HoldPreferred)
+  static inline NotNullCommandPtr LT(uint8_t layer_number, NotNullCommandPtr command)
   {
     auto pairs = new etl::vector<Internal::TapDance::Pair, 1>{
         {new Internal::SwitchLayer(Layer, layer_number), command},
     };
     auto pointing_device_ids = new etl::span<PointingDeviceId>;
 
-    return (new Internal::TapDance(*pairs, *pointing_device_ids, 0, behavior));
+    return (new Internal::TapDance(*pairs, *pointing_device_ids, 0));
   }
 
-  static inline NotNullCommandPtr LT1(uint8_t layer_number, NotNullCommandPtr command, HoldTapBehavior behavior = HoldTapBehavior::HoldPreferred)
+  static inline NotNullCommandPtr LT1(uint8_t layer_number, NotNullCommandPtr command)
   {
     auto pairs = new etl::vector<Internal::TapDance::Pair, 1>{
         {new Internal::SwitchLayer(Layer1, layer_number), command},
     };
     auto pointing_device_ids = new etl::span<PointingDeviceId>;
 
-    return (new Internal::TapDance(*pairs, *pointing_device_ids, 0, behavior));
+    return (new Internal::TapDance(*pairs, *pointing_device_ids, 0));
   }
 
-  static inline NotNullCommandPtr LT2(uint8_t layer_number, NotNullCommandPtr command, HoldTapBehavior behavior = HoldTapBehavior::HoldPreferred)
+  static inline NotNullCommandPtr LT2(uint8_t layer_number, NotNullCommandPtr command)
   {
     auto pairs = new etl::vector<Internal::TapDance::Pair, 1>{
         {new Internal::SwitchLayer(Layer2, layer_number), command},
     };
     auto pointing_device_ids = new etl::span<PointingDeviceId>;
 
-    return (new Internal::TapDance(*pairs, *pointing_device_ids, 0, behavior));
+    return (new Internal::TapDance(*pairs, *pointing_device_ids, 0));
   }
 
   static inline NotNullCommandPtr TL(uint8_t layer_number) { return (new Internal::ToggleLayer(Layer, layer_number)); }
@@ -119,25 +119,24 @@ namespace hidpg
   static inline NotNullCommandPtr TAP_R(NotNullCommandPtr command, uint8_t n_times = 1, uint16_t tap_speed_ms = HID_ENGINE_TAP_SPEED_MS) { return (new Internal::TapWhenReleased(command, n_times, tap_speed_ms)); }
 
   template <uint8_t N>
-  static NotNullCommandPtr TD(const Internal::TapDance::Pair (&pairs)[N], HoldTapBehavior behavior = HoldTapBehavior::HoldPreferred)
+  static NotNullCommandPtr TD(const Internal::TapDance::Pair (&pairs)[N])
   {
     auto _pairs = new etl::vector<Internal::TapDance::Pair, N>{std::begin(pairs), std::end(pairs)};
     auto pointing_device_ids = new etl::span<PointingDeviceId>;
 
-    return (new Internal::TapDance(*_pairs, *pointing_device_ids, 0, behavior));
+    return (new Internal::TapDance(*_pairs, *pointing_device_ids, 0));
   }
 
   template <uint8_t N1, uint8_t N2>
   static NotNullCommandPtr TD_DM(const Internal::TapDance::Pair (&pairs)[N1],
                                  const PointingDeviceId (&pointing_device_ids)[N2],
-                                 uint16_t move_threshold = 4,
-                                 HoldTapBehavior behavior = HoldTapBehavior::HoldPreferred)
+                                 uint16_t move_threshold = 4)
   {
     auto _pairs = new etl::vector<Internal::TapDance::Pair, N1>{std::begin(pairs), std::end(pairs)};
     auto _pointing_device_ids = new etl::array<PointingDeviceId, N2>;
     _pointing_device_ids->assign(std::begin(pointing_device_ids), std::end(pointing_device_ids));
 
-    return (new Internal::TapDance(*_pairs, *_pointing_device_ids, move_threshold, behavior));
+    return (new Internal::TapDance(*_pairs, *_pointing_device_ids, move_threshold));
   }
 
   static inline NotNullCommandPtr ToH(NotNullCommandPtr tap_command, unsigned int ms, NotNullCommandPtr hold_command) { return (new Internal::TapOrHold(tap_command, ms, hold_command)); }
@@ -193,13 +192,63 @@ namespace hidpg
 
   static inline NotNullCommandPtr NOP() { return (new Internal::NoOperation()); }
 
-  static inline NotNullCommandPtr GST(GestureId gesture_id) { return (new Internal::GestureCommand(gesture_id)); }
+  static inline NotNullCommandPtr SFT(Internal::ShiftIds1 shift_ids)
+  {
+    auto shift_id_links = new etl::array<Internal::ShiftIdLink, 1>{
+        Internal::Shift::IdToLink(shift_ids.id0),
+    };
+    return (new Internal::Shift(*shift_id_links));
+  }
 
-  static inline NotNullCommandPtr GST_OR(GestureId gesture_id, NotNullCommandPtr command) { return (new Internal::GestureOr(gesture_id, command)); }
+  static inline NotNullCommandPtr SFT(Internal::ShiftIds2 shift_ids)
+  {
+    auto shift_id_links = new etl::array<Internal::ShiftIdLink, 2>{
+        Internal::Shift::IdToLink(shift_ids.id0),
+        Internal::Shift::IdToLink(shift_ids.id1),
+    };
+    return (new Internal::Shift(*shift_id_links));
+  }
 
-  static inline NotNullCommandPtr GST_OR_NK(GestureId gesture_id, KeyCode key_code) { return (new Internal::GestureOrNK(gesture_id, key_code)); }
+  static inline NotNullCommandPtr SFT(Internal::ShiftIds3 shift_ids)
+  {
+    auto shift_id_links = new etl::array<Internal::ShiftIdLink, 3>{
+        Internal::Shift::IdToLink(shift_ids.id0),
+        Internal::Shift::IdToLink(shift_ids.id1),
+        Internal::Shift::IdToLink(shift_ids.id2),
+    };
+    return (new Internal::Shift(*shift_id_links));
+  }
 
-  static inline NotNullCommandPtr ENC(EncoderShiftId encoder_shift_id) { return (new Internal::EncoderShift(encoder_shift_id)); }
+  static inline NotNullCommandPtr SFT(Internal::ShiftIds4 shift_ids)
+  {
+    auto shift_id_links = new etl::array<Internal::ShiftIdLink, 4>{
+        Internal::Shift::IdToLink(shift_ids.id0),
+        Internal::Shift::IdToLink(shift_ids.id1),
+        Internal::Shift::IdToLink(shift_ids.id2),
+        Internal::Shift::IdToLink(shift_ids.id3),
+    };
+    return (new Internal::Shift(*shift_id_links));
+  }
+
+  static inline NotNullCommandPtr SFT(Internal::ShiftIds5 shift_ids)
+  {
+    auto shift_id_links = new etl::array<Internal::ShiftIdLink, 5>{
+        Internal::Shift::IdToLink(shift_ids.id0),
+        Internal::Shift::IdToLink(shift_ids.id1),
+        Internal::Shift::IdToLink(shift_ids.id2),
+        Internal::Shift::IdToLink(shift_ids.id3),
+        Internal::Shift::IdToLink(shift_ids.id4),
+    };
+    return (new Internal::Shift(*shift_id_links));
+  }
+
+  template <size_t N>
+  static inline etl::span<Key> KEYMAP(const Key (&keymap)[N])
+  {
+    auto result = new etl::vector<Key, N>;
+    result->assign(std::begin(keymap), std::end(keymap));
+    return *result;
+  }
 
 // nullptr alias (_ * 7)
 #define _______ (nullptr)

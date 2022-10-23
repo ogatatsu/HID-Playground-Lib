@@ -35,6 +35,7 @@ namespace hidpg
   {
 
     etl::span<Key> HidEngineClass::_keymap;
+    etl::span<KeyShift> HidEngineClass::_key_shift_map;
     etl::span<Combo> HidEngineClass::_combo_map;
     etl::span<Gesture> HidEngineClass::_gesture_map;
     etl::span<Encoder> HidEngineClass::_encoder_map;
@@ -45,12 +46,19 @@ namespace hidpg
 
     HidEngineClass::ComboTermTimer HidEngineClass::_combo_term_timer;
 
+    etl::intrusive_list<Key> HidEngineClass::_pressed_key_list;
+    etl::intrusive_list<KeyShiftIdLink> HidEngineClass::_started_key_shift_id_list;
     etl::intrusive_list<GestureIdLink> HidEngineClass::_started_gesture_id_list;
     etl::intrusive_list<EncoderShiftIdLink> HidEngineClass::_started_encoder_shift_id_list;
 
     void HidEngineClass::setKeymap(etl::span<Key> keymap)
     {
       _keymap = keymap;
+    }
+
+    void HidEngineClass::setKeyShiftMap(etl::span<KeyShift> key_shift_map)
+    {
+      _key_shift_map = key_shift_map;
     }
 
     void HidEngineClass::setComboMap(etl::span<Combo> combo_map)
@@ -286,24 +294,142 @@ namespace hidpg
 
     void HidEngineClass::performKeyPress(uint8_t key_id)
     {
-      for (auto &key : _keymap)
+      for (auto &key : _pressed_key_list)
       {
         if (key.key_id == key_id)
         {
-          key.command->press();
+          return;
+        }
+      }
+
+      BeforeOtherKeyPressEventListener::_notifyBeforeOtherKeyPress(key_id);
+
+      auto tpl = getCurrentKey(key_id);
+      auto key_shift = std::get<0>(tpl);
+      auto key = std::get<1>(tpl);
+
+      if (key == nullptr)
+      {
+        return;
+      }
+
+      if (key_shift != nullptr &&
+          key_shift->pre_command.has_value() &&
+          key_shift->pre_command.value().is_pressed == false)
+      {
+        key_shift->pre_command.value().is_pressed = true;
+        key_shift->pre_command.value().command->press();
+
+        if (key_shift->pre_command.value().timing == Timing::InsteadOfFirstAction)
+        {
+          return;
+        }
+      }
+
+      _pressed_key_list.push_front(*key);
+      key->command->press();
+    }
+
+    void HidEngineClass::performKeyRelease(uint8_t key_id)
+    {
+      for (auto &key : _pressed_key_list)
+      {
+        if (key.key_id == key_id)
+        {
+          auto i_item = etl::intrusive_list<Key>::iterator(key);
+          _pressed_key_list.erase(i_item);
+          key.command->release();
           return;
         }
       }
     }
 
-    void HidEngineClass::performKeyRelease(uint8_t key_id)
+    std::tuple<KeyShift *, Key *> HidEngineClass::getCurrentKey(uint8_t key_id)
     {
+      for (auto &started_key_shift_id : _started_key_shift_id_list)
+      {
+        for (auto &key_shift : _key_shift_map)
+        {
+          if (key_shift.key_shift_id.value == started_key_shift_id.value)
+          {
+            for (auto &key : key_shift.keymap)
+            {
+              if (key.key_id == key_id)
+              {
+                return {&key_shift, &key};
+              }
+            }
+            if (key_shift.keymap_overlay == KeymapOverlay::Disable)
+            {
+              return {&key_shift, nullptr};
+            }
+          }
+        }
+      }
+
       for (auto &key : _keymap)
       {
         if (key.key_id == key_id)
         {
-          key.command->release();
+          return {nullptr, &key};
+        }
+      }
+
+      return {nullptr, nullptr};
+    }
+
+    void HidEngineClass::startKeyShift(KeyShiftIdLink &key_shift_id)
+    {
+      if (key_shift_id.is_linked())
+      {
+        return;
+      }
+
+      _started_key_shift_id_list.push_front(key_shift_id);
+
+      // pre_command
+      for (auto &key_shift : _key_shift_map)
+      {
+        if (key_shift.key_shift_id.value == key_shift_id.value &&
+            key_shift.pre_command.has_value() &&
+            key_shift.pre_command.value().timing == Timing::Immediately &&
+            key_shift.pre_command.value().is_pressed == false)
+        {
+          key_shift.pre_command.value().is_pressed = true;
+          key_shift.pre_command.value().command->press();
+        }
+      }
+    }
+
+    void HidEngineClass::stopKeyShift(KeyShiftIdLink &key_shift_id)
+    {
+      if (key_shift_id.is_linked() == false)
+      {
+        return;
+      }
+
+      auto i_item = etl::intrusive_list<KeyShiftIdLink>::iterator(key_shift_id);
+      _started_key_shift_id_list.erase(i_item);
+      key_shift_id.clear();
+
+      // 同じidが同時に押されることもあり得るので最後に押されていたかチェック
+      for (auto &started_key_shift_id : _started_key_shift_id_list)
+      {
+        if (started_key_shift_id.value == key_shift_id.value)
+        {
           return;
+        }
+      }
+
+      // 最後のidならclean up
+      for (auto &key_shift : _key_shift_map)
+      {
+        if (key_shift.key_shift_id.value == key_shift_id.value &&
+            key_shift.pre_command.has_value() &&
+            key_shift.pre_command.value().is_pressed == true)
+        {
+          key_shift.pre_command.value().is_pressed = false;
+          key_shift.pre_command.value().command->release();
         }
       }
     }
@@ -525,9 +651,9 @@ namespace hidpg
       gesture_id.clear();
 
       // 同じidが同時に押されることもあり得るので最後に押されていたかチェック
-      for (auto &started_id : _started_gesture_id_list)
+      for (auto &started_gesture_id : _started_gesture_id_list)
       {
-        if (started_id.value == gesture_id.value)
+        if (started_gesture_id.value == gesture_id.value)
         {
           return;
         }
@@ -609,17 +735,6 @@ namespace hidpg
 
     EncoderShift *HidEngineClass::getCurrentEncoder(EncoderId encoder_id)
     {
-      EncoderShift *dflt = nullptr;
-
-      for (auto &encoder : _encoder_map)
-      {
-        if (encoder.encoder_id == encoder_id)
-        {
-          dflt = &encoder;
-          break;
-        }
-      }
-
       for (auto &started_encoder_shift_id : _started_encoder_shift_id_list)
       {
         for (auto &encoder : _encoder_shift_map)
@@ -631,7 +746,15 @@ namespace hidpg
         }
       }
 
-      return dflt;
+      for (auto &encoder : _encoder_map)
+      {
+        if (encoder.encoder_id == encoder_id)
+        {
+          return &encoder;
+        }
+      }
+
+      return nullptr;
     }
 
     void HidEngineClass::startEncoderShift(EncoderShiftIdLink &encoder_shift_id)
@@ -669,9 +792,9 @@ namespace hidpg
       encoder_shift_id.clear();
 
       // 同じidが同時に押されることもあり得るので最後に押されていたかチェック
-      for (auto &started_id : _started_encoder_shift_id_list)
+      for (auto &started_encoder_id : _started_encoder_shift_id_list)
       {
-        if (started_id.value == encoder_shift_id.value)
+        if (started_encoder_id.value == encoder_shift_id.value)
         {
           return;
         }

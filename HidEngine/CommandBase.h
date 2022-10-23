@@ -26,16 +26,27 @@
 
 #include "etl/intrusive_links.h"
 #include "etl/intrusive_list.h"
+#include "etl/optional.h"
 #include "gsl/gsl-lite.hpp"
 
-#define BEFORE_OTHER_COMMAND_PRESS_EVENT_LISTENER_LINK_ID 0
-#define BEFORE_MOVE_POINTER_EVENT_LISTENER_LINK_ID 1
-#define BEFORE_ROTATE_ENCODER_EVENT_LISTENER_LINK_ID 2
-#define BEFORE_GESTURE_EVENT_LISTENER_LINK_ID 3
-#define COMMAND_HOOK_LINK_ID 4
+namespace hidpg::Internal
+{
+  using BeforeOtherKeyPressEventListenerLink = etl::bidirectional_link<0>;
+  using BeforeMovePointerEventListenerLink = etl::bidirectional_link<1>;
+  using BeforeRotateEncoderEventListenerLink = etl::bidirectional_link<2>;
+  using BeforeGestureEventListenerLink = etl::bidirectional_link<3>;
+}
 
 namespace hidpg
 {
+
+  struct KeyShiftId
+  {
+    uint8_t value;
+
+    bool operator==(const KeyShiftId &rhs) const { return value == rhs.value; }
+    bool operator!=(const KeyShiftId &rhs) const { return value != rhs.value; }
+  };
 
   struct PointingDeviceId
   {
@@ -64,7 +75,7 @@ namespace hidpg
   struct EncoderShiftId
   {
     uint8_t value;
-    
+
     bool operator==(const EncoderShiftId &rhs) const { return value == rhs.value; }
     bool operator!=(const EncoderShiftId &rhs) const { return value != rhs.value; }
   };
@@ -78,48 +89,38 @@ namespace hidpg
     Command();
     void press(uint8_t n_times = 1);
     uint8_t release();
-    void setParent(Command *parent) { _parent = parent; }
-    Command *getParent() { return _parent; }
+
+    virtual void setKeyId(uint8_t key_id) { _key_id = key_id; }
+    etl::optional<uint8_t> getKeyId() { return _key_id; }
 
   protected:
     virtual void onPress(uint8_t n_times) {}
     virtual uint8_t onRelease() { return 1; }
 
   private:
-    enum class State
-    {
-      Notified,
-      Pressed,
-      Released,
-    };
-
-    Command *_parent;
-    State _state;
+    etl::optional<uint8_t> _key_id;
+    bool _is_pressed;
   };
 
   using CommandPtr = Command *;
   using NotNullCommandPtr = gsl::not_null<Command *>;
 
   //------------------------------------------------------------------+
-  // BeforeOtherCommandPressEventListener
+  // BeforeKeyPressEventListener
   //------------------------------------------------------------------+
-  using BeforeOtherCommandPressEventListenerLink = etl::bidirectional_link<BEFORE_OTHER_COMMAND_PRESS_EVENT_LISTENER_LINK_ID>;
-
-  class BeforeOtherCommandPressEventListener : public BeforeOtherCommandPressEventListenerLink
+  class BeforeOtherKeyPressEventListener : public Internal::BeforeOtherKeyPressEventListenerLink
   {
   public:
-    BeforeOtherCommandPressEventListener(Command *command);
-    static void _notifyOtherCommandPress(Command &press_command);
+    BeforeOtherKeyPressEventListener(Command *command);
+    static void _notifyBeforeOtherKeyPress(uint8_t key_id);
 
   protected:
-    bool startListenBeforeOtherCommandPress();
-    bool stopListenBeforeOtherCommandPress();
-    virtual void onBeforeOtherCommandPress(Command &command) = 0;
+    bool startListenBeforeOtherKeyPress();
+    bool stopListenBeforeOtherKeyPress();
+    virtual void onBeforeOtherKeyPress(uint8_t key_id) = 0;
 
   private:
-    using List = etl::intrusive_list<BeforeOtherCommandPressEventListener, BeforeOtherCommandPressEventListenerLink>;
-
-    static Command *getRootCommand(Command *command);
+    using List = etl::intrusive_list<BeforeOtherKeyPressEventListener, Internal::BeforeOtherKeyPressEventListenerLink>;
 
     // keymap(グローバル変数)の定義で特定のコマンドがnewされたときにコンストラクタ内でstartListenBeforeOtherCommandPress()が呼ばれる、
     // _listener_listはその内部で使用するので単純なstatic変数にすると初期化順序が問題となる可能性がある。
@@ -137,9 +138,7 @@ namespace hidpg
   //------------------------------------------------------------------+
   // BeforeMovePointerEventListener
   //------------------------------------------------------------------+
-  using BeforeMovePointerEventListenerLink = etl::bidirectional_link<BEFORE_MOVE_POINTER_EVENT_LISTENER_LINK_ID>;
-
-  class BeforeMovePointerEventListener : public BeforeMovePointerEventListenerLink
+  class BeforeMovePointerEventListener : public Internal::BeforeMovePointerEventListenerLink
   {
   public:
     BeforeMovePointerEventListener();
@@ -151,7 +150,7 @@ namespace hidpg
     virtual void onBeforeMovePointer(PointingDeviceId pointing_device_id, int16_t delta_x, int16_t delta_y) = 0;
 
   private:
-    using List = etl::intrusive_list<BeforeMovePointerEventListener, BeforeMovePointerEventListenerLink>;
+    using List = etl::intrusive_list<BeforeMovePointerEventListener, Internal::BeforeMovePointerEventListenerLink>;
 
     // Construct On First Use Idiom
     static List &_listener_list()
@@ -166,9 +165,7 @@ namespace hidpg
   //------------------------------------------------------------------+
   // BeforeRotateEncoderEventListener
   //------------------------------------------------------------------+
-  using BeforeRotateEncoderEventListenerLink = etl::bidirectional_link<BEFORE_ROTATE_ENCODER_EVENT_LISTENER_LINK_ID>;
-
-  class BeforeRotateEncoderEventListener : public BeforeRotateEncoderEventListenerLink
+  class BeforeRotateEncoderEventListener : public Internal::BeforeRotateEncoderEventListenerLink
   {
   public:
     BeforeRotateEncoderEventListener();
@@ -180,7 +177,7 @@ namespace hidpg
     virtual void onBeforeRotateEncoder(EncoderId encoder_id, int16_t step) = 0;
 
   private:
-    using List = etl::intrusive_list<BeforeRotateEncoderEventListener, BeforeRotateEncoderEventListenerLink>;
+    using List = etl::intrusive_list<BeforeRotateEncoderEventListener, Internal::BeforeRotateEncoderEventListenerLink>;
 
     // Construct On First Use Idiom
     static List &_listener_list()
@@ -195,9 +192,7 @@ namespace hidpg
   //------------------------------------------------------------------+
   // BeforeGestureEventListener
   //------------------------------------------------------------------+
-  using BeforeGestureEventListenerLink = etl::bidirectional_link<BEFORE_GESTURE_EVENT_LISTENER_LINK_ID>;
-
-  class BeforeGestureEventListener : public BeforeGestureEventListenerLink
+  class BeforeGestureEventListener : public Internal::BeforeGestureEventListenerLink
   {
   public:
     BeforeGestureEventListener();
@@ -209,7 +204,7 @@ namespace hidpg
     virtual void onBeforeGesture(GestureId gesture_id, PointingDeviceId pointing_device_id) = 0;
 
   private:
-    using List = etl::intrusive_list<BeforeGestureEventListener, BeforeGestureEventListenerLink>;
+    using List = etl::intrusive_list<BeforeGestureEventListener, Internal::BeforeGestureEventListenerLink>;
 
     // Construct On First Use Idiom
     static List &_listener_list()
@@ -221,51 +216,4 @@ namespace hidpg
     bool _is_listen;
   };
 
-  //------------------------------------------------------------------+
-  // CommandHook
-  //------------------------------------------------------------------+
-  using CommandHookLink = etl::bidirectional_link<COMMAND_HOOK_LINK_ID>;
-
-  class CommandHook : public CommandHookLink
-  {
-  public:
-    CommandHook();
-    static bool _tryHookPress(Command &command);
-    static bool _tryHookRelease(Command &command);
-    static bool _isHooked(Command &command);
-
-  protected:
-    bool startHook(Command &command);
-    bool stopHook();
-    virtual void onHookPress() = 0;
-    virtual void onHookRelease() = 0;
-
-  private:
-    using List = etl::intrusive_list<CommandHook, CommandHookLink>;
-
-    // Construct On First Use Idiom
-    static List &_hooker_list()
-    {
-      static List list;
-      return list;
-    };
-
-    enum class State
-    {
-      Invalid,
-      Pressed,
-      Released,
-    };
-
-    bool _is_hook;
-    Command *_hooked_command;
-    State _state;
-  };
-
-  enum class HoldTapBehavior
-  {
-    HoldPreferred,
-    Balanced,
-  };
-
-}
+} // namespace hidpg
