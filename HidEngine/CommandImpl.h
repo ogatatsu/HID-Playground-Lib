@@ -189,7 +189,7 @@ namespace hidpg::Internal
   class TapDance : public Command,
                    public TimerMixin,
                    public BeforeOtherCommandPressEventListener,
-                   public BeforeMouseMoveEventListener,
+                   public BeforeMovePointerEventListener,
                    public BeforeRotateEncoderEventListener,
                    public CommandHook
   {
@@ -201,14 +201,14 @@ namespace hidpg::Internal
       const CommandPtr tap_command;
     };
 
-    TapDance(etl::span<Pair> pairs, etl::span<MouseId> mouse_ids, uint16_t move_threshold, HoldTapBehavior behavior);
+    TapDance(etl::span<Pair> pairs, etl::span<PointingDeviceId> pointing_device_ids, uint16_t move_threshold, HoldTapBehavior behavior);
 
   protected:
     void onPress(uint8_t n_times) override;
     uint8_t onRelease() override;
     void onTimer() override;
     void onBeforeOtherCommandPress(Command &command) override;
-    void onBeforeMouseMove(MouseId mouse_id, int16_t delta_x, int16_t delta_y) override;
+    void onBeforeMovePointer(PointingDeviceId pointing_device_id, int16_t delta_x, int16_t delta_y) override;
     void onBeforeRotateEncoder(EncoderId encoder_id, int16_t step) override;
 
     void onHookPress() override;
@@ -217,7 +217,7 @@ namespace hidpg::Internal
   private:
     struct BeforeMouseMoveArgs
     {
-      const MouseId mouse_id;
+      const PointingDeviceId pointing_device_id;
       const int16_t delta_x;
       const int16_t delta_y;
     };
@@ -274,7 +274,7 @@ namespace hidpg::Internal
     Command *_running_command;
     Command *_hooked_command;
     const etl::span<Pair> _pairs;
-    const etl::span<MouseId> _mouse_ids;
+    const etl::span<PointingDeviceId> _pointing_device_ids;
     const uint16_t _move_threshold;
     const HoldTapBehavior _behavior;
     int16_t _delta_x_sum;
@@ -600,7 +600,7 @@ namespace hidpg::Internal
     void onPress(uint8_t n_times) override;
     uint8_t onRelease() override;
     void onBeforeOtherCommandPress(Command &command) override;
-    void onBeforeGesture(GestureId gesture_id, MouseId mouse_id) override;
+    void onBeforeGesture(GestureId gesture_id, PointingDeviceId pointing_device_id) override;
     void startListen();
     void stopListen();
 
@@ -630,7 +630,7 @@ namespace hidpg::Internal
     void onPress(uint8_t n_times) override;
     uint8_t onRelease() override;
     void onBeforeOtherCommandPress(Command &command) override;
-    void onBeforeGesture(GestureId gesture_id, MouseId mouse_id) override;
+    void onBeforeGesture(GestureId gesture_id, PointingDeviceId pointing_device_id) override;
     void startListen();
     void stopListen();
 

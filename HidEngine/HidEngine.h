@@ -78,25 +78,10 @@ namespace hidpg
     bool first_id_rereased;
     bool second_id_rereased;
 
-    bool isSpecifiedOrder()
-    {
-      return static_cast<uint8_t>(behavior) & 0b10;
-    }
-
-    bool isAnyOrder()
-    {
-      return !isSpecifiedOrder();
-    }
-
-    bool isFastRelease()
-    {
-      return static_cast<uint8_t>(behavior) & 0b01;
-    }
-
-    bool isSlowRelease()
-    {
-      return !isFastRelease();
-    }
+    bool isSpecifiedOrder() { return static_cast<uint8_t>(behavior) & 0b10; }
+    bool isAnyOrder() { return !isSpecifiedOrder(); }
+    bool isFastRelease() { return static_cast<uint8_t>(behavior) & 0b01; }
+    bool isSlowRelease() { return !isFastRelease(); }
 
     bool isMatchFirstId(uint8_t id)
     {
@@ -147,7 +132,7 @@ namespace hidpg
   struct Gesture
   {
     Gesture(GestureId gesture_id,
-            MouseId mouse_id,
+            PointingDeviceId pointing_device_id,
             uint16_t distance,
             AngleSnap angle_snap,
             CommandPtr up_command,
@@ -156,7 +141,7 @@ namespace hidpg
             CommandPtr right_command,
             etl::optional<PreCommand> pre_command = etl::nullopt)
         : gesture_id(gesture_id),
-          mouse_id(mouse_id),
+          pointing_device_id(pointing_device_id),
           distance(distance),
           angle_snap(angle_snap),
           up_command(up_command),
@@ -171,7 +156,7 @@ namespace hidpg
     }
 
     const GestureId gesture_id;
-    const MouseId mouse_id;
+    const PointingDeviceId pointing_device_id;
     const uint16_t distance;
     const AngleSnap angle_snap;
     const CommandPtr up_command;
@@ -246,7 +231,7 @@ namespace hidpg
       friend class HidEngineTaskClass;
 
     public:
-      using read_mouse_delta_callback_t = void (*)(MouseId mouse_id, int16_t &delta_x, int16_t &delta_y);
+      using read_pointer_delta_callback_t = void (*)(PointingDeviceId pointing_device_id, int16_t &delta_x, int16_t &delta_y);
       using read_encoder_step_callback_t = void (*)(EncoderId encoder_id, int16_t &step);
 
       static void setKeymap(etl::span<Key> keymap);
@@ -257,9 +242,9 @@ namespace hidpg
       static void setHidReporter(HidReporter *hid_reporter);
       static void start();
       static void applyToKeymap(const Set &key_ids);
-      static void mouseMove(MouseId mouse_id);
+      static void movePointer(PointingDeviceId pointing_device_id);
       static void rotateEncoder(EncoderId encoder_id);
-      static void setReadMouseDeltaCallback(read_mouse_delta_callback_t cb);
+      static void setReadPointerDeltaCallback(read_pointer_delta_callback_t cb);
       static void setReadEncoderStepCallback(read_encoder_step_callback_t cb);
 
       static void startGesture(GestureIdLink &gesture_id);
@@ -281,8 +266,8 @@ namespace hidpg
       static void performKeyPress(uint8_t key_id);
       static void performKeyRelease(uint8_t key_id);
 
-      static void mouseMove_impl(MouseId mouse_id);
-      static Gesture *getCurrentGesture(MouseId mouse_id);
+      static void movePointer_impl(PointingDeviceId pointing_device_id);
+      static Gesture *getCurrentGesture(PointingDeviceId pointing_device_id);
       static void processGesture(Gesture &gesture, int16_t delta_x, int16_t delta_y);
       static void processGestureX(Gesture &gesture);
       static void processGestureY(Gesture &gesture);
@@ -300,7 +285,7 @@ namespace hidpg
       static etl::span<Encoder> _encoder_map;
       static etl::span<EncoderShift> _encoder_shift_map;
 
-      static read_mouse_delta_callback_t _read_mouse_delta_cb;
+      static read_pointer_delta_callback_t _read_pointer_delta_cb;
       static read_encoder_step_callback_t _read_encoder_step_cb;
 
       class ComboTermTimer : public TimerMixin

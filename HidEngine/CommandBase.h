@@ -29,7 +29,7 @@
 #include "gsl/gsl-lite.hpp"
 
 #define BEFORE_OTHER_COMMAND_PRESS_EVENT_LISTENER_LINK_ID 0
-#define BEFORE_MOUSE_MOVE_EVENT_LISTENER_LINK_ID 1
+#define BEFORE_MOVE_POINTER_EVENT_LISTENER_LINK_ID 1
 #define BEFORE_ROTATE_ENCODER_EVENT_LISTENER_LINK_ID 2
 #define BEFORE_GESTURE_EVENT_LISTENER_LINK_ID 3
 #define COMMAND_HOOK_LINK_ID 4
@@ -37,12 +37,12 @@
 namespace hidpg
 {
 
-  struct MouseId
+  struct PointingDeviceId
   {
     uint8_t value;
 
-    bool operator==(const MouseId &rhs) const { return value == rhs.value; }
-    bool operator!=(const MouseId &rhs) const { return value != rhs.value; }
+    bool operator==(const PointingDeviceId &rhs) const { return value == rhs.value; }
+    bool operator!=(const PointingDeviceId &rhs) const { return value != rhs.value; }
   };
 
   struct GestureId
@@ -135,23 +135,23 @@ namespace hidpg
   };
 
   //------------------------------------------------------------------+
-  // BeforeMouseMoveEventListener
+  // BeforeMovePointerEventListener
   //------------------------------------------------------------------+
-  using BeforeMouseMoveEventListenerLink = etl::bidirectional_link<BEFORE_MOUSE_MOVE_EVENT_LISTENER_LINK_ID>;
+  using BeforeMovePointerEventListenerLink = etl::bidirectional_link<BEFORE_MOVE_POINTER_EVENT_LISTENER_LINK_ID>;
 
-  class BeforeMouseMoveEventListener : public BeforeMouseMoveEventListenerLink
+  class BeforeMovePointerEventListener : public BeforeMovePointerEventListenerLink
   {
   public:
-    BeforeMouseMoveEventListener();
-    static void _notifyBeforeMouseMove(MouseId mouse_id, int16_t delta_x, int16_t delta_y);
+    BeforeMovePointerEventListener();
+    static void _notifyBeforeMovePointer(PointingDeviceId pointing_device_id, int16_t delta_x, int16_t delta_y);
 
   protected:
-    bool startListenBeforeMouseMove();
-    bool stopListenBeforeMouseMove();
-    virtual void onBeforeMouseMove(MouseId mouse_id, int16_t delta_x, int16_t delta_y) = 0;
+    bool startListenBeforeMovePointer();
+    bool stopListenBeforeMovePointer();
+    virtual void onBeforeMovePointer(PointingDeviceId pointing_device_id, int16_t delta_x, int16_t delta_y) = 0;
 
   private:
-    using List = etl::intrusive_list<BeforeMouseMoveEventListener, BeforeMouseMoveEventListenerLink>;
+    using List = etl::intrusive_list<BeforeMovePointerEventListener, BeforeMovePointerEventListenerLink>;
 
     // Construct On First Use Idiom
     static List &_listener_list()
@@ -201,12 +201,12 @@ namespace hidpg
   {
   public:
     BeforeGestureEventListener();
-    static void _notifyBeforeGesture(GestureId gesture_id, MouseId mouse_id);
+    static void _notifyBeforeGesture(GestureId gesture_id, PointingDeviceId pointing_device_id);
 
   protected:
     bool startListenBeforeGesture();
     bool stopListenBeforeGesture();
-    virtual void onBeforeGesture(GestureId gesture_id, MouseId mouse_id) = 0;
+    virtual void onBeforeGesture(GestureId gesture_id, PointingDeviceId pointing_device_id) = 0;
 
   private:
     using List = etl::intrusive_list<BeforeGestureEventListener, BeforeGestureEventListenerLink>;

@@ -63,9 +63,9 @@ namespace hidpg
         {
           HidEngine.applyToKeymap_impl(e->key_ids);
         }
-        else if (auto *e = etl::get_if<MouseMoveEventData>(&evt))
+        else if (auto *e = etl::get_if<MovePointerEventData>(&evt))
         {
-          HidEngine.mouseMove_impl(e->mouse_id);
+          HidEngine.movePointer_impl(e->pointing_device_id);
         }
         else if (auto *e = etl::get_if<RotateEncoderEventData>(&evt))
         {

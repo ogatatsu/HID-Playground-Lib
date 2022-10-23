@@ -40,7 +40,7 @@ namespace hidpg
     etl::span<Encoder> HidEngineClass::_encoder_map;
     etl::span<EncoderShift> HidEngineClass::_encoder_shift_map;
 
-    HidEngineClass::read_mouse_delta_callback_t HidEngineClass::_read_mouse_delta_cb = nullptr;
+    HidEngineClass::read_pointer_delta_callback_t HidEngineClass::_read_pointer_delta_cb = nullptr;
     HidEngineClass::read_encoder_step_callback_t HidEngineClass::_read_encoder_step_cb = nullptr;
 
     HidEngineClass::ComboTermTimer HidEngineClass::_combo_term_timer;
@@ -89,9 +89,9 @@ namespace hidpg
       HidEngineTask.enqueEvent(evt);
     }
 
-    void HidEngineClass::mouseMove(MouseId mouse_id)
+    void HidEngineClass::movePointer(PointingDeviceId pointing_device_id)
     {
-      EventData evt{MouseMoveEventData{mouse_id}};
+      EventData evt{MovePointerEventData{pointing_device_id}};
       HidEngineTask.enqueEvent(evt);
     }
 
@@ -101,9 +101,9 @@ namespace hidpg
       HidEngineTask.enqueEvent(evt);
     }
 
-    void HidEngineClass::setReadMouseDeltaCallback(read_mouse_delta_callback_t cb)
+    void HidEngineClass::setReadPointerDeltaCallback(read_pointer_delta_callback_t cb)
     {
-      _read_mouse_delta_cb = cb;
+      _read_pointer_delta_cb = cb;
     }
 
     void HidEngineClass::setReadEncoderStepCallback(read_encoder_step_callback_t cb)
@@ -309,27 +309,27 @@ namespace hidpg
     }
 
     //------------------------------------------------------------------+
-    // MouseMove
+    // MovePointer
     //------------------------------------------------------------------+
-    void HidEngineClass::mouseMove_impl(MouseId mouse_id)
+    void HidEngineClass::movePointer_impl(PointingDeviceId pointing_device_id)
     {
-      if (_read_mouse_delta_cb == nullptr)
+      if (_read_pointer_delta_cb == nullptr)
       {
         return;
       }
 
       Hid.waitReady();
       int16_t delta_x = 0, delta_y = 0;
-      _read_mouse_delta_cb(mouse_id, delta_x, delta_y);
+      _read_pointer_delta_cb(pointing_device_id, delta_x, delta_y);
 
       if (delta_x == 0 && delta_y == 0)
       {
         return;
       }
 
-      BeforeMouseMoveEventListener::_notifyBeforeMouseMove(mouse_id, delta_x, delta_y);
+      BeforeMovePointerEventListener::_notifyBeforeMovePointer(pointing_device_id, delta_x, delta_y);
 
-      Gesture *gesture = getCurrentGesture(mouse_id);
+      Gesture *gesture = getCurrentGesture(pointing_device_id);
 
       if (gesture != nullptr)
       {
@@ -341,13 +341,13 @@ namespace hidpg
       }
     }
 
-    Gesture *HidEngineClass::getCurrentGesture(MouseId mouse_id)
+    Gesture *HidEngineClass::getCurrentGesture(PointingDeviceId pointing_device_id)
     {
       for (auto &started_gesture_id : _started_gesture_id_list)
       {
         for (auto &gesture : _gesture_map)
         {
-          if ((started_gesture_id.value == gesture.gesture_id.value) && (gesture.mouse_id == mouse_id))
+          if ((started_gesture_id.value == gesture.gesture_id.value) && (gesture.pointing_device_id == pointing_device_id))
           {
             return &gesture;
           }
@@ -423,7 +423,7 @@ namespace hidpg
 
     void HidEngineClass::performGestureX(Gesture &gesture, Command *command)
     {
-      BeforeGestureEventListener::_notifyBeforeGesture(gesture.gesture_id, gesture.mouse_id);
+      BeforeGestureEventListener::_notifyBeforeGesture(gesture.gesture_id, gesture.pointing_device_id);
 
       if (processPreCommandInsteadOfFirstGesture(gesture))
       {
@@ -444,7 +444,7 @@ namespace hidpg
 
     void HidEngineClass::performGestureY(Gesture &gesture, Command *command)
     {
-      BeforeGestureEventListener::_notifyBeforeGesture(gesture.gesture_id, gesture.mouse_id);
+      BeforeGestureEventListener::_notifyBeforeGesture(gesture.gesture_id, gesture.pointing_device_id);
 
       if (processPreCommandInsteadOfFirstGesture(gesture))
       {

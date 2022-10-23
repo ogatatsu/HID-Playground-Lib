@@ -123,13 +123,13 @@ namespace hidpg
   }
 
   //------------------------------------------------------------------+
-  // BeforeMouseMoveEventListener
+  // BeforeMovePointerEventListener
   //------------------------------------------------------------------+
-  BeforeMouseMoveEventListener::BeforeMouseMoveEventListener() : _is_listen(false)
+  BeforeMovePointerEventListener::BeforeMovePointerEventListener() : _is_listen(false)
   {
   }
 
-  bool BeforeMouseMoveEventListener::startListenBeforeMouseMove()
+  bool BeforeMovePointerEventListener::startListenBeforeMovePointer()
   {
     if (_is_listen)
     {
@@ -142,7 +142,7 @@ namespace hidpg
     return true;
   }
 
-  bool BeforeMouseMoveEventListener::stopListenBeforeMouseMove()
+  bool BeforeMovePointerEventListener::stopListenBeforeMovePointer()
   {
     if (_is_listen == false)
     {
@@ -156,11 +156,11 @@ namespace hidpg
     return true;
   }
 
-  void BeforeMouseMoveEventListener::_notifyBeforeMouseMove(MouseId mouse_id, int16_t delta_x, int16_t delta_y)
+  void BeforeMovePointerEventListener::_notifyBeforeMovePointer(PointingDeviceId pointing_device_id, int16_t delta_x, int16_t delta_y)
   {
-    for (BeforeMouseMoveEventListener &listener : _listener_list())
+    for (BeforeMovePointerEventListener &listener : _listener_list())
     {
-      listener.onBeforeMouseMove(mouse_id, delta_x, delta_y);
+      listener.onBeforeMovePointer(pointing_device_id, delta_x, delta_y);
     }
   }
 
@@ -240,11 +240,11 @@ namespace hidpg
     return true;
   }
 
-  void BeforeGestureEventListener::_notifyBeforeGesture(GestureId gesture_id, MouseId mouse_id)
+  void BeforeGestureEventListener::_notifyBeforeGesture(GestureId gesture_id, PointingDeviceId pointing_device_id)
   {
     for (BeforeGestureEventListener &listener : _listener_list())
     {
-      listener.onBeforeGesture(gesture_id, mouse_id);
+      listener.onBeforeGesture(gesture_id, pointing_device_id);
     }
   }
 

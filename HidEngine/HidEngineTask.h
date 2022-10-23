@@ -41,9 +41,9 @@ namespace hidpg
       Set key_ids;
     };
 
-    struct MouseMoveEventData
+    struct MovePointerEventData
     {
-      MouseId mouse_id;
+      PointingDeviceId pointing_device_id;
     };
 
     struct RotateEncoderEventData
@@ -63,7 +63,7 @@ namespace hidpg
     };
 
     using EventData = etl::variant<ApplyToKeymapEventData,
-                                   MouseMoveEventData,
+                                   MovePointerEventData,
                                    RotateEncoderEventData,
                                    TimerEventData,
                                    CommandTapperEventData>;

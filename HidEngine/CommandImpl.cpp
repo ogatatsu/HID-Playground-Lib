@@ -233,15 +233,15 @@ namespace hidpg::Internal
   // TapDance
   //------------------------------------------------------------------+
   TapDance::TapDance(etl::span<Pair> pairs,
-                     etl::span<MouseId> mouse_ids,
+                     etl::span<PointingDeviceId> pointing_device_ids,
                      uint16_t move_threshold,
                      HoldTapBehavior behavior)
       : TimerMixin(),
         BeforeOtherCommandPressEventListener(this),
-        BeforeMouseMoveEventListener(),
+        BeforeMovePointerEventListener(),
         CommandHook(),
         _pairs(pairs),
-        _mouse_ids(mouse_ids),
+        _pointing_device_ids(pointing_device_ids),
         _move_threshold(move_threshold),
         _behavior(behavior),
         _delta_x_sum(0),
@@ -271,7 +271,7 @@ namespace hidpg::Internal
     stopTimer();
     stopListenBeforeOtherCommandPress();
     stopListenBeforeRotateEncoder();
-    stopListenBeforeMouseMove();
+    stopListenBeforeMovePointer();
   }
 
   void TapDance::performHoldPress()
@@ -283,7 +283,7 @@ namespace hidpg::Internal
     stopTimer();
     stopListenBeforeOtherCommandPress();
     stopListenBeforeRotateEncoder();
-    stopListenBeforeMouseMove();
+    stopListenBeforeMovePointer();
   }
 
   void TapDance::performHoldRelease()
@@ -293,9 +293,9 @@ namespace hidpg::Internal
 
   bool TapDance::checkMoveThreshold(BeforeMouseMoveArgs &args)
   {
-    for (auto &id : _mouse_ids)
+    for (auto &id : _pointing_device_ids)
     {
-      if (id == args.mouse_id)
+      if (id == args.pointing_device_id)
       {
         _delta_x_sum = etl::clamp(_delta_x_sum + args.delta_x, INT16_MIN, INT16_MAX);
         _delta_y_sum = etl::clamp(_delta_y_sum + args.delta_y, INT16_MIN, INT16_MAX);
@@ -328,11 +328,11 @@ namespace hidpg::Internal
     {
       _state = State::Pressed;
       startListenBeforeOtherCommandPress();
-      if (_mouse_ids.empty() == false)
+      if (_pointing_device_ids.empty() == false)
       {
         _delta_x_sum = 0;
         _delta_y_sum = 0;
-        startListenBeforeMouseMove();
+        startListenBeforeMovePointer();
       }
       startListenBeforeRotateEncoder();
       _idx_count++;
@@ -445,11 +445,11 @@ namespace hidpg::Internal
     {
       _state = State::Pressed;
       startListenBeforeOtherCommandPress();
-      if (_mouse_ids.empty() == false)
+      if (_pointing_device_ids.empty() == false)
       {
         _delta_x_sum = 0;
         _delta_y_sum = 0;
-        startListenBeforeMouseMove();
+        startListenBeforeMovePointer();
       }
       startListenBeforeRotateEncoder();
       _idx_count++;
@@ -617,9 +617,9 @@ namespace hidpg::Internal
     processTapDance(Action::BeforeOtherCommandPress, args);
   }
 
-  void TapDance::onBeforeMouseMove(MouseId mouse_id, int16_t delta_x, int16_t delta_y)
+  void TapDance::onBeforeMovePointer(PointingDeviceId pointing_device_id, int16_t delta_x, int16_t delta_y)
   {
-    BeforeMouseMoveArgs args{.mouse_id = mouse_id, .delta_x = delta_x, .delta_y = delta_y};
+    BeforeMouseMoveArgs args{.pointing_device_id = pointing_device_id, .delta_x = delta_x, .delta_y = delta_y};
     processTapDance(Action::BeforeMouseMove, args);
   }
 
@@ -1120,7 +1120,7 @@ namespace hidpg::Internal
     }
   }
 
-  void GestureOr::onBeforeGesture(GestureId gesture_id, MouseId mouse_id)
+  void GestureOr::onBeforeGesture(GestureId gesture_id, PointingDeviceId pointing_device_id)
   {
     if (_state == State::Pressed)
     {
@@ -1203,7 +1203,7 @@ namespace hidpg::Internal
     }
   }
 
-  void GestureOrNK::onBeforeGesture(GestureId gesture_id, MouseId mouse_id)
+  void GestureOrNK::onBeforeGesture(GestureId gesture_id, PointingDeviceId pointing_device_id)
   {
     if (_state == State::Pressed)
     {

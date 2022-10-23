@@ -41,11 +41,11 @@ namespace hidpg
   static inline NotNullCommandPtr MT(Modifiers modifiers, NotNullCommandPtr command, HoldTapBehavior behavior = HoldTapBehavior::HoldPreferred)
   {
     auto pairs = new etl::vector<Internal::TapDance::Pair, 1>{
-        {command, new Internal::ModifierKey(modifiers)},
+        {new Internal::ModifierKey(modifiers), command},
     };
-    auto mouse_ids = new etl::span<MouseId>;
+    auto pointing_device_ids = new etl::span<PointingDeviceId>;
 
-    return (new Internal::TapDance(*pairs, *mouse_ids, 0, behavior));
+    return (new Internal::TapDance(*pairs, *pointing_device_ids, 0, behavior));
   }
 
   static inline NotNullCommandPtr LY(const CommandPtr (&commands)[HID_ENGINE_LAYER_SIZE])
@@ -75,31 +75,31 @@ namespace hidpg
   static inline NotNullCommandPtr LT(uint8_t layer_number, NotNullCommandPtr command, HoldTapBehavior behavior = HoldTapBehavior::HoldPreferred)
   {
     auto pairs = new etl::vector<Internal::TapDance::Pair, 1>{
-        {command, new Internal::SwitchLayer(Layer, layer_number)},
+        {new Internal::SwitchLayer(Layer, layer_number), command},
     };
-    auto mouse_ids = new etl::span<MouseId>;
+    auto pointing_device_ids = new etl::span<PointingDeviceId>;
 
-    return (new Internal::TapDance(*pairs, *mouse_ids, 0, behavior));
+    return (new Internal::TapDance(*pairs, *pointing_device_ids, 0, behavior));
   }
 
   static inline NotNullCommandPtr LT1(uint8_t layer_number, NotNullCommandPtr command, HoldTapBehavior behavior = HoldTapBehavior::HoldPreferred)
   {
     auto pairs = new etl::vector<Internal::TapDance::Pair, 1>{
-        {command, new Internal::SwitchLayer(Layer1, layer_number)},
+        {new Internal::SwitchLayer(Layer1, layer_number), command},
     };
-    auto mouse_ids = new etl::span<MouseId>;
+    auto pointing_device_ids = new etl::span<PointingDeviceId>;
 
-    return (new Internal::TapDance(*pairs, *mouse_ids, 0, behavior));
+    return (new Internal::TapDance(*pairs, *pointing_device_ids, 0, behavior));
   }
 
   static inline NotNullCommandPtr LT2(uint8_t layer_number, NotNullCommandPtr command, HoldTapBehavior behavior = HoldTapBehavior::HoldPreferred)
   {
     auto pairs = new etl::vector<Internal::TapDance::Pair, 1>{
-        {command, new Internal::SwitchLayer(Layer2, layer_number)},
+        {new Internal::SwitchLayer(Layer2, layer_number), command},
     };
-    auto mouse_ids = new etl::span<MouseId>;
+    auto pointing_device_ids = new etl::span<PointingDeviceId>;
 
-    return (new Internal::TapDance(*pairs, *mouse_ids, 0, behavior));
+    return (new Internal::TapDance(*pairs, *pointing_device_ids, 0, behavior));
   }
 
   static inline NotNullCommandPtr TL(uint8_t layer_number) { return (new Internal::ToggleLayer(Layer, layer_number)); }
@@ -122,22 +122,22 @@ namespace hidpg
   static NotNullCommandPtr TD(const Internal::TapDance::Pair (&pairs)[N], HoldTapBehavior behavior = HoldTapBehavior::HoldPreferred)
   {
     auto _pairs = new etl::vector<Internal::TapDance::Pair, N>{std::begin(pairs), std::end(pairs)};
-    auto mouse_ids = new etl::span<MouseId>;
+    auto pointing_device_ids = new etl::span<PointingDeviceId>;
 
-    return (new Internal::TapDance(*_pairs, *mouse_ids, 0, behavior));
+    return (new Internal::TapDance(*_pairs, *pointing_device_ids, 0, behavior));
   }
 
   template <uint8_t N1, uint8_t N2>
   static NotNullCommandPtr TD_DM(const Internal::TapDance::Pair (&pairs)[N1],
-                                 const MouseId (&mouse_ids)[N2],
+                                 const PointingDeviceId (&pointing_device_ids)[N2],
                                  uint16_t move_threshold = 4,
                                  HoldTapBehavior behavior = HoldTapBehavior::HoldPreferred)
   {
     auto _pairs = new etl::vector<Internal::TapDance::Pair, N1>{std::begin(pairs), std::end(pairs)};
-    auto _mouse_ids = new etl::array<MouseId, N2>;
-    _mouse_ids->assign(std::begin(mouse_ids), std::end(mouse_ids));
+    auto _pointing_device_ids = new etl::array<PointingDeviceId, N2>;
+    _pointing_device_ids->assign(std::begin(pointing_device_ids), std::end(pointing_device_ids));
 
-    return (new Internal::TapDance(*_pairs, *_mouse_ids, move_threshold, behavior));
+    return (new Internal::TapDance(*_pairs, *_pointing_device_ids, move_threshold, behavior));
   }
 
   static inline NotNullCommandPtr ToH(NotNullCommandPtr tap_command, unsigned int ms, NotNullCommandPtr hold_command) { return (new Internal::TapOrHold(tap_command, ms, hold_command)); }

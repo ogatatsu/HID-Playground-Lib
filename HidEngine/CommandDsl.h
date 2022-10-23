@@ -63,12 +63,12 @@ namespace hidpg
     {
       static uint8_t cmd_buf[sizeof(ModifierKey)];
       static etl::vector<Internal::TapDance::Pair, 1> pairs{
-          {command, new (cmd_buf) Internal::ModifierKey(modifiers)},
+          {new (cmd_buf) Internal::ModifierKey(modifiers), command},
       };
-      static etl::span<MouseId> mouse_ids;
+      static etl::span<PointingDeviceId> pointing_device_ids;
       static uint8_t buf[sizeof(TapDance)];
 
-      return new (buf) TapDance(pairs, mouse_ids, 0, behavior);
+      return new (buf) TapDance(pairs, pointing_device_ids, 0, behavior);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
@@ -86,12 +86,12 @@ namespace hidpg
     {
       static uint8_t cmd_buf[sizeof(SwitchLayer)];
       static etl::vector<Internal::TapDance::Pair, 1> pairs{
-          {command, new (cmd_buf) SwitchLayer(layer, layer_number)},
+          {new (cmd_buf) SwitchLayer(layer, layer_number), command},
       };
-      static etl::span<MouseId> mouse_ids;
+      static etl::span<PointingDeviceId> pointing_device_ids;
       static uint8_t buf[sizeof(TapDance)];
 
-      return new (buf) TapDance(pairs, mouse_ids, 0, behavior);
+      return new (buf) TapDance(pairs, pointing_device_ids, 0, behavior);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
@@ -133,24 +133,24 @@ namespace hidpg
     NotNullCommandPtr new_TapDance(const TapDance::Pair (&pairs)[N], HoldTapBehavior behavior = HoldTapBehavior::HoldPreferred)
     {
       static etl::vector<Internal::TapDance::Pair, N> _pairs{std::begin(pairs), std::end(pairs)};
-      static etl::span<MouseId> mouse_ids;
+      static etl::span<PointingDeviceId> pointing_device_ids;
       static uint8_t buf[sizeof(TapDance)];
 
-      return new (buf) TapDance(_pairs, mouse_ids, 0, behavior);
+      return new (buf) TapDance(_pairs, pointing_device_ids, 0, behavior);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3, size_t N1, size_t N2>
     NotNullCommandPtr new_TapDanceDecideWithMouseMove(const TapDance::Pair (&pairs)[N1],
-                                                      const MouseId (&mouse_ids)[N2],
+                                                      const PointingDeviceId (&pointing_device_ids)[N2],
                                                       uint16_t move_threshold = 4,
                                                       HoldTapBehavior behavior = HoldTapBehavior::HoldPreferred)
     {
       static etl::vector<Internal::TapDance::Pair, N1> _pairs{std::begin(pairs), std::end(pairs)};
-      static etl::array<MouseId, N2> _mouse_ids;
-      _mouse_ids.assign(std::begin(mouse_ids), std::end(mouse_ids));
+      static etl::array<PointingDeviceId, N2> _pointing_device_ids;
+      _pointing_device_ids.assign(std::begin(pointing_device_ids), std::end(pointing_device_ids));
       static uint8_t buf[sizeof(TapDance)];
 
-      return new (buf) TapDance(_pairs, _mouse_ids, move_threshold, behavior);
+      return new (buf) TapDance(_pairs, _pointing_device_ids, move_threshold, behavior);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
