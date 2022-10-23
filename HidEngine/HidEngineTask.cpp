@@ -59,33 +59,25 @@ namespace hidpg
         EventData evt;
         xQueueReceive(_event_queue, &evt, portMAX_DELAY);
 
-        switch (evt.event_type)
+        if (auto *e = etl::get_if<ApplyToKeymapEventData>(&evt))
         {
-        case EventType::ApplyToKeymap:
-        {
-          HidEngine.applyToKeymap_impl(evt.apply_to_keymap.key_ids);
-          break;
+          HidEngine.applyToKeymap_impl(e->key_ids);
         }
-        case EventType::MouseMove:
+        else if (auto *e = etl::get_if<MouseMoveEventData>(&evt))
         {
-          HidEngine.mouseMove_impl(evt.mouse_move.mouse_id);
-          break;
+          HidEngine.mouseMove_impl(e->mouse_id);
         }
-        case EventType::RotateEncoder:
+        else if (auto *e = etl::get_if<RotateEncoderEventData>(&evt))
         {
-          HidEngine.rotateEncoder_impl(evt.rotate_encoder.encoder_id);
-          break;
+          HidEngine.rotateEncoder_impl(e->encoder_id);
         }
-        case EventType::Timer:
+        else if (auto *e = etl::get_if<TimerEventData>(&evt))
         {
-          evt.timer.cls->trigger(evt.timer.timer_number);
-          break;
+          e->cls->trigger(e->timer_number);
         }
-        case EventType::CommandTapper:
+        else if (etl::holds_alternative<CommandTapperEventData>(evt))
         {
           CommandTapper.onTimer();
-          break;
-        }
         }
       }
     }

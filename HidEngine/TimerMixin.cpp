@@ -37,12 +37,7 @@ namespace hidpg
   {
     Data *data = static_cast<TimerMixin::Data *>(pvTimerGetTimerID(timer_handle));
 
-    // Software Timersのスタックを消費しないようにstaticで宣言
-    static EventData evt;
-    evt.event_type = EventType::Timer;
-    evt.timer.cls = data->cls;
-    evt.timer.timer_number = data->timer_number;
-    HidEngineTask.enqueEvent(evt);
+    HidEngineTask.enqueEvent(TimerEventData{data->cls, data->timer_number});
 
     // プールに戻す
     data->cls = nullptr;

@@ -28,21 +28,13 @@
 #include "CommandBase.h"
 #include "Set.h"
 #include "TimerMixin.h"
+#include "etl/variant.h"
 #include "queue.h"
 
 namespace hidpg
 {
   namespace Internal
   {
-
-    enum class EventType
-    {
-      ApplyToKeymap,
-      MouseMove,
-      RotateEncoder,
-      Timer,
-      CommandTapper,
-    };
 
     struct ApplyToKeymapEventData
     {
@@ -70,20 +62,11 @@ namespace hidpg
       // empty
     };
 
-    struct EventData
-    {
-      EventData(){};
-
-      EventType event_type;
-      union
-      {
-        ApplyToKeymapEventData apply_to_keymap;
-        MouseMoveEventData mouse_move;
-        RotateEncoderEventData rotate_encoder;
-        TimerEventData timer;
-        CommandTapperEventData command_tapper;
-      };
-    };
+    using EventData = etl::variant<ApplyToKeymapEventData,
+                                   MouseMoveEventData,
+                                   RotateEncoderEventData,
+                                   TimerEventData,
+                                   CommandTapperEventData>;
 
     class HidEngineTaskClass
     {

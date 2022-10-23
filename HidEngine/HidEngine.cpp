@@ -85,25 +85,19 @@ namespace hidpg
 
     void HidEngineClass::applyToKeymap(const Set &key_ids)
     {
-      EventData evt;
-      evt.event_type = EventType::ApplyToKeymap;
-      evt.apply_to_keymap.key_ids = key_ids;
+      EventData evt{ApplyToKeymapEventData{key_ids}};
       HidEngineTask.enqueEvent(evt);
     }
 
     void HidEngineClass::mouseMove(MouseId mouse_id)
     {
-      EventData evt;
-      evt.event_type = EventType::MouseMove;
-      evt.mouse_move.mouse_id = mouse_id;
+      EventData evt{MouseMoveEventData{mouse_id}};
       HidEngineTask.enqueEvent(evt);
     }
 
     void HidEngineClass::rotateEncoder(EncoderId encoder_id)
     {
-      EventData evt;
-      evt.event_type = EventType::RotateEncoder;
-      evt.rotate_encoder.encoder_id = encoder_id;
+      EventData evt{RotateEncoderEventData{encoder_id}};
       HidEngineTask.enqueEvent(evt);
     }
 
