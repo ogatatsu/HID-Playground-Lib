@@ -31,7 +31,7 @@ namespace hidpg::Internal
   //------------------------------------------------------------------+
   // RemoteWakeup
   //------------------------------------------------------------------+
-  void RemoteWakeup::onPress(uint8_t n_times)
+  void RemoteWakeup::onPress()
   {
     if (USBDevice.suspended())
     {

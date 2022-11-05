@@ -48,17 +48,20 @@ namespace hidpg
         return true;
       }
 
-      // 動いてないなら動かす
+      // 動いてないならタップしてタップ回数が残ってるならタイマーを動かす
       if (_state == State::NotRunning)
       {
-        _state = State::Press;
-        _running.command = command;
-        _running.num_of_taps = n_times;
-        _running.tap_speed_ms = tap_speed_ms;
+        uint8_t actual_n_times = command->tap(n_times);
+        uint8_t num_of_taps = std::max(n_times - actual_n_times, 0);
 
-        _running.command->press(_running.num_of_taps);
-
-        xTimerChangePeriod(_timer_handle, pdMS_TO_TICKS(tap_speed_ms), portMAX_DELAY);
+        if (num_of_taps != 0)
+        {
+          _state = State::WaitTimer;
+          _running.command = command;
+          _running.num_of_taps = num_of_taps;
+          _running.tap_speed_ms = tap_speed_ms;
+          xTimerChangePeriod(_timer_handle, pdMS_TO_TICKS(tap_speed_ms), portMAX_DELAY);
+        }
 
         return true;
       }
@@ -99,47 +102,29 @@ namespace hidpg
 
     void CommandTapperClass::onTimer()
     {
-      if (_state == State::Press)
-      {
-        uint8_t n_times = _running.command->release();
-        _running.num_of_taps = std::max(_running.num_of_taps - n_times, 0);
+      uint8_t actual_n_times = _running.command->tap(_running.num_of_taps);
+      _running.num_of_taps = std::max(_running.num_of_taps - actual_n_times, 0);
 
-        // まだタップ回数が残っている場合同じコマンドで再度タップ
-        if (_running.num_of_taps > 0)
-        {
-          _state = State::Release;
-          xTimerStart(_timer_handle, portMAX_DELAY);
-        }
-        // キューが空でないなら次のコマンドの準備
-        else if (_deque.empty() == false)
-        {
-          _state = State::ChangeCommandInTheNext;
-          xTimerStart(_timer_handle, portMAX_DELAY);
-        }
-        // 動作終了
-        else
-        {
-          _state = State::NotRunning;
-          _running.command = nullptr;
-          _running.num_of_taps = 0;
-          _running.tap_speed_ms = 0;
-        }
-      }
-      else if (_state == State::Release)
+      // まだタップ回数が残っている場合同じコマンドで再度タップ
+      if (_running.num_of_taps > 0)
       {
-        _state = State::Press;
-        _running.command->press(_running.num_of_taps);
+        _state = State::WaitTimer;
         xTimerStart(_timer_handle, portMAX_DELAY);
       }
-      else if (_state == State::ChangeCommandInTheNext)
+      // キューが空でないなら次のコマンドの準備
+      else if (_deque.empty() == false)
       {
         _running = _deque.front();
         _deque.pop_front();
-
-        _state = State::Press;
-        _running.command->press(_running.num_of_taps);
-
         xTimerChangePeriod(_timer_handle, pdMS_TO_TICKS(_running.tap_speed_ms), portMAX_DELAY);
+      }
+      // 動作終了
+      else
+      {
+        _state = State::NotRunning;
+        _running.command = nullptr;
+        _running.num_of_taps = 0;
+        _running.tap_speed_ms = 0;
       }
     }
 

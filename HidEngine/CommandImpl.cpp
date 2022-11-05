@@ -38,17 +38,16 @@ namespace hidpg::Internal
   {
   }
 
-  void NormalKey::onPress(uint8_t n_times)
+  void NormalKey::onPress()
   {
     Hid.setKey(_key_code);
     Hid.sendKeyReport();
   }
 
-  uint8_t NormalKey::onRelease()
+  void NormalKey::onRelease()
   {
     Hid.unsetKey(_key_code);
     Hid.sendKeyReport();
-    return 1;
   }
 
   //------------------------------------------------------------------+
@@ -58,17 +57,16 @@ namespace hidpg::Internal
   {
   }
 
-  void ModifierKey::onPress(uint8_t n_times)
+  void ModifierKey::onPress()
   {
     Hid.setModifiers(_modifiers);
     Hid.sendKeyReport();
   }
 
-  uint8_t ModifierKey::onRelease()
+  void ModifierKey::onRelease()
   {
     Hid.unsetModifiers(_modifiers);
     Hid.sendKeyReport();
-    return 1;
   }
 
   //------------------------------------------------------------------+
@@ -78,19 +76,18 @@ namespace hidpg::Internal
   {
   }
 
-  void CombinationKey::onPress(uint8_t n_times)
+  void CombinationKey::onPress()
   {
     Hid.setKey(_key_code);
     Hid.setModifiers(_modifiers);
     Hid.sendKeyReport();
   }
 
-  uint8_t CombinationKey::onRelease()
+  void CombinationKey::onRelease()
   {
     Hid.unsetKey(_key_code);
     Hid.unsetModifiers(_modifiers);
     Hid.sendKeyReport();
-    return 1;
   }
 
   //------------------------------------------------------------------+
@@ -113,12 +110,35 @@ namespace hidpg::Internal
     }
   }
 
-  void Layering::onPress(uint8_t n_times)
+  void Layering::onPress()
+  {
+    _running_command = getCurrentCommand();
+    if (_running_command != nullptr)
+    {
+      _running_command->press();
+    }
+  }
+
+  void Layering::onRelease()
+  {
+    if (_running_command != nullptr)
+    {
+      _running_command->release();
+    }
+  }
+
+  uint8_t Layering::onTap(uint8_t n_times)
+  {
+    CommandPtr cmd = getCurrentCommand();
+    return cmd->tap(n_times);
+  }
+
+  CommandPtr Layering::getCurrentCommand()
   {
     // 現在のレイヤーの状態を取得
     layer_bitmap_t layer_state = _layer.getState();
 
-    _running_command = nullptr;
+    CommandPtr result = nullptr;
 
     // layerを上から舐めていってonのlayerを探す
     int i = _commands.size() - 1;
@@ -138,23 +158,10 @@ namespace hidpg::Internal
         continue;
       }
       // 見つかった
-      _running_command = _commands[i];
+      result = _commands[i];
       break;
     }
-    // 実行する
-    if (_running_command != nullptr)
-    {
-      _running_command->press(n_times);
-    }
-  }
 
-  uint8_t Layering::onRelease()
-  {
-    uint8_t result = 1;
-    if (_running_command != nullptr)
-    {
-      result = _running_command->release();
-    }
     return result;
   }
 
@@ -165,7 +172,7 @@ namespace hidpg::Internal
   {
   }
 
-  void ToggleLayer::onPress(uint8_t n_times)
+  void ToggleLayer::onPress()
   {
     _layer.toggle(_layer_number);
   }
@@ -177,15 +184,14 @@ namespace hidpg::Internal
   {
   }
 
-  void SwitchLayer::onPress(uint8_t n_times)
+  void SwitchLayer::onPress()
   {
     _layer.on(_layer_number);
   }
 
-  uint8_t SwitchLayer::onRelease()
+  void SwitchLayer::onRelease()
   {
     _layer.off(_layer_number);
-    return 1;
   }
 
   //------------------------------------------------------------------+
@@ -195,15 +201,14 @@ namespace hidpg::Internal
   {
   }
 
-  void UpDefaultLayer::onPress(uint8_t n_times)
+  void UpDefaultLayer::onPress()
   {
     _layer.addToDefaultLayer(_i);
   }
 
-  uint8_t UpDefaultLayer::onRelease()
+  void UpDefaultLayer::onRelease()
   {
     _layer.addToDefaultLayer(-_i);
-    return 1;
   }
 
   //------------------------------------------------------------------+
@@ -220,7 +225,7 @@ namespace hidpg::Internal
     _command->setKeyId(key_id);
   }
 
-  void Tap::onPress(uint8_t n_times)
+  void Tap::onPress()
   {
     CommandTapper.tap(_command, _n_times, _tap_speed_ms);
   }
@@ -239,10 +244,9 @@ namespace hidpg::Internal
     _command->setKeyId(key_id);
   }
 
-  uint8_t TapWhenReleased::onRelease()
+  void TapWhenReleased::onRelease()
   {
     CommandTapper.tap(_command, _n_times, _tap_speed_ms);
-    return 1;
   }
 
   //------------------------------------------------------------------+
@@ -444,15 +448,14 @@ namespace hidpg::Internal
     }
   }
 
-  void TapDance::onPress(uint8_t n_times)
+  void TapDance::onPress()
   {
     processTapDance(Action::Press, nullptr);
   }
 
-  uint8_t TapDance::onRelease()
+  void TapDance::onRelease()
   {
     processTapDance(Action::Release, nullptr);
-    return 1;
   }
 
   void TapDance::onTimer()
@@ -493,7 +496,7 @@ namespace hidpg::Internal
     _hold_command->setKeyId(key_id);
   }
 
-  void TapOrHold::onPress(uint8_t n_times)
+  void TapOrHold::onPress()
   {
     if (_state == State::Unexecuted)
     {
@@ -502,7 +505,7 @@ namespace hidpg::Internal
     }
   }
 
-  uint8_t TapOrHold::onRelease()
+  void TapOrHold::onRelease()
   {
     if (_state == State::Pressed)
     {
@@ -515,7 +518,6 @@ namespace hidpg::Internal
       _hold_command->release();
       _state = State::Unexecuted;
     }
-    return 1;
   }
 
   void TapOrHold::onTimer()
@@ -534,14 +536,14 @@ namespace hidpg::Internal
   {
   }
 
-  void ConsumerControl::onPress(uint8_t n_times)
+  void ConsumerControl::onPress()
   {
     Hid.consumerKeyPress(_usage_code);
   }
-  uint8_t ConsumerControl::onRelease()
+
+  void ConsumerControl::onRelease()
   {
     Hid.consumerKeyRelease();
-    return 1;
   }
 
   //------------------------------------------------------------------+
@@ -551,14 +553,14 @@ namespace hidpg::Internal
   {
   }
 
-  void SystemControl::onPress(uint8_t n_times)
+  void SystemControl::onPress()
   {
     Hid.systemControlKeyPress(_usage_code);
   }
-  uint8_t SystemControl::onRelease()
+
+  void SystemControl::onRelease()
   {
     Hid.systemControlKeyRelease();
-    return 1;
   }
 
   //------------------------------------------------------------------+
@@ -569,15 +571,16 @@ namespace hidpg::Internal
   {
   }
 
-  void MouseMove::onPress(uint8_t n_times)
+  void MouseMove::onPress()
   {
-    _actual_n_times = std::min(n_times, _max_n_times);
-    Hid.mouseMove(_x * _actual_n_times, _y * _actual_n_times);
+    Hid.mouseMove(_x, _y);
   }
 
-  uint8_t MouseMove::onRelease()
+  uint8_t MouseMove::onTap(uint8_t n_times)
   {
-    return _actual_n_times;
+    uint8_t actual_n_times = std::min(n_times, _max_n_times);
+    Hid.mouseMove(_x * actual_n_times, _y * actual_n_times);
+    return actual_n_times;
   }
 
   //------------------------------------------------------------------+
@@ -588,15 +591,16 @@ namespace hidpg::Internal
   {
   }
 
-  void MouseScroll::onPress(uint8_t n_times)
+  void MouseScroll::onPress()
   {
-    _actual_n_times = std::min(n_times, _max_n_times);
-    Hid.mouseScroll(_scroll * _actual_n_times, _horiz * _actual_n_times);
+    Hid.mouseScroll(_scroll, _horiz);
   }
 
-  uint8_t MouseScroll::onRelease()
+  uint8_t MouseScroll::onTap(uint8_t n_times)
   {
-    return _actual_n_times;
+    uint8_t actual_n_times = std::min(n_times, _max_n_times);
+    Hid.mouseScroll(_scroll * actual_n_times, _horiz * actual_n_times);
+    return actual_n_times;
   }
 
   //------------------------------------------------------------------+
@@ -606,30 +610,28 @@ namespace hidpg::Internal
   {
   }
 
-  void MouseClick::onPress(uint8_t n_times)
+  void MouseClick::onPress()
   {
     Hid.mouseButtonsPress(_buttons);
   }
 
-  uint8_t MouseClick::onRelease()
+  void MouseClick::onRelease()
   {
     Hid.mouseButtonsRelease(_buttons);
-    return 1;
   }
 
   //------------------------------------------------------------------+
   // RadialClick
   //------------------------------------------------------------------+
 
-  void RadialClick::onPress(uint8_t n_times)
+  void RadialClick::onPress()
   {
     Hid.radialControllerButtonPress();
   }
 
-  uint8_t RadialClick::onRelease()
+  void RadialClick::onRelease()
   {
     Hid.radialControllerButtonRelease();
-    return 1;
   }
 
   //------------------------------------------------------------------+
@@ -640,15 +642,16 @@ namespace hidpg::Internal
   {
   }
 
-  void RadialRotate::onPress(uint8_t n_times)
+  void RadialRotate::onPress()
   {
-    _actual_n_times = std::min(n_times, _max_n_times);
-    Hid.radialControllerDialRotate(_deci_degree * _actual_n_times);
+    Hid.radialControllerDialRotate(_deci_degree);
   }
 
-  uint8_t RadialRotate::onRelease()
+  uint8_t RadialRotate::onTap(uint8_t n_times)
   {
-    return _actual_n_times;
+    uint8_t actual_n_times = std::min(n_times, _max_n_times);
+    Hid.radialControllerDialRotate(_deci_degree * actual_n_times);
+    return actual_n_times;
   }
 
   //------------------------------------------------------------------+
@@ -665,7 +668,7 @@ namespace hidpg::Internal
     _command->setKeyId(key_id);
   }
 
-  void OnceEvery::onPress(uint8_t n_times)
+  void OnceEvery::onPress()
   {
     uint32_t current_millis = millis();
     if (static_cast<uint32_t>(current_millis - _last_press_millis) >= _ms)
@@ -676,14 +679,19 @@ namespace hidpg::Internal
     }
   }
 
-  uint8_t OnceEvery::onRelease()
+  void OnceEvery::onRelease()
   {
     if (_has_pressed)
     {
       _command->release();
       _has_pressed = false;
     }
+  }
 
+  uint8_t OnceEvery::onTap(uint8_t n_times)
+  {
+    press();
+    release();
     return UINT8_MAX;
   }
 
@@ -701,9 +709,9 @@ namespace hidpg::Internal
     _command->setKeyId(key_id);
   }
 
-  void NTimesEvery::onPress(uint8_t n_times)
+  void NTimesEvery::onPress()
   {
-    uint32_t ms = _ms / n_times;
+    uint32_t ms = _n_times.has_value() ? _ms / _n_times.value() : _ms;
 
     uint32_t current_millis = millis();
     if (static_cast<uint32_t>(current_millis - _last_press_millis) >= ms)
@@ -714,14 +722,21 @@ namespace hidpg::Internal
     }
   }
 
-  uint8_t NTimesEvery::onRelease()
+  void NTimesEvery::onRelease()
   {
     if (_has_pressed)
     {
       _command->release();
       _has_pressed = false;
     }
+  }
 
+  uint8_t NTimesEvery::onTap(uint8_t n_times)
+  {
+    _n_times = n_times;
+    press();
+    release();
+    _n_times = etl::nullopt;
     return UINT8_MAX;
   }
 
@@ -740,15 +755,21 @@ namespace hidpg::Internal
     _false_command->setKeyId(key_id);
   }
 
-  void If::onPress(uint8_t n_times)
+  void If::onPress()
   {
     _running_command = _func() ? _true_command : _false_command;
-    _running_command->press(n_times);
+    _running_command->press();
   }
 
-  uint8_t If::onRelease()
+  void If::onRelease()
   {
-    return _running_command->release();
+    _running_command->release();
+  }
+
+  uint8_t If::onTap(uint8_t n_times)
+  {
+    auto cmd = _func() ? _true_command : _false_command;
+    return cmd->tap(n_times);
   }
 
   //------------------------------------------------------------------+
@@ -769,7 +790,7 @@ namespace hidpg::Internal
     }
   }
 
-  void Multi::onPress(uint8_t n_times)
+  void Multi::onPress()
   {
     for (auto &command : _commands)
     {
@@ -777,13 +798,12 @@ namespace hidpg::Internal
     }
   }
 
-  uint8_t Multi::onRelease()
+  void Multi::onRelease()
   {
     for (auto &command : _commands)
     {
       command->release();
     }
-    return 1;
   }
 
   //------------------------------------------------------------------+
@@ -800,7 +820,7 @@ namespace hidpg::Internal
     _command->setKeyId(key_id);
   }
 
-  void Toggle::onPress(uint8_t n_times)
+  void Toggle::onPress()
   {
     if (_is_pressed == false)
     {
@@ -828,16 +848,15 @@ namespace hidpg::Internal
     _command->setKeyId(key_id);
   }
 
-  void Repeat::onPress(uint8_t n_times)
+  void Repeat::onPress()
   {
     CommandTapper.tap(_command);
     startTimer(_delay_ms);
   }
 
-  uint8_t Repeat::onRelease()
+  void Repeat::onRelease()
   {
     stopTimer();
-    return 1;
   }
 
   void Repeat::onTimer()
@@ -864,7 +883,7 @@ namespace hidpg::Internal
     }
   }
 
-  void Cycle::onPress(uint8_t n_times)
+  void Cycle::onPress()
   {
     if (_commands.size() == 0)
     {
@@ -874,17 +893,15 @@ namespace hidpg::Internal
     _commands[_idx]->press();
   }
 
-  uint8_t Cycle::onRelease()
+  void Cycle::onRelease()
   {
     if (_commands.size() == 0)
     {
-      return UINT8_MAX;
+      return;
     }
 
     _commands[_idx]->release();
     _idx = (_idx + 1) % _commands.size();
-
-    return 1;
   }
 
   //------------------------------------------------------------------+
@@ -905,7 +922,7 @@ namespace hidpg::Internal
     }
   }
 
-  void CyclePhaseShift::onPress(uint8_t n_times)
+  void CyclePhaseShift::onPress()
   {
     if (_commands.size() == 0)
     {
@@ -916,22 +933,20 @@ namespace hidpg::Internal
     _idx = (_idx + 1) % _commands.size();
   }
 
-  uint8_t CyclePhaseShift::onRelease()
+  void CyclePhaseShift::onRelease()
   {
     if (_commands.size() == 0)
     {
-      return UINT8_MAX;
+      return;
     }
 
     _commands[_idx]->press();
-
-    return 1;
   }
 
   //------------------------------------------------------------------+
   // NoOperation
   //------------------------------------------------------------------+
-  uint8_t NoOperation::onRelease()
+  uint8_t NoOperation::onTap(uint8_t n_times)
   {
     return UINT8_MAX;
   }
@@ -943,7 +958,7 @@ namespace hidpg::Internal
   {
   }
 
-  void Shift::onPress(uint8_t n_times)
+  void Shift::onPress()
   {
     for (auto &shift_id_link : _shift_id_links)
     {
@@ -962,7 +977,7 @@ namespace hidpg::Internal
     }
   }
 
-  uint8_t Shift::onRelease()
+  void Shift::onRelease()
   {
     for (auto &shift_id_link : _shift_id_links)
     {
@@ -979,8 +994,6 @@ namespace hidpg::Internal
         HidEngine.stopGesture(*gesture_id_link);
       }
     }
-
-    return 1;
   }
 
   ShiftIdLink Shift::IdToLink(ShiftId shift_id)

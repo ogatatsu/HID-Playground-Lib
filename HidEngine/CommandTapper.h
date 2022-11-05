@@ -57,8 +57,7 @@ namespace hidpg
       enum class State
       {
         NotRunning,
-        Press,
-        Release,
+        WaitTimer,
         ChangeCommandInTheNext,
       };
 

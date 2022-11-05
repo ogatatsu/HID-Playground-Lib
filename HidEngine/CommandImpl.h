@@ -41,8 +41,8 @@ namespace hidpg::Internal
     NormalKey(KeyCode key_code);
 
   protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
+    void onPress() override;
+    void onRelease() override;
 
   private:
     const KeyCode _key_code;
@@ -57,8 +57,8 @@ namespace hidpg::Internal
     ModifierKey(Modifiers modifiers);
 
   protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
+    void onPress() override;
+    void onRelease() override;
 
   private:
     const Modifiers _modifiers;
@@ -73,8 +73,8 @@ namespace hidpg::Internal
     CombinationKey(Modifiers modifiers, KeyCode key_code);
 
   protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
+    void onPress() override;
+    void onRelease() override;
 
   private:
     const Modifiers _modifiers;
@@ -91,10 +91,12 @@ namespace hidpg::Internal
     void setKeyId(uint8_t) override;
 
   protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
+    void onPress() override;
+    void onRelease() override;
+    uint8_t onTap(uint8_t n_times) override;
 
   private:
+    CommandPtr getCurrentCommand();
     LayerClass &_layer;
     const etl::span<CommandPtr> _commands;
     Command *_running_command;
@@ -109,7 +111,7 @@ namespace hidpg::Internal
     ToggleLayer(LayerClass &layer, uint8_t layer_number);
 
   protected:
-    void onPress(uint8_t n_times) override;
+    void onPress() override;
 
   private:
     LayerClass &_layer;
@@ -125,8 +127,8 @@ namespace hidpg::Internal
     SwitchLayer(LayerClass &layer, uint8_t layer_number);
 
   protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
+    void onPress() override;
+    void onRelease() override;
 
   private:
     LayerClass &_layer;
@@ -142,8 +144,8 @@ namespace hidpg::Internal
     UpDefaultLayer(LayerClass &layer, uint8_t i);
 
   protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
+    void onPress() override;
+    void onRelease() override;
 
   private:
     LayerClass &_layer;
@@ -160,7 +162,7 @@ namespace hidpg::Internal
     void setKeyId(uint8_t) override;
 
   protected:
-    void onPress(uint8_t n_times) override;
+    void onPress() override;
 
   private:
     const NotNullCommandPtr _command;
@@ -178,7 +180,7 @@ namespace hidpg::Internal
     void setKeyId(uint8_t) override;
 
   protected:
-    uint8_t onRelease() override;
+    void onRelease() override;
 
   private:
     const NotNullCommandPtr _command;
@@ -207,8 +209,8 @@ namespace hidpg::Internal
     void setKeyId(uint8_t) override;
 
   protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
+    void onPress() override;
+    void onRelease() override;
     void onTimer() override;
     void onBeforeOtherKeyPress(uint8_t key_id) override;
     void onBeforeMovePointer(PointingDeviceId pointing_device_id, int16_t delta_x, int16_t delta_y) override;
@@ -287,8 +289,8 @@ namespace hidpg::Internal
     void setKeyId(uint8_t) override;
 
   protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
+    void onPress() override;
+    void onRelease() override;
     void onTimer() override;
 
   private:
@@ -314,8 +316,8 @@ namespace hidpg::Internal
     ConsumerControl(ConsumerControlCode usage_code);
 
   protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
+    void onPress() override;
+    void onRelease() override;
 
   private:
     const ConsumerControlCode _usage_code;
@@ -330,8 +332,8 @@ namespace hidpg::Internal
     SystemControl(SystemControlCode usage_code);
 
   protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
+    void onPress() override;
+    void onRelease() override;
 
   private:
     const SystemControlCode _usage_code;
@@ -346,14 +348,13 @@ namespace hidpg::Internal
     MouseMove(int16_t x, int16_t y);
 
   protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
+    void onPress() override;
+    uint8_t onTap(uint8_t n_times) override;
 
   private:
     const int16_t _x;
     const int16_t _y;
     const uint8_t _max_n_times;
-    uint8_t _actual_n_times;
   };
 
   //------------------------------------------------------------------+
@@ -365,14 +366,13 @@ namespace hidpg::Internal
     MouseScroll(int8_t scroll, int8_t horiz);
 
   protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
+    void onPress() override;
+    uint8_t onTap(uint8_t n_times) override;
 
   private:
     const int8_t _scroll;
     const int8_t _horiz;
     const uint8_t _max_n_times;
-    uint8_t _actual_n_times;
   };
 
   //------------------------------------------------------------------+
@@ -384,8 +384,8 @@ namespace hidpg::Internal
     MouseClick(MouseButtons buttons);
 
   protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
+    void onPress() override;
+    void onRelease() override;
 
   private:
     const MouseButtons _buttons;
@@ -397,8 +397,8 @@ namespace hidpg::Internal
   class RadialClick : public Command
   {
   protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
+    void onPress() override;
+    void onRelease() override;
   };
 
   //------------------------------------------------------------------+
@@ -410,13 +410,12 @@ namespace hidpg::Internal
     RadialRotate(int16_t deci_degree);
 
   protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
+    void onPress() override;
+    uint8_t onTap(uint8_t n_times) override;
 
   private:
     const int16_t _deci_degree;
     const uint8_t _max_n_times;
-    uint8_t _actual_n_times;
   };
 
   //------------------------------------------------------------------+
@@ -429,8 +428,9 @@ namespace hidpg::Internal
     void setKeyId(uint8_t) override;
 
   protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
+    void onPress() override;
+    void onRelease() override;
+    uint8_t onTap(uint8_t n_times) override;
 
   private:
     const NotNullCommandPtr _command;
@@ -449,12 +449,14 @@ namespace hidpg::Internal
     void setKeyId(uint8_t) override;
 
   protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
+    void onPress() override;
+    void onRelease() override;
+    uint8_t onTap(uint8_t n_times) override;
 
   private:
     const NotNullCommandPtr _command;
     const uint32_t _ms;
+    etl::optional<uint8_t> _n_times;
     uint32_t _last_press_millis;
     bool _has_pressed;
   };
@@ -469,8 +471,9 @@ namespace hidpg::Internal
     void setKeyId(uint8_t) override;
 
   protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
+    void onPress() override;
+    void onRelease() override;
+    uint8_t onTap(uint8_t n_times) override;
 
   private:
     bool (*const _func)();
@@ -489,8 +492,8 @@ namespace hidpg::Internal
     void setKeyId(uint8_t key_id) override;
 
   protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
+    void onPress() override;
+    void onRelease() override;
 
   private:
     const etl::span<NotNullCommandPtr> _commands;
@@ -506,7 +509,7 @@ namespace hidpg::Internal
     void setKeyId(uint8_t) override;
 
   protected:
-    void onPress(uint8_t n_times) override;
+    void onPress() override;
 
   private:
     const NotNullCommandPtr _command;
@@ -523,8 +526,8 @@ namespace hidpg::Internal
     void setKeyId(uint8_t) override;
 
   protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
+    void onPress() override;
+    void onRelease() override;
     void onTimer() override;
 
   private:
@@ -543,8 +546,8 @@ namespace hidpg::Internal
     void setKeyId(uint8_t) override;
 
   protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
+    void onPress() override;
+    void onRelease() override;
 
   private:
     const etl::span<NotNullCommandPtr> _commands;
@@ -561,8 +564,8 @@ namespace hidpg::Internal
     void setKeyId(uint8_t) override;
 
   protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
+    void onPress() override;
+    void onRelease() override;
 
   private:
     const etl::span<NotNullCommandPtr> _commands;
@@ -574,9 +577,8 @@ namespace hidpg::Internal
   //------------------------------------------------------------------+
   class NoOperation : public Command
   {
-
   protected:
-    uint8_t onRelease() override;
+    uint8_t onTap(uint8_t n_times) override;
   };
 
   //------------------------------------------------------------------+
@@ -662,8 +664,8 @@ namespace hidpg::Internal
     static ShiftIdLink IdToLink(ShiftId shift_id);
 
   protected:
-    void onPress(uint8_t n_times) override;
-    uint8_t onRelease() override;
+    void onPress() override;
+    void onRelease() override;
 
   private:
     const etl::span<ShiftIdLink> _shift_id_links;

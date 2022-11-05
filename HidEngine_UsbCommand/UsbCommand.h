@@ -34,7 +34,7 @@ namespace hidpg::Internal
   class RemoteWakeup : public Command
   {
   protected:
-    void onPress(uint8_t n_times) override;
+    void onPress() override;
   };
 
 } // namespace hidpg::Internal

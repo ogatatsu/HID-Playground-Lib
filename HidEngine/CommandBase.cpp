@@ -34,26 +34,34 @@ namespace hidpg
   {
   }
 
-  void Command::press(uint8_t n_times)
+  void Command::press()
   {
     if (_is_pressed == false)
     {
       _is_pressed = true;
-      onPress(n_times);
+      onPress();
     }
   }
 
-  uint8_t Command::release()
+  void Command::release()
   {
-    uint8_t result = 1;
-
     if (_is_pressed)
     {
       _is_pressed = false;
-      result = onRelease();
+      onRelease();
+    }
+  }
+
+  uint8_t Command::tap(uint8_t n_times)
+  {
+    if (_is_pressed)
+    {
+      _is_pressed = false;
+      onRelease();
+      return 1;
     }
 
-    return result;
+    return onTap(n_times);
   }
 
   //------------------------------------------------------------------+

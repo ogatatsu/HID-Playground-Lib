@@ -30,7 +30,7 @@ namespace hidpg::Internal
   //------------------------------------------------------------------+
   // ResetConnection
   //------------------------------------------------------------------+
-  void ResetConnection::onPress(uint8_t n_times)
+  void ResetConnection::onPress()
   {
     bond_clear_all();
     NVIC_SystemReset();

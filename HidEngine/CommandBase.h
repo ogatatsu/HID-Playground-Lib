@@ -87,15 +87,22 @@ namespace hidpg
   {
   public:
     Command();
-    void press(uint8_t n_times = 1);
-    uint8_t release();
+    void press();
+    void release();
+    uint8_t tap(uint8_t n_times = 1);
 
     virtual void setKeyId(uint8_t key_id) { _key_id = key_id; }
     etl::optional<uint8_t> getKeyId() { return _key_id; }
 
   protected:
-    virtual void onPress(uint8_t n_times) {}
-    virtual uint8_t onRelease() { return 1; }
+    virtual void onPress(){};
+    virtual void onRelease(){};
+    virtual uint8_t onTap(uint8_t n_times)
+    {
+      onPress();
+      onRelease();
+      return 1;
+    };
 
   private:
     etl::optional<uint8_t> _key_id;
