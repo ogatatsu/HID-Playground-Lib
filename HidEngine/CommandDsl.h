@@ -115,10 +115,10 @@ namespace hidpg
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3, size_t N1, size_t N2>
-    NotNullCommandPtr new_TapDanceDecideWithMouseMove(const TapDance::Pair (&pairs)[N1],
-                                                      const PointingDeviceId (&pointing_device_ids)[N2],
-                                                      uint16_t move_threshold = 0,
-                                                      const uint32_t tapping_term_ms = HID_ENGINE_TAPPING_TERM_MS)
+    NotNullCommandPtr new_TapDanceDecideWithPointerMove(const TapDance::Pair (&pairs)[N1],
+                                                        const PointingDeviceId (&pointing_device_ids)[N2],
+                                                        uint16_t move_threshold = 0,
+                                                        const uint32_t tapping_term_ms = HID_ENGINE_TAPPING_TERM_MS)
     {
       static etl::vector<Internal::TapDance::Pair, N1> _pairs{std::begin(pairs), std::end(pairs)};
       static etl::array<PointingDeviceId, N2> _pointing_device_ids;
@@ -143,11 +143,11 @@ namespace hidpg
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3, size_t N>
-    NotNullCommandPtr new_HoldTapDecideWithMouseMove(NotNullCommandPtr hold_command,
-                                                     NotNullCommandPtr tap_command,
-                                                     const PointingDeviceId (&pointing_device_ids)[N],
-                                                     uint16_t move_threshold = 0,
-                                                     const uint32_t tapping_term_ms = HID_ENGINE_TAPPING_TERM_MS)
+    NotNullCommandPtr new_HoldTapDecideWithPointerMove(NotNullCommandPtr hold_command,
+                                                       NotNullCommandPtr tap_command,
+                                                       const PointingDeviceId (&pointing_device_ids)[N],
+                                                       uint16_t move_threshold = 0,
+                                                       const uint32_t tapping_term_ms = HID_ENGINE_TAPPING_TERM_MS)
     {
       static etl::vector<Internal::TapDance::Pair, 1> pairs{
           {hold_command, tap_command},
@@ -387,14 +387,14 @@ namespace hidpg
 // TapDance
 #define TD(...) (Internal::new_TapDance<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(__VA_ARGS__))
 
-// TapDanceDecideWithMouseMove
-#define TD_DM(...) (Internal::new_TapDanceDecideWithMouseMove<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(__VA_ARGS__))
+// TapDanceDecideWithPointerMove
+#define TD_DPM(...) (Internal::new_TapDanceDecideWithPointerMove<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(__VA_ARGS__))
 
 // HoldTap
 #define HT(...) (Internal::new_HoldTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(__VA_ARGS__))
 
-// HoldTapDecideWithMouseMove
-#define HT_DM(...) (Internal::new_HoldTapDecideWithMouseMove<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(__VA_ARGS__))
+// HoldTapDecideWithPointerMove
+#define HT_DPM(...) (Internal::new_HoldTapDecideWithPointerMove<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(__VA_ARGS__))
 
 // ConsumerControl
 #define CC(usage_code) (Internal::new_ConsumerControl<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(usage_code))
