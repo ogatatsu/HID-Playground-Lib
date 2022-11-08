@@ -205,7 +205,7 @@ namespace hidpg::Internal
       const CommandPtr tap_command;
     };
 
-    TapDance(etl::span<Pair> pairs, etl::span<PointingDeviceId> pointing_device_ids, uint16_t move_threshold);
+    TapDance(etl::span<Pair> pairs, etl::span<PointingDeviceId> pointing_device_ids, uint16_t move_threshold, uint32_t tapping_term_ms);
     void setKeyId(uint8_t) override;
 
   protected:
@@ -269,41 +269,13 @@ namespace hidpg::Internal
     void processTapDance(Action action, ArgsType args);
 
     Command *_running_command;
-    Command *_hooked_command;
     const etl::span<Pair> _pairs;
     const etl::span<PointingDeviceId> _pointing_device_ids;
     const uint16_t _move_threshold;
+    const uint32_t _tapping_term_ms;
     int16_t _delta_x_sum;
     int16_t _delta_y_sum;
     size_t _idx_count;
-    State _state;
-  };
-
-  //------------------------------------------------------------------+
-  // TapOrHold
-  //------------------------------------------------------------------+
-  class TapOrHold : public Command, public TimerMixin
-  {
-  public:
-    TapOrHold(NotNullCommandPtr tap_command, unsigned int ms, NotNullCommandPtr hold_command);
-    void setKeyId(uint8_t) override;
-
-  protected:
-    void onPress() override;
-    void onRelease() override;
-    void onTimer() override;
-
-  private:
-    enum class State : uint8_t
-    {
-      Unexecuted,
-      Pressed,
-      FixedToHold,
-    };
-
-    const NotNullCommandPtr _tap_command;
-    const NotNullCommandPtr _hold_command;
-    const unsigned int _ms;
     State _state;
   };
 

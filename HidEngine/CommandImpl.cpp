@@ -254,13 +254,15 @@ namespace hidpg::Internal
   //------------------------------------------------------------------+
   TapDance::TapDance(etl::span<Pair> pairs,
                      etl::span<PointingDeviceId> pointing_device_ids,
-                     uint16_t move_threshold)
+                     uint16_t move_threshold,
+                     uint32_t tapping_term_ms)
       : TimerMixin(),
         BeforeOtherKeyPressEventListener(this),
         BeforeMovePointerEventListener(),
         _pairs(pairs),
         _pointing_device_ids(pointing_device_ids),
         _move_threshold(move_threshold),
+        _tapping_term_ms(tapping_term_ms),
         _delta_x_sum(0),
         _delta_y_sum(0),
         _idx_count(-1),
@@ -347,7 +349,7 @@ namespace hidpg::Internal
       }
       startListenBeforeRotateEncoder();
       _idx_count++;
-      startTimer(HID_ENGINE_TAPPING_TERM_MS);
+      startTimer(_tapping_term_ms);
     }
     break;
 
@@ -355,7 +357,7 @@ namespace hidpg::Internal
     {
       _state = State::Pressed;
       _idx_count++;
-      startTimer(HID_ENGINE_TAPPING_TERM_MS);
+      startTimer(_tapping_term_ms);
     }
     break;
 
@@ -369,7 +371,7 @@ namespace hidpg::Internal
       else
       {
         _state = State::TapOrNextCommand;
-        startTimer(HID_ENGINE_TAPPING_TERM_MS);
+        startTimer(_tapping_term_ms);
       }
     }
     break;
@@ -479,54 +481,6 @@ namespace hidpg::Internal
   {
     BeforeRotateEncoderArgs args{.encoder_id = encoder_id, .step = step};
     processTapDance(Action::BeforeRotateEncoder, args);
-  }
-
-  //------------------------------------------------------------------+
-  // TapOrHold
-  //------------------------------------------------------------------+
-  TapOrHold::TapOrHold(NotNullCommandPtr tap_command, unsigned int ms, NotNullCommandPtr hold_command)
-      : TimerMixin(), _tap_command(tap_command), _hold_command(hold_command), _ms(ms), _state(State::Unexecuted)
-  {
-  }
-
-  void TapOrHold::setKeyId(uint8_t key_id)
-  {
-    Command::setKeyId(key_id);
-    _tap_command->setKeyId(key_id);
-    _hold_command->setKeyId(key_id);
-  }
-
-  void TapOrHold::onPress()
-  {
-    if (_state == State::Unexecuted)
-    {
-      _state = State::Pressed;
-      startTimer(_ms);
-    }
-  }
-
-  void TapOrHold::onRelease()
-  {
-    if (_state == State::Pressed)
-    {
-      CommandTapper.tap(_tap_command);
-      _state = State::Unexecuted;
-      stopTimer();
-    }
-    else if (_state == State::FixedToHold)
-    {
-      _hold_command->release();
-      _state = State::Unexecuted;
-    }
-  }
-
-  void TapOrHold::onTimer()
-  {
-    if (_state == State::Pressed)
-    {
-      _state = State::FixedToHold;
-      _hold_command->press();
-    }
   }
 
   //------------------------------------------------------------------+

@@ -59,19 +59,6 @@ namespace hidpg
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    NotNullCommandPtr new_ModifierTap(Modifiers modifiers, NotNullCommandPtr command)
-    {
-      static uint8_t cmd_buf[sizeof(ModifierKey)];
-      static etl::vector<Internal::TapDance::Pair, 1> pairs{
-          {new (cmd_buf) Internal::ModifierKey(modifiers), command},
-      };
-      static etl::span<PointingDeviceId> pointing_device_ids;
-      static uint8_t buf[sizeof(TapDance)];
-
-      return new (buf) TapDance(pairs, pointing_device_ids, 0);
-    }
-
-    template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
     NotNullCommandPtr new_Layering(LayerClass &layer, const CommandPtr (&commands)[HID_ENGINE_LAYER_SIZE])
     {
       static etl::array<CommandPtr, HID_ENGINE_LAYER_SIZE> _commands;
@@ -79,19 +66,6 @@ namespace hidpg
       static uint8_t buf[sizeof(Layering)];
 
       return new (buf) Layering(layer, _commands);
-    }
-
-    template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    NotNullCommandPtr new_LayerTap(LayerClass &layer, uint8_t layer_number, NotNullCommandPtr command)
-    {
-      static uint8_t cmd_buf[sizeof(SwitchLayer)];
-      static etl::vector<Internal::TapDance::Pair, 1> pairs{
-          {new (cmd_buf) SwitchLayer(layer, layer_number), command},
-      };
-      static etl::span<PointingDeviceId> pointing_device_ids;
-      static uint8_t buf[sizeof(TapDance)];
-
-      return new (buf) TapDance(pairs, pointing_device_ids, 0);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
@@ -130,33 +104,59 @@ namespace hidpg
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3, size_t N>
-    NotNullCommandPtr new_TapDance(const TapDance::Pair (&pairs)[N])
+    NotNullCommandPtr new_TapDance(const TapDance::Pair (&pairs)[N],
+                                   const uint32_t tapping_term_ms = HID_ENGINE_TAPPING_TERM_MS)
     {
       static etl::vector<Internal::TapDance::Pair, N> _pairs{std::begin(pairs), std::end(pairs)};
       static etl::span<PointingDeviceId> pointing_device_ids;
       static uint8_t buf[sizeof(TapDance)];
 
-      return new (buf) TapDance(_pairs, pointing_device_ids, 0);
+      return new (buf) TapDance(_pairs, pointing_device_ids, 0, tapping_term_ms);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3, size_t N1, size_t N2>
     NotNullCommandPtr new_TapDanceDecideWithMouseMove(const TapDance::Pair (&pairs)[N1],
                                                       const PointingDeviceId (&pointing_device_ids)[N2],
-                                                      uint16_t move_threshold = 0)
+                                                      uint16_t move_threshold = 0,
+                                                      const uint32_t tapping_term_ms = HID_ENGINE_TAPPING_TERM_MS)
     {
       static etl::vector<Internal::TapDance::Pair, N1> _pairs{std::begin(pairs), std::end(pairs)};
       static etl::array<PointingDeviceId, N2> _pointing_device_ids;
       _pointing_device_ids.assign(std::begin(pointing_device_ids), std::end(pointing_device_ids));
       static uint8_t buf[sizeof(TapDance)];
 
-      return new (buf) TapDance(_pairs, _pointing_device_ids, move_threshold);
+      return new (buf) TapDance(_pairs, _pointing_device_ids, move_threshold, tapping_term_ms);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    NotNullCommandPtr new_TapOrHold(NotNullCommandPtr tap_command, unsigned int ms, NotNullCommandPtr hold_command)
+    NotNullCommandPtr new_HoldTap(NotNullCommandPtr hold_command,
+                                  NotNullCommandPtr tap_command,
+                                  const uint32_t tapping_term_ms = HID_ENGINE_TAPPING_TERM_MS)
     {
-      static uint8_t buf[sizeof(TapOrHold)];
-      return new (buf) TapOrHold(tap_command, ms, hold_command);
+      static etl::vector<Internal::TapDance::Pair, 1> pairs{
+          {hold_command, tap_command},
+      };
+      static etl::span<PointingDeviceId> pointing_device_ids;
+      static uint8_t buf[sizeof(TapDance)];
+
+      return new (buf) TapDance(pairs, pointing_device_ids, 0, tapping_term_ms);
+    }
+
+    template <uint64_t ID1, uint64_t ID2, uint64_t ID3, size_t N>
+    NotNullCommandPtr new_HoldTapDecideWithMouseMove(NotNullCommandPtr hold_command,
+                                                     NotNullCommandPtr tap_command,
+                                                     const PointingDeviceId (&pointing_device_ids)[N],
+                                                     uint16_t move_threshold = 0,
+                                                     const uint32_t tapping_term_ms = HID_ENGINE_TAPPING_TERM_MS)
+    {
+      static etl::vector<Internal::TapDance::Pair, 1> pairs{
+          {hold_command, tap_command},
+      };
+      static etl::array<PointingDeviceId, N> _pointing_device_ids;
+      _pointing_device_ids.assign(std::begin(pointing_device_ids), std::end(pointing_device_ids));
+      static uint8_t buf[sizeof(TapDance)];
+
+      return new (buf) TapDance(pairs, _pointing_device_ids, move_threshold, tapping_term_ms);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
@@ -358,18 +358,10 @@ namespace hidpg
 // CombinationKey
 #define CK(modifiers, key_code) (Internal::new_CombinationKey<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(modifiers, key_code))
 
-// ModifierTap
-#define MT(...) (Internal::new_ModifierTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(__VA_ARGS__))
-
 // Layering
 #define LY(...) (Internal::new_Layering<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(Layer, __VA_ARGS__))
 #define LY1(...) (Internal::new_Layering<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(Layer1, __VA_ARGS__))
 #define LY2(...) (Internal::new_Layering<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(Layer2, __VA_ARGS__))
-
-// LayerTap
-#define LT(...) (Internal::new_LayerTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(Layer, __VA_ARGS__))
-#define LT1(...) (Internal::new_LayerTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(Layer1, __VA_ARGS__))
-#define LT2(...) (Internal::new_LayerTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(Layer2, __VA_ARGS__))
 
 // ToggleLayer
 #define TL(layer_number) (Internal::new_ToggleLayer<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(Layer, layer_number))
@@ -398,8 +390,11 @@ namespace hidpg
 // TapDanceDecideWithMouseMove
 #define TD_DM(...) (Internal::new_TapDanceDecideWithMouseMove<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(__VA_ARGS__))
 
-// TapOrHold
-#define ToH(tap_command, ms, hold_command) (Internal::new_TapOrHold<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(tap_command, ms, hold_command))
+// HoldTap
+#define HT(...) (Internal::new_HoldTap<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(__VA_ARGS__))
+
+// HoldTapDecideWithMouseMove
+#define HT_DM(...) (Internal::new_HoldTapDecideWithMouseMove<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(__VA_ARGS__))
 
 // ConsumerControl
 #define CC(usage_code) (Internal::new_ConsumerControl<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(usage_code))
