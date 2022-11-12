@@ -79,7 +79,7 @@ namespace hidpg
   static inline NotNullCommandPtr TAP_R(NotNullCommandPtr command, uint8_t n_times = 1, uint16_t tap_speed_ms = HID_ENGINE_TAP_SPEED_MS) { return (new Internal::TapWhenReleased(command, n_times, tap_speed_ms)); }
 
   template <uint8_t N>
-  static NotNullCommandPtr TD(const Internal::TapDance::Pair (&pairs)[N], const uint32_t tapping_term_ms = HID_ENGINE_TAPPING_TERM_MS)
+  static NotNullCommandPtr TD(const Internal::TapDance::Pair (&pairs)[N], uint32_t tapping_term_ms = HID_ENGINE_TAPPING_TERM_MS)
   {
     auto _pairs = new etl::vector<Internal::TapDance::Pair, N>{std::begin(pairs), std::end(pairs)};
     auto pointing_device_ids = new etl::span<PointingDeviceId>;
@@ -90,8 +90,8 @@ namespace hidpg
   template <uint8_t N1, uint8_t N2>
   static NotNullCommandPtr TD_DPM(const Internal::TapDance::Pair (&pairs)[N1],
                                   const PointingDeviceId (&pointing_device_ids)[N2],
-                                  const uint16_t move_threshold = 0,
-                                  const uint32_t tapping_term_ms = HID_ENGINE_TAPPING_TERM_MS)
+                                  uint16_t move_threshold = 0,
+                                  uint32_t tapping_term_ms = HID_ENGINE_TAPPING_TERM_MS)
   {
     auto _pairs = new etl::vector<Internal::TapDance::Pair, N1>{std::begin(pairs), std::end(pairs)};
     auto _pointing_device_ids = new etl::array<PointingDeviceId, N2>;
@@ -102,7 +102,7 @@ namespace hidpg
 
   static NotNullCommandPtr HT(NotNullCommandPtr hold_command,
                               NotNullCommandPtr tap_command,
-                              const uint32_t tapping_term_ms = HID_ENGINE_TAPPING_TERM_MS)
+                              uint32_t tapping_term_ms = HID_ENGINE_TAPPING_TERM_MS)
   {
     auto pairs = new etl::vector<Internal::TapDance::Pair, 1>{
         {hold_command, tap_command},
@@ -116,8 +116,8 @@ namespace hidpg
   static NotNullCommandPtr HT_DPM(NotNullCommandPtr hold_command,
                                   NotNullCommandPtr tap_command,
                                   const PointingDeviceId (&pointing_device_ids)[N],
-                                  const uint16_t move_threshold = 0,
-                                  const uint32_t tapping_term_ms = HID_ENGINE_TAPPING_TERM_MS)
+                                  uint16_t move_threshold = 0,
+                                  uint32_t tapping_term_ms = HID_ENGINE_TAPPING_TERM_MS)
   {
     auto pairs = new etl::vector<Internal::TapDance::Pair, 1>{
         {hold_command, tap_command},

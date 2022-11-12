@@ -27,7 +27,7 @@
 #include "CommandBase.h"
 #include "FreeRTOS.h"
 #include "HidEngine_config.h"
-#include "etl/deque.h"
+#include "etl/list.h"
 #include "timers.h"
 
 namespace hidpg
@@ -61,7 +61,7 @@ namespace hidpg
         ChangeCommandInTheNext,
       };
 
-      static etl::deque<Data, HID_ENGINE_COMMAND_TAPPER_QUEUE_SIZE> _deque;
+      static etl::list<Data, HID_ENGINE_COMMAND_TAPPER_QUEUE_SIZE> _queue;
       static Data _running;
       static State _state;
       static TimerHandle_t _timer_handle;

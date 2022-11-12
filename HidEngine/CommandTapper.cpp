@@ -30,7 +30,7 @@ namespace hidpg
   namespace Internal
   {
 
-    etl::deque<CommandTapperClass::Data, HID_ENGINE_COMMAND_TAPPER_QUEUE_SIZE> CommandTapperClass::_deque;
+    etl::list<CommandTapperClass::Data, HID_ENGINE_COMMAND_TAPPER_QUEUE_SIZE> CommandTapperClass::_queue;
     CommandTapperClass::Data CommandTapperClass::_running = {.command = nullptr, .num_of_taps = 0, .tap_speed_ms = 0};
     CommandTapperClass::State CommandTapperClass::_state = CommandTapperClass::State::NotRunning;
     TimerHandle_t CommandTapperClass::_timer_handle = nullptr;
@@ -67,16 +67,16 @@ namespace hidpg
       }
 
       // キューが空で今動いてるコマンドと同じならタップ回数を足す
-      if (_deque.empty() && _running.command == command && _running.tap_speed_ms == tap_speed_ms)
+      if (_queue.empty() && _running.command == command && _running.tap_speed_ms == tap_speed_ms)
       {
         _running.num_of_taps = std::min(_running.num_of_taps + n_times, UINT8_MAX);
         return true;
       }
 
       // キューが空でないならキューの最後のコマンドと比較して同じならタップ回数を足す
-      if (_deque.empty() == false)
+      if (_queue.empty() == false)
       {
-        Data &last = _deque.back();
+        Data &last = _queue.back();
 
         if (last.command == command && last.tap_speed_ms == tap_speed_ms)
         {
@@ -86,14 +86,14 @@ namespace hidpg
       }
 
       // キューに空きがあるなら追加
-      if (_deque.available())
+      if (_queue.available())
       {
         Data data = {
             .command = command,
             .num_of_taps = n_times,
             .tap_speed_ms = tap_speed_ms,
         };
-        _deque.push_back(data);
+        _queue.push_back(data);
         return true;
       }
 
@@ -112,10 +112,10 @@ namespace hidpg
         xTimerStart(_timer_handle, portMAX_DELAY);
       }
       // キューが空でないなら次のコマンドの準備
-      else if (_deque.empty() == false)
+      else if (_queue.empty() == false)
       {
-        _running = _deque.front();
-        _deque.pop_front();
+        _running = _queue.front();
+        _queue.pop_front();
         xTimerChangePeriod(_timer_handle, pdMS_TO_TICKS(_running.tap_speed_ms), portMAX_DELAY);
       }
       // 動作終了
