@@ -280,35 +280,21 @@ namespace hidpg::Internal
   };
 
   //------------------------------------------------------------------+
-  // ConsumerControl
+  // ConsumerAndSystemControl
   //------------------------------------------------------------------+
-  class ConsumerControl : public Command
+  using ControlCode = etl::variant<ConsumerControlCode, SystemControlCode>;
+
+  class ConsumerAndSystemControl : public Command
   {
   public:
-    ConsumerControl(ConsumerControlCode usage_code);
+    ConsumerAndSystemControl(ControlCode usage_code);
 
   protected:
     void onPress() override;
     void onRelease() override;
 
   private:
-    const ConsumerControlCode _usage_code;
-  };
-
-  //------------------------------------------------------------------+
-  // SystemControl
-  //------------------------------------------------------------------+
-  class SystemControl : public Command
-  {
-  public:
-    SystemControl(SystemControlCode usage_code);
-
-  protected:
-    void onPress() override;
-    void onRelease() override;
-
-  private:
-    const SystemControlCode _usage_code;
+    const ControlCode _usage_code;
   };
 
   //------------------------------------------------------------------+

@@ -160,17 +160,10 @@ namespace hidpg
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    NotNullCommandPtr new_ConsumerControl(ConsumerControlCode usage_code)
+    NotNullCommandPtr new_ConsumerAndSystemControl(ControlCode usage_code)
     {
-      static uint8_t buf[sizeof(ConsumerControl)];
-      return new (buf) ConsumerControl(usage_code);
-    }
-
-    template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    NotNullCommandPtr new_SystemControl(SystemControlCode usage_code)
-    {
-      static uint8_t buf[sizeof(SystemControl)];
-      return new (buf) SystemControl(usage_code);
+      static uint8_t buf[sizeof(ConsumerAndSystemControl)];
+      return new (buf) ConsumerAndSystemControl(usage_code);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
@@ -396,11 +389,8 @@ namespace hidpg
 // HoldTapDecideWithPointerMove
 #define HT_DPM(...) (Internal::new_HoldTapDecideWithPointerMove<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(__VA_ARGS__))
 
-// ConsumerControl
-#define CC(usage_code) (Internal::new_ConsumerControl<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(usage_code))
-
-// SystemControl
-#define SC(usage_code) (Internal::new_SystemControl<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(usage_code))
+// ConsumerAndSystemControl
+#define CTL(usage_code) (Internal::new_ConsumerAndSystemControl<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(usage_code))
 
 // MouseMove
 #define MS_MOV(x, y) (Internal::new_MouseMove<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(x, y))

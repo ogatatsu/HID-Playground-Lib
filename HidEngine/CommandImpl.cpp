@@ -484,37 +484,34 @@ namespace hidpg::Internal
   }
 
   //------------------------------------------------------------------+
-  // ConsumerControl
+  // ConsumerAndSystemControl
   //------------------------------------------------------------------+
-  ConsumerControl::ConsumerControl(ConsumerControlCode usage_code) : _usage_code(usage_code)
+  ConsumerAndSystemControl::ConsumerAndSystemControl(ControlCode usage_code) : _usage_code(usage_code)
   {
   }
 
-  void ConsumerControl::onPress()
+  void ConsumerAndSystemControl::onPress()
   {
-    Hid.consumerKeyPress(_usage_code);
+    if (auto usage_code = etl::get_if<ConsumerControlCode>(&_usage_code))
+    {
+      Hid.consumerKeyPress(*usage_code);
+    }
+    else if (auto usage_code = etl::get_if<SystemControlCode>(&_usage_code))
+    {
+      Hid.systemControlKeyPress(*usage_code);
+    }
   }
 
-  void ConsumerControl::onRelease()
+  void ConsumerAndSystemControl::onRelease()
   {
-    Hid.consumerKeyRelease();
-  }
-
-  //------------------------------------------------------------------+
-  // SystemControl
-  //------------------------------------------------------------------+
-  SystemControl::SystemControl(SystemControlCode usage_code) : _usage_code(usage_code)
-  {
-  }
-
-  void SystemControl::onPress()
-  {
-    Hid.systemControlKeyPress(_usage_code);
-  }
-
-  void SystemControl::onRelease()
-  {
-    Hid.systemControlKeyRelease();
+    if (etl::holds_alternative<ConsumerControlCode>(_usage_code))
+    {
+      Hid.consumerKeyRelease();
+    }
+    else if (etl::holds_alternative<SystemControlCode>(_usage_code))
+    {
+      Hid.systemControlKeyRelease();
+    }
   }
 
   //------------------------------------------------------------------+

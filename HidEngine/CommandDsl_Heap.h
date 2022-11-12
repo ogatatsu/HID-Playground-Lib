@@ -128,9 +128,7 @@ namespace hidpg
     return (new Internal::TapDance(*pairs, *_pointing_device_ids, move_threshold, tapping_term_ms));
   }
 
-  static inline NotNullCommandPtr CC(ConsumerControlCode usage_code) { return (new Internal::ConsumerControl(usage_code)); }
-
-  static inline NotNullCommandPtr SC(SystemControlCode usage_code) { return (new Internal::SystemControl(usage_code)); }
+  static inline NotNullCommandPtr CTL(Internal::ControlCode usage_code) { return (new Internal::ConsumerAndSystemControl(usage_code)); }
 
   static inline NotNullCommandPtr MS_MOV(int16_t x, int16_t y) { return (new Internal::MouseMove(x, y)); }
 
