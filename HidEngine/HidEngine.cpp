@@ -702,7 +702,15 @@ namespace hidpg
         return;
       }
 
-      uint8_t step_u8 = std::min(abs(step), UINT8_MAX);
+      encoder->total_step = etl::clamp(encoder->total_step + step, INT32_MIN, INT32_MAX);
+      uint8_t n_times = std::min<int32_t>(abs(encoder->total_step) / encoder->step, UINT8_MAX);
+
+      if (n_times == 0)
+      {
+        return;
+      }
+
+      encoder->total_step %= encoder->step;
 
       if (encoder->pre_command.has_value() &&
           encoder->pre_command.value().is_pressed == false)
@@ -712,8 +720,8 @@ namespace hidpg
 
         if (encoder->pre_command.value().timing == Timing::InsteadOfFirstAction)
         {
-          step_u8--;
-          if (step_u8 == 0)
+          n_times--;
+          if (n_times == 0)
           {
             return;
           }
@@ -722,11 +730,11 @@ namespace hidpg
 
       if (step > 0)
       {
-        CommandTapper.tap(encoder->clockwise_command, step_u8);
+        CommandTapper.tap(encoder->clockwise_command, n_times);
       }
-      else if (step < 0)
+      else
       {
-        CommandTapper.tap(encoder->counterclockwise_command, step_u8);
+        CommandTapper.tap(encoder->counterclockwise_command, n_times);
       }
     }
 
@@ -800,12 +808,15 @@ namespace hidpg
       // 最後のidならclean up
       for (auto &encoder : _encoder_shift_map)
       {
-        if (encoder.encoder_shift_id.value == encoder_shift_id.value &&
-            encoder.pre_command.has_value() &&
-            encoder.pre_command.value().is_pressed == true)
+        if (encoder.encoder_shift_id.value == encoder_shift_id.value)
         {
-          encoder.pre_command.value().is_pressed = false;
-          encoder.pre_command.value().command->release();
+          if (encoder.pre_command.has_value() &&
+              encoder.pre_command.value().is_pressed == true)
+          {
+            encoder.pre_command.value().is_pressed = false;
+            encoder.pre_command.value().command->release();
+          }
+          encoder.total_step = 0;
         }
       }
     }

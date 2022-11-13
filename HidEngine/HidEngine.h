@@ -227,11 +227,13 @@ namespace hidpg
   {
     EncoderShift(EncoderShiftId encoder_shift_id,
                  EncoderId encoder_id,
+                 uint8_t step,
                  NotNullCommandPtr counterclockwise_command,
                  NotNullCommandPtr clockwise_command,
                  etl::optional<PreCommand> pre_command = etl::nullopt)
         : encoder_shift_id(encoder_shift_id),
           encoder_id(encoder_id),
+          step(step),
           counterclockwise_command(counterclockwise_command),
           clockwise_command(clockwise_command),
           pre_command(pre_command)
@@ -240,18 +242,26 @@ namespace hidpg
 
     const EncoderShiftId encoder_shift_id;
     const EncoderId encoder_id;
+    const uint8_t step;
     const NotNullCommandPtr counterclockwise_command;
     const NotNullCommandPtr clockwise_command;
 
+    int32_t total_step;
     etl::optional<PreCommand> pre_command;
   };
 
   struct Encoder : public EncoderShift
   {
     Encoder(EncoderId encoder_id,
+            uint8_t step,
             NotNullCommandPtr counterclockwise_command,
             NotNullCommandPtr clockwise_command)
-        : EncoderShift(EncoderShiftId{0}, encoder_id, counterclockwise_command, clockwise_command, etl::nullopt)
+        : EncoderShift(EncoderShiftId{0},
+                       encoder_id,
+                       step,
+                       counterclockwise_command,
+                       clockwise_command,
+                       etl::nullopt)
     {
     }
   };
