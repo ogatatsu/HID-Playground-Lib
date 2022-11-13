@@ -485,6 +485,7 @@ namespace hidpg
 
     void HidEngineClass::processGesture(Gesture &gesture, int16_t delta_x, int16_t delta_y)
     {
+#if (HID_ENGINE_WAIT_TIME_AFTER_INSTEAD_OF_FIRST_GESTURE_MS != 0)
       if (gesture.instead_of_first_gesture_millis.has_value())
       {
         uint32_t curr_millis = millis();
@@ -495,6 +496,7 @@ namespace hidpg
 
         gesture.instead_of_first_gesture_millis = etl::nullopt;
       }
+#endif
 
       // 逆方向に動いたら距離をリセット
       if (bitRead(gesture.total_distance_x ^ static_cast<int32_t>(delta_x), 31))
@@ -525,95 +527,90 @@ namespace hidpg
 
     void HidEngineClass::processGestureX(Gesture &gesture)
     {
-      if (gesture.total_distance_x <= -gesture.distance) // left
-      {
-        performGestureX(gesture, gesture.left_command);
-      }
-      else if (gesture.total_distance_x >= gesture.distance) // right
-      {
-        performGestureX(gesture, gesture.right_command);
-      }
-    }
+      uint8_t n_times = std::min<int32_t>(abs(gesture.total_distance_x / gesture.distance), UINT8_MAX);
 
-    void HidEngineClass::processGestureY(Gesture &gesture)
-    {
-      if (gesture.total_distance_y <= -gesture.distance) // up
+      if (n_times == 0)
       {
-        performGestureY(gesture, gesture.up_command);
+        return;
       }
-      else if (gesture.total_distance_y >= gesture.distance) // down
-      {
-        performGestureY(gesture, gesture.down_command);
-      }
-    }
 
-    void HidEngineClass::performGestureX(Gesture &gesture, Command *command)
-    {
       BeforeGestureEventListener::_notifyBeforeGesture(gesture.gesture_id, gesture.pointing_device_id);
 
-      if (processPreCommandInsteadOfFirstGesture(gesture))
-      {
-        gesture.total_distance_x -= gesture.distance;
-      }
-
-      processPreCommandJustBeforeFirstGesture(gesture);
-
-      uint8_t n_times = static_cast<uint8_t>(std::min<int32_t>(abs(gesture.total_distance_x / gesture.distance), UINT8_MAX));
+      bool is_right = gesture.total_distance_x > 0;
       gesture.total_distance_x %= gesture.distance;
-      CommandTapper.tap(command, n_times);
 
       if (gesture.angle_snap == AngleSnap::Enable)
       {
         gesture.total_distance_y = 0;
       }
-    }
 
-    void HidEngineClass::performGestureY(Gesture &gesture, Command *command)
-    {
-      BeforeGestureEventListener::_notifyBeforeGesture(gesture.gesture_id, gesture.pointing_device_id);
+      processGesturePreCommand(gesture, n_times);
 
-      if (processPreCommandInsteadOfFirstGesture(gesture))
+      if (n_times == 0)
       {
-        gesture.total_distance_y -= gesture.distance;
+        return;
       }
 
-      processPreCommandJustBeforeFirstGesture(gesture);
+      if (is_right)
+      {
+        CommandTapper.tap(gesture.right_command, n_times);
+      }
+      else
+      {
+        CommandTapper.tap(gesture.left_command, n_times);
+      }
+    }
 
-      uint8_t n_times = static_cast<uint8_t>(std::min<int32_t>(abs(gesture.total_distance_y / gesture.distance), UINT8_MAX));
+    void HidEngineClass::processGestureY(Gesture &gesture)
+    {
+      uint8_t n_times = std::min<int32_t>(abs(gesture.total_distance_y / gesture.distance), UINT8_MAX);
+
+      if (n_times == 0)
+      {
+        return;
+      }
+
+      BeforeGestureEventListener::_notifyBeforeGesture(gesture.gesture_id, gesture.pointing_device_id);
+
+      bool is_down = gesture.total_distance_y > 0;
       gesture.total_distance_y %= gesture.distance;
-      CommandTapper.tap(command, n_times);
 
       if (gesture.angle_snap == AngleSnap::Enable)
       {
         gesture.total_distance_x = 0;
       }
-    }
 
-    void HidEngineClass::processPreCommandJustBeforeFirstGesture(Gesture &gesture)
-    {
-      if (gesture.pre_command.has_value() &&
-          gesture.pre_command.value().is_pressed == false &&
-          gesture.pre_command.value().timing == Timing::JustBeforeFirstAction)
+      processGesturePreCommand(gesture, n_times);
+
+      if (n_times == 0)
       {
-        gesture.pre_command.value().is_pressed = true;
-        gesture.pre_command.value().command->press();
+        return;
+      }
+
+      if (is_down > 0)
+      {
+        CommandTapper.tap(gesture.down_command, n_times);
+      }
+      else
+      {
+        CommandTapper.tap(gesture.up_command, n_times);
       }
     }
 
-    bool HidEngineClass::processPreCommandInsteadOfFirstGesture(Gesture &gesture)
+    void HidEngineClass::processGesturePreCommand(Gesture &gesture, uint8_t &n_timse)
     {
       if (gesture.pre_command.has_value() &&
-          gesture.pre_command.value().is_pressed == false &&
-          gesture.pre_command.value().timing == Timing::InsteadOfFirstAction)
+          gesture.pre_command.value().is_pressed == false)
       {
         gesture.pre_command.value().is_pressed = true;
         gesture.pre_command.value().command->press();
 
-        gesture.instead_of_first_gesture_millis = millis();
-        return true;
+        if (gesture.pre_command.value().timing == Timing::InsteadOfFirstAction)
+        {
+          n_timse--;
+          gesture.instead_of_first_gesture_millis = millis();
+        }
       }
-
-      return false;
     }
 
     void HidEngineClass::startGesture(GestureIdLink &gesture_id)

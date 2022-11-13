@@ -317,10 +317,7 @@ namespace hidpg
       static void processGesture(Gesture &gesture, int16_t delta_x, int16_t delta_y);
       static void processGestureX(Gesture &gesture);
       static void processGestureY(Gesture &gesture);
-      static void performGestureX(Gesture &gesture, Command *command);
-      static void performGestureY(Gesture &gesture, Command *command);
-      static void processPreCommandJustBeforeFirstGesture(Gesture &gesture);
-      static bool processPreCommandInsteadOfFirstGesture(Gesture &gesture);
+      static void processGesturePreCommand(Gesture &gesture, uint8_t &n_times);
 
       static void rotateEncoder_impl(EncoderId encoder_id);
       static EncoderShift *getCurrentEncoder(EncoderId encoder_id);
