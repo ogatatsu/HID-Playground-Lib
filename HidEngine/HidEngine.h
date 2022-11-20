@@ -313,7 +313,7 @@ namespace hidpg
       {
         Press,
         Release,
-        ComboTermTimer,
+        ComboInterruption,
       };
 
       static void applyToKeymap_impl(Set &key_ids);
@@ -342,14 +342,46 @@ namespace hidpg
       static read_pointer_delta_callback_t _read_pointer_delta_cb;
       static read_encoder_step_callback_t _read_encoder_step_cb;
 
-      class ComboTermTimer : public TimerMixin
+      class ComboInterruptionEvent : public TimerMixin,
+                                     public BeforeMovePointerEventListener,
+                                     public BeforeRotateEncoderEventListener
       {
       public:
-        void startTimer(uint32_t ms) { TimerMixin::startTimer(ms); }
-        void onTimer() override { processComboAndKey(Action::ComboTermTimer, etl::nullopt); }
+        void start(unsigned int combo_term_ms)
+        {
+          _delta_x_sum = 0;
+          _delta_y_sum = 0;
+          startTimer(combo_term_ms);
+          startListenBeforeMovePointer();
+          startListenBeforeRotateEncoder();
+        }
+
+        void stop()
+        {
+          stopTimer();
+          stopListenBeforeMovePointer();
+          stopListenBeforeRotateEncoder();
+        }
+
+      protected:
+        void onTimer() override { processComboAndKey(Action::ComboInterruption, etl::nullopt); }
+        void onBeforeRotateEncoder(EncoderId, int16_t) override { processComboAndKey(Action::ComboInterruption, etl::nullopt); }
+        void onBeforeMovePointer(PointingDeviceId, int16_t delta_x, int16_t delta_y) override
+        {
+          _delta_x_sum = etl::clamp(_delta_x_sum + delta_x, INT16_MIN, INT16_MAX);
+          _delta_y_sum = etl::clamp(_delta_y_sum + delta_y, INT16_MIN, INT16_MAX);
+          if (abs(_delta_x_sum) >= HID_ENGINE_COMBO_INTERRUPTION_MOVE_POINTER_DELTA ||
+              abs(_delta_y_sum) >= HID_ENGINE_COMBO_INTERRUPTION_MOVE_POINTER_DELTA)
+          {
+            processComboAndKey(Action::ComboInterruption, etl::nullopt);
+          }
+        }
+
+      private:
+        int16_t _delta_x_sum;
+        int16_t _delta_y_sum;
       };
-      static ComboTermTimer _combo_term_timer;
-      static void startComboTermTimer(uint32_t ms) { _combo_term_timer.startTimer(ms); };
+      static ComboInterruptionEvent _combo_interruption_event;
 
       static etl::intrusive_list<Key> _pressed_key_list;
       static etl::intrusive_list<KeyShiftIdLink> _started_key_shift_id_list;

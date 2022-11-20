@@ -44,7 +44,7 @@ namespace hidpg
     HidEngineClass::read_pointer_delta_callback_t HidEngineClass::_read_pointer_delta_cb = nullptr;
     HidEngineClass::read_encoder_step_callback_t HidEngineClass::_read_encoder_step_cb = nullptr;
 
-    HidEngineClass::ComboTermTimer HidEngineClass::_combo_term_timer;
+    HidEngineClass::ComboInterruptionEvent HidEngineClass::_combo_interruption_event;
 
     etl::intrusive_list<Key> HidEngineClass::_pressed_key_list;
     etl::intrusive_list<KeyShiftIdLink> HidEngineClass::_started_key_shift_id_list;
@@ -181,7 +181,7 @@ namespace hidpg
             {
               // first_id success
               first_commbo_id = key_id;
-              startComboTermTimer(combo.combo_term_ms);
+              _combo_interruption_event.start(combo.combo_term_ms);
               return;
             }
           }
@@ -196,6 +196,7 @@ namespace hidpg
           if (combo.isMatchIds(first_commbo_id.value(), key_id.value()))
           {
             // combo success
+            _combo_interruption_event.stop();
             combo.first_id_rereased = false;
             combo.second_id_rereased = false;
             combo.command->press();
@@ -206,6 +207,7 @@ namespace hidpg
         }
 
         // second_id failure
+        _combo_interruption_event.stop();
         performKeyPress(first_commbo_id.value());
         performKeyPress(key_id.value());
         first_commbo_id = etl::nullopt;
@@ -257,6 +259,7 @@ namespace hidpg
         // first_idがタップされた場合
         if (first_commbo_id == key_id)
         {
+          _combo_interruption_event.stop();
           first_commbo_id = etl::nullopt;
           performKeyPress(key_id.value());
           performKeyRelease(key_id.value());
@@ -266,6 +269,7 @@ namespace hidpg
         // first_idより前に押されていたidがreleaseされた場合
         if (first_commbo_id.has_value())
         {
+          _combo_interruption_event.stop();
           performKeyPress(first_commbo_id.value());
           performKeyRelease(key_id.value());
           first_commbo_id = etl::nullopt;
@@ -277,8 +281,9 @@ namespace hidpg
       }
       break;
 
-      case Action::ComboTermTimer:
+      case Action::ComboInterruption:
       {
+        _combo_interruption_event.stop();
         if (first_commbo_id.has_value())
         {
           performKeyPress(first_commbo_id.value());
