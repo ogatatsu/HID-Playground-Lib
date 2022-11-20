@@ -144,9 +144,9 @@ namespace hidpg
     return (new Internal::RadialRotate(deci_degree));
   }
 
-  static inline NotNullCommandPtr OE(NotNullCommandPtr command, uint32_t ms) { return (new Internal::OnceEvery(command, ms)); }
+  static inline NotNullCommandPtr CONST_SPD(NotNullCommandPtr command, uint32_t ms) { return (new Internal::ConstantSpeed(command, ms)); }
 
-  static inline NotNullCommandPtr NTE(NotNullCommandPtr command, uint32_t ms) { return (new Internal::NTimesEvery(command, ms)); }
+  static inline NotNullCommandPtr STEP_SPD(NotNullCommandPtr command, uint32_t ms) { return (new Internal::StepSpeed(command, ms)); }
 
   static inline NotNullCommandPtr IF(bool (*func)(), NotNullCommandPtr true_command, NotNullCommandPtr false_command) { return (new Internal::If(func, true_command, false_command)); }
 

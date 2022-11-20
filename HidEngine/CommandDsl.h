@@ -204,17 +204,17 @@ namespace hidpg
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    NotNullCommandPtr new_OnceEvery(NotNullCommandPtr command, uint32_t ms)
+    NotNullCommandPtr new_ConstantSpeed(NotNullCommandPtr command, uint32_t ms)
     {
-      static uint8_t buf[sizeof(OnceEvery)];
-      return new (buf) OnceEvery(command, ms);
+      static uint8_t buf[sizeof(ConstantSpeed)];
+      return new (buf) ConstantSpeed(command, ms);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    NotNullCommandPtr new_NTimesEvery(NotNullCommandPtr command, uint32_t ms)
+    NotNullCommandPtr new_StepSpeed(NotNullCommandPtr command, uint32_t ms)
     {
-      static uint8_t buf[sizeof(NTimesEvery)];
-      return new (buf) NTimesEvery(command, ms);
+      static uint8_t buf[sizeof(StepSpeed)];
+      return new (buf) StepSpeed(command, ms);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
@@ -407,11 +407,11 @@ namespace hidpg
 // RadialRotate
 #define RD_ROT(deci_degree) (Internal::new_RadialRotate<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(deci_degree))
 
-// OnceEvery
-#define OE(command, ms) (Internal::new_OnceEvery<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(command, ms))
+// ConstantSpeed
+#define CONST_SPD(command, ms) (Internal::new_ConstantSpeed<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(command, ms))
 
-// NTimesEvery
-#define NTE(command, ms) (Internal::new_NTimesEvery<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(command, ms))
+// StepSpeed
+#define STEP_SPD(command, ms) (Internal::new_StepSpeed<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(command, ms))
 
 // If
 #define IF(func, true_command, false_command) (Internal::new_If<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(func, true_command, false_command))

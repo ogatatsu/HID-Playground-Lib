@@ -606,20 +606,20 @@ namespace hidpg::Internal
   }
 
   //------------------------------------------------------------------+
-  // OnceEvery
+  // ConstantSpeed
   //------------------------------------------------------------------+
-  OnceEvery::OnceEvery(NotNullCommandPtr command, uint32_t ms)
+  ConstantSpeed::ConstantSpeed(NotNullCommandPtr command, uint32_t ms)
       : _command(command), _ms(ms), _last_press_millis(0), _has_pressed(false)
   {
   }
 
-  void OnceEvery::setKeyId(uint8_t key_id)
+  void ConstantSpeed::setKeyId(uint8_t key_id)
   {
     Command::setKeyId(key_id);
     _command->setKeyId(key_id);
   }
 
-  void OnceEvery::onPress()
+  void ConstantSpeed::onPress()
   {
     uint32_t current_millis = millis();
     if (static_cast<uint32_t>(current_millis - _last_press_millis) >= _ms)
@@ -630,7 +630,7 @@ namespace hidpg::Internal
     }
   }
 
-  void OnceEvery::onRelease()
+  void ConstantSpeed::onRelease()
   {
     if (_has_pressed)
     {
@@ -639,7 +639,7 @@ namespace hidpg::Internal
     }
   }
 
-  uint8_t OnceEvery::onTap(uint8_t n_times)
+  uint8_t ConstantSpeed::onTap(uint8_t n_times)
   {
     press();
     release();
@@ -647,20 +647,20 @@ namespace hidpg::Internal
   }
 
   //------------------------------------------------------------------+
-  // NTimesEvery
+  // StepSpeed
   //------------------------------------------------------------------+
-  NTimesEvery::NTimesEvery(NotNullCommandPtr command, uint32_t ms)
+  StepSpeed::StepSpeed(NotNullCommandPtr command, uint32_t ms)
       : _command(command), _ms(ms), _last_press_millis(0), _has_pressed(false)
   {
   }
 
-  void NTimesEvery::setKeyId(uint8_t key_id)
+  void StepSpeed::setKeyId(uint8_t key_id)
   {
     Command::setKeyId(key_id);
     _command->setKeyId(key_id);
   }
 
-  void NTimesEvery::onPress()
+  void StepSpeed::onPress()
   {
     uint32_t ms = _n_times.has_value() ? _ms / _n_times.value() : _ms;
 
@@ -673,7 +673,7 @@ namespace hidpg::Internal
     }
   }
 
-  void NTimesEvery::onRelease()
+  void StepSpeed::onRelease()
   {
     if (_has_pressed)
     {
@@ -682,7 +682,7 @@ namespace hidpg::Internal
     }
   }
 
-  uint8_t NTimesEvery::onTap(uint8_t n_times)
+  uint8_t StepSpeed::onTap(uint8_t n_times)
   {
     _n_times = n_times;
     press();

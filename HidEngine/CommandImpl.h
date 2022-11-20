@@ -377,12 +377,12 @@ namespace hidpg::Internal
   };
 
   //------------------------------------------------------------------+
-  // OnceEvery
+  // ConstantSpeed
   //------------------------------------------------------------------+
-  class OnceEvery : public Command
+  class ConstantSpeed : public Command
   {
   public:
-    OnceEvery(NotNullCommandPtr command, uint32_t ms);
+    ConstantSpeed(NotNullCommandPtr command, uint32_t ms);
     void setKeyId(uint8_t) override;
 
   protected:
@@ -398,12 +398,12 @@ namespace hidpg::Internal
   };
 
   //------------------------------------------------------------------+
-  // NTimesEvery
+  // StepSpeed
   //------------------------------------------------------------------+
-  class NTimesEvery : public Command
+  class StepSpeed : public Command
   {
   public:
-    NTimesEvery(NotNullCommandPtr command, uint32_t _ms);
+    StepSpeed(NotNullCommandPtr command, uint32_t _ms);
     void setKeyId(uint8_t) override;
 
   protected:
