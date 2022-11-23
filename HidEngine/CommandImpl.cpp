@@ -340,6 +340,7 @@ namespace hidpg::Internal
     case Context(Action::Press, State::Unexecuted):
     {
       _state = State::Pressed;
+      _idx_count++;
       startListenBeforeOtherKeyPress();
       if (_pointing_device_ids.empty() == false)
       {
@@ -348,16 +349,24 @@ namespace hidpg::Internal
         startListenBeforeMovePointer();
       }
       startListenBeforeRotateEncoder();
-      _idx_count++;
       startTimer(_tapping_term_ms);
     }
     break;
 
     case Context(Action::Press, State::TapOrNextCommand):
     {
-      _state = State::Pressed;
       _idx_count++;
-      startTimer(_tapping_term_ms);
+      if (_idx_count == _pairs.size() - 1 &&
+          _pairs[_idx_count].tap_command == nullptr)
+      {
+        _state = State::DecidedToHold;
+        performHoldPress();
+      }
+      else
+      {
+        _state = State::Pressed;
+        startTimer(_tapping_term_ms);
+      }
     }
     break;
 
