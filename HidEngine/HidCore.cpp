@@ -24,13 +24,12 @@
 
 #include "HidCore.h"
 #include "ArduinoMacro.h"
-#include "FreeRTOS.h"
 #include "HidEngine_config.h"
 #include "Set.h"
 #include "task.h"
 #include <string.h>
 
-#define KEYBOARD_REPORT_MIN_INTERVAL_TICKS (pdMS_TO_TICKS(HID_ENGINE_KEYBOARD_REPORT_MIN_INTERVAL_MS))
+#define KEY_REPORT_MIN_INTERVAL_TICKS (pdMS_TO_TICKS(HID_ENGINE_KEY_REPORT_MIN_INTERVAL_MS))
 
 namespace hidpg
 {
@@ -47,6 +46,7 @@ namespace hidpg
     uint8_t HidCore::_mouse_button_counters[5] = {};
     bool HidCore::_prev_sent_radial_button = false;
     uint8_t HidCore::_radial_button_counter = 0;
+    portTickType HidCore::_last_send_ticks = 0;
 
     void HidCore::setReporter(HidReporter *hid_reporter)
     {
@@ -164,9 +164,6 @@ namespace hidpg
 
     void HidCore::sendKeyReport()
     {
-      // 最後にレポートを送った時間
-      static portTickType last_send_ticks = 0;
-
       // 前回送ったreportと比較して変更があるか
       bool is_changed = false;
       // 新しくkeyもしくはmodifierが追加されたか、減った場合はfalseのまま
@@ -208,20 +205,20 @@ namespace hidpg
         // 全く同じタイミングで送ると一部の環境で意図しない動きになる（windowsキーを使ったショートカットなど）
         if (_hid_reporter != nullptr)
         {
-          vTaskDelayUntil(&last_send_ticks, KEYBOARD_REPORT_MIN_INTERVAL_TICKS);
+          vTaskDelayUntil(&_last_send_ticks, KEY_REPORT_MIN_INTERVAL_TICKS);
           _hid_reporter->keyboardReport(modifiers, _prev_sent_keys);
-          vTaskDelay(KEYBOARD_REPORT_MIN_INTERVAL_TICKS);
+          vTaskDelay(KEY_REPORT_MIN_INTERVAL_TICKS);
           _hid_reporter->keyboardReport(modifiers, _pressed_keys);
-          last_send_ticks = xTaskGetTickCount();
+          _last_send_ticks = xTaskGetTickCount();
         }
       }
       else if (is_changed)
       {
         if (_hid_reporter != nullptr)
         {
-          vTaskDelayUntil(&last_send_ticks, KEYBOARD_REPORT_MIN_INTERVAL_TICKS);
+          vTaskDelayUntil(&_last_send_ticks, KEY_REPORT_MIN_INTERVAL_TICKS);
           _hid_reporter->keyboardReport(modifiers, _pressed_keys);
-          last_send_ticks = xTaskGetTickCount();
+          _last_send_ticks = xTaskGetTickCount();
         }
       }
 
@@ -275,17 +272,17 @@ namespace hidpg
 
     void HidCore::mouseScroll(int8_t scroll, int8_t horiz)
     {
-      sendKeyReport();
       if (_hid_reporter != nullptr)
       {
+        vTaskDelayUntil(&_last_send_ticks, KEY_REPORT_MIN_INTERVAL_TICKS);
         _hid_reporter->mouseReport(_prev_sent_mouse_buttons, 0, 0, scroll, horiz);
+        _last_send_ticks = xTaskGetTickCount();
       }
     }
 
     void HidCore::mouseButtonsPress(MouseButtons buttons)
     {
       countUp(_mouse_button_counters, static_cast<uint8_t>(buttons));
-      sendKeyReport();
       sendMouseButtonsReport();
     }
 
@@ -311,7 +308,9 @@ namespace hidpg
         _prev_sent_mouse_buttons = buttons;
         if (_hid_reporter != nullptr)
         {
+          vTaskDelayUntil(&_last_send_ticks, KEY_REPORT_MIN_INTERVAL_TICKS);
           _hid_reporter->mouseReport(buttons, 0, 0, 0, 0);
+          _last_send_ticks = xTaskGetTickCount();
         }
       }
     }

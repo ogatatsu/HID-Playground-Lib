@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "FreeRTOS.h"
 #include "HidReporter.h"
 #include "KeyCode.h"
 
@@ -89,6 +90,8 @@ namespace hidpg
 
       static bool _prev_sent_radial_button;
       static uint8_t _radial_button_counter;
+
+      static portTickType _last_send_ticks;
     };
 
   } // namespace Internal
