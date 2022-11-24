@@ -349,8 +349,7 @@ namespace hidpg
       public:
         void start(unsigned int combo_term_ms)
         {
-          _delta_x_sum = 0;
-          _delta_y_sum = 0;
+          _move_pointer_count = 0;
           startTimer(combo_term_ms);
           startListenBeforeMovePointer();
           startListenBeforeRotateEncoder();
@@ -366,20 +365,16 @@ namespace hidpg
       protected:
         void onTimer() override { processComboAndKey(Action::ComboInterruption, etl::nullopt); }
         void onBeforeRotateEncoder(EncoderId, int16_t) override { processComboAndKey(Action::ComboInterruption, etl::nullopt); }
-        void onBeforeMovePointer(PointingDeviceId, int16_t delta_x, int16_t delta_y) override
+        void onBeforeMovePointer(PointingDeviceId, int16_t, int16_t) override
         {
-          _delta_x_sum = etl::clamp(_delta_x_sum + delta_x, INT16_MIN, INT16_MAX);
-          _delta_y_sum = etl::clamp(_delta_y_sum + delta_y, INT16_MIN, INT16_MAX);
-          if (abs(_delta_x_sum) >= HID_ENGINE_COMBO_INTERRUPTION_MOVE_POINTER_DELTA ||
-              abs(_delta_y_sum) >= HID_ENGINE_COMBO_INTERRUPTION_MOVE_POINTER_DELTA)
+          if (++_move_pointer_count >= HID_ENGINE_COMBO_INTERRUPTION_MOVE_POINTER_COUNT)
           {
             processComboAndKey(Action::ComboInterruption, etl::nullopt);
           }
         }
 
       private:
-        int16_t _delta_x_sum;
-        int16_t _delta_y_sum;
+        uint8_t _move_pointer_count;
       };
       static ComboInterruptionEvent _combo_interruption_event;
 
