@@ -32,11 +32,15 @@ namespace hidpg
 {
   // CommandDsl Dynamic Memory Allocation virsion.
 
-  static inline NotNullCommandPtr NK(KeyCode key_code) { return (new Internal::NormalKey(key_code)); }
+  static inline NotNullCommandPtr KC(CharacterKey character_key) { return (new Internal::CharacterKeyCommand(character_key)); }
 
-  static inline NotNullCommandPtr MO(Modifiers modifiers) { return (new Internal::ModifierKey(modifiers)); }
+  static inline NotNullCommandPtr KC(Modifiers modifiers) { return (new Internal::ModifiersCommand(modifiers)); }
 
-  static inline NotNullCommandPtr CK(Modifiers modifiers, KeyCode key_code) { return (new Internal::CombinationKey(modifiers, key_code)); }
+  static inline NotNullCommandPtr KC(CombinationKeys combination_keys) { return (new Internal::CombinationKeysCommand(combination_keys)); }
+
+  static inline NotNullCommandPtr KC(ConsumerControlCode consumer_control_code) { return (new Internal::ConsumerControl(consumer_control_code)); }
+
+  static inline NotNullCommandPtr KC(SystemControlCode system_control_code) { return (new Internal::SystemControl(system_control_code)); }
 
   static inline NotNullCommandPtr LY(const CommandPtr (&commands)[HID_ENGINE_LAYER_SIZE])
   {
@@ -127,8 +131,6 @@ namespace hidpg
 
     return (new Internal::TapDance(*pairs, *_pointing_device_ids, move_threshold, tapping_term_ms));
   }
-
-  static inline NotNullCommandPtr CTL(Internal::ControlCode usage_code) { return (new Internal::ConsumerAndSystemControl(usage_code)); }
 
   static inline NotNullCommandPtr MS_MOV(int16_t x, int16_t y) { return (new Internal::MouseMove(x, y)); }
 

@@ -38,24 +38,38 @@ namespace hidpg
   {
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    NotNullCommandPtr new_NormalKey(KeyCode key_code)
+    NotNullCommandPtr new_KeyCode(CharacterKey character_key)
     {
-      static uint8_t buf[sizeof(NormalKey)];
-      return new (buf) NormalKey(key_code);
+      static uint8_t buf[sizeof(CharacterKeyCommand)];
+      return new (buf) CharacterKeyCommand(character_key);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    NotNullCommandPtr new_ModifierKey(Modifiers modifiers)
+    NotNullCommandPtr new_KeyCode(Modifiers modifiers)
     {
-      static uint8_t buf[sizeof(ModifierKey)];
-      return new (buf) ModifierKey(modifiers);
+      static uint8_t buf[sizeof(ModifiersCommand)];
+      return new (buf) ModifiersCommand(modifiers);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    NotNullCommandPtr new_CombinationKey(Modifiers modifiers, KeyCode key_code)
+    NotNullCommandPtr new_KeyCode(CombinationKeys combination_keys)
     {
-      static uint8_t buf[sizeof(CombinationKey)];
-      return new (buf) CombinationKey(modifiers, key_code);
+      static uint8_t buf[sizeof(CombinationKeysCommand)];
+      return new (buf) CombinationKeysCommand(combination_keys);
+    }
+
+    template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
+    NotNullCommandPtr new_KeyCode(ConsumerControlCode consumer_control_code)
+    {
+      static uint8_t buf[sizeof(ConsumerControl)];
+      return new (buf) ConsumerControl(consumer_control_code);
+    }
+
+    template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
+    NotNullCommandPtr new_KeyCode(SystemControlCode system_control_code)
+    {
+      static uint8_t buf[sizeof(SystemControl)];
+      return new (buf) SystemControl(system_control_code);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
@@ -157,13 +171,6 @@ namespace hidpg
       static uint8_t buf[sizeof(TapDance)];
 
       return new (buf) TapDance(pairs, _pointing_device_ids, move_threshold, tapping_term_ms);
-    }
-
-    template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
-    NotNullCommandPtr new_ConsumerAndSystemControl(ControlCode usage_code)
-    {
-      static uint8_t buf[sizeof(ConsumerAndSystemControl)];
-      return new (buf) ConsumerAndSystemControl(usage_code);
     }
 
     template <uint64_t ID1, uint64_t ID2, uint64_t ID3>
@@ -342,14 +349,8 @@ namespace hidpg
 
   } // namespace Internal
 
-// NormalKey
-#define NK(key_code) (Internal::new_NormalKey<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(key_code))
-
-// ModifierKey
-#define MO(modifiers) (Internal::new_ModifierKey<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(modifiers))
-
-// CombinationKey
-#define CK(modifiers, key_code) (Internal::new_CombinationKey<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(modifiers, key_code))
+// KeyCode
+#define KC(key_code) (Internal::new_KeyCode<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(key_code))
 
 // Layering
 #define LY(...) (Internal::new_Layering<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(Layer, __VA_ARGS__))
@@ -388,9 +389,6 @@ namespace hidpg
 
 // HoldTapDecideWithPointerMove
 #define HT_DPM(...) (Internal::new_HoldTapDecideWithPointerMove<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(__VA_ARGS__))
-
-// ConsumerAndSystemControl
-#define CTL(usage_code) (Internal::new_ConsumerAndSystemControl<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(usage_code))
 
 // MouseMove
 #define MS_MOV(x, y) (Internal::new_MouseMove<__COUNTER__, consthash::city64(__FILE__, sizeof(__FILE__)), consthash::crc64(__FILE__, sizeof(__FILE__))>(x, y))

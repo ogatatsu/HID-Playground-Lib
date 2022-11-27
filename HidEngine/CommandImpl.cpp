@@ -32,62 +32,96 @@ namespace hidpg::Internal
 {
 
   //------------------------------------------------------------------+
-  // NormalKey
+  // CharacterKey
   //------------------------------------------------------------------+
-  NormalKey::NormalKey(KeyCode key_code) : _key_code(key_code)
+  CharacterKeyCommand::CharacterKeyCommand(CharacterKey character_key) : _character_key(character_key)
   {
   }
 
-  void NormalKey::onPress()
+  void CharacterKeyCommand::onPress()
   {
-    Hid.setKey(_key_code);
+    Hid.setKey(_character_key);
     Hid.sendKeyReport();
   }
 
-  void NormalKey::onRelease()
+  void CharacterKeyCommand::onRelease()
   {
-    Hid.unsetKey(_key_code);
+    Hid.unsetKey(_character_key);
     Hid.sendKeyReport();
   }
 
   //------------------------------------------------------------------+
-  // ModifierKey
+  // Modifiers
   //------------------------------------------------------------------+
-  ModifierKey::ModifierKey(Modifiers modifiers) : _modifiers(modifiers)
+  ModifiersCommand::ModifiersCommand(Modifiers modifiers) : _modifiers(modifiers)
   {
   }
 
-  void ModifierKey::onPress()
+  void ModifiersCommand::onPress()
   {
     Hid.setModifiers(_modifiers);
     Hid.sendKeyReport();
   }
 
-  void ModifierKey::onRelease()
+  void ModifiersCommand::onRelease()
   {
     Hid.unsetModifiers(_modifiers);
     Hid.sendKeyReport();
   }
 
   //------------------------------------------------------------------+
-  // CombinationKey
+  // CombinationKeys
   //------------------------------------------------------------------+
-  CombinationKey::CombinationKey(Modifiers modifiers, KeyCode key_code) : _modifiers(modifiers), _key_code(key_code)
+  CombinationKeysCommand::CombinationKeysCommand(CombinationKeys combination_keys) : _combination_keys(combination_keys)
   {
   }
 
-  void CombinationKey::onPress()
+  void CombinationKeysCommand::onPress()
   {
-    Hid.setKey(_key_code);
-    Hid.setModifiers(_modifiers);
+    Hid.setKey(_combination_keys.character_key);
+    Hid.setModifiers(_combination_keys.modifiers);
     Hid.sendKeyReport();
   }
 
-  void CombinationKey::onRelease()
+  void CombinationKeysCommand::onRelease()
   {
-    Hid.unsetKey(_key_code);
-    Hid.unsetModifiers(_modifiers);
+    Hid.unsetKey(_combination_keys.character_key);
+    Hid.unsetModifiers(_combination_keys.modifiers);
     Hid.sendKeyReport();
+  }
+
+  //------------------------------------------------------------------+
+  // ConsumerControl
+  //------------------------------------------------------------------+
+  ConsumerControl::ConsumerControl(ConsumerControlCode usage_code) : _usage_code(usage_code)
+  {
+  }
+
+  void ConsumerControl::onPress()
+  {
+    Hid.consumerControlPress(_usage_code);
+  }
+
+  void ConsumerControl::onRelease()
+  {
+    Hid.consumerControlRelease();
+  }
+
+  //------------------------------------------------------------------+
+  // SystemControl
+  //------------------------------------------------------------------+
+  SystemControl::SystemControl(SystemControlCode usage_code) : _usage_code(usage_code)
+  {
+  }
+
+  void SystemControl::onPress()
+  {
+    Hid.systemControlPress(_usage_code);
+  }
+
+  void SystemControl::onRelease()
+  {
+    Hid.systemControlRelease();
   }
 
   //------------------------------------------------------------------+
@@ -490,37 +524,6 @@ namespace hidpg::Internal
   {
     BeforeRotateEncoderArgs args{.encoder_id = encoder_id, .step = step};
     processTapDance(Action::BeforeRotateEncoder, args);
-  }
-
-  //------------------------------------------------------------------+
-  // ConsumerAndSystemControl
-  //------------------------------------------------------------------+
-  ConsumerAndSystemControl::ConsumerAndSystemControl(ControlCode usage_code) : _usage_code(usage_code)
-  {
-  }
-
-  void ConsumerAndSystemControl::onPress()
-  {
-    if (auto usage_code = etl::get_if<ConsumerControlCode>(&_usage_code))
-    {
-      Hid.consumerKeyPress(*usage_code);
-    }
-    else if (auto usage_code = etl::get_if<SystemControlCode>(&_usage_code))
-    {
-      Hid.systemControlKeyPress(*usage_code);
-    }
-  }
-
-  void ConsumerAndSystemControl::onRelease()
-  {
-    if (etl::holds_alternative<ConsumerControlCode>(_usage_code))
-    {
-      Hid.consumerKeyRelease();
-    }
-    else if (etl::holds_alternative<SystemControlCode>(_usage_code))
-    {
-      Hid.systemControlKeyRelease();
-    }
   }
 
   //------------------------------------------------------------------+

@@ -44,16 +44,16 @@ namespace hidpg
       // setKeyをした後でsendKeyReportを呼び出すことでキーを送る。
       // 何回キーをsetしたかを覚えてるので複数回同じキーコードでsetKeyを呼び出したら同じ回数unsetKeyを呼び出すまではそのキーコードは入力され続ける。
       // これにより別のスイッチに同じキーコードを割り当てたとしても正しく動作する。
-      static void setKey(KeyCode key_code);
-      static void unsetKey(KeyCode key_code);
+      static void setKey(CharacterKey character_key);
+      static void unsetKey(CharacterKey character_key);
       static void setModifiers(Modifiers modifiers);
       static void unsetModifiers(Modifiers modifiers);
       static void sendKeyReport();
       static bool isModifiersSet();
 
       // Consumer API
-      static void consumerKeyPress(ConsumerControlCode usage_code);
-      static void consumerKeyRelease();
+      static void consumerControlPress(ConsumerControlCode usage_code);
+      static void consumerControlRelease();
 
       // Mouse API
       // mouseButtonsPress,Releaseは複数スイッチでの同時押しに対応
@@ -69,8 +69,8 @@ namespace hidpg
       static void radialControllerDialRotate(int16_t deci_degree);
 
       // System Control API
-      static void systemControlKeyPress(SystemControlCode usage_code);
-      static void systemControlKeyRelease();
+      static void systemControlPress(SystemControlCode usage_code);
+      static void systemControlRelease();
 
     private:
       static void sendMouseButtonsReport();

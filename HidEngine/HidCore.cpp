@@ -61,16 +61,16 @@ namespace hidpg
       }
     }
 
-    void HidCore::setKey(KeyCode key_code)
+    void HidCore::setKey(CharacterKey character_key)
     {
-      uint8_t kc = static_cast<uint8_t>(key_code);
+      uint8_t code = static_cast<uint8_t>(character_key);
 
-      _key_counters[kc]++;
+      _key_counters[code]++;
 
       // すでに入ってるなら追加しない
       for (int i = 0; i < 6; i++)
       {
-        if (_pressed_keys[i] == kc)
+        if (_pressed_keys[i] == code)
         {
           return;
         }
@@ -80,28 +80,28 @@ namespace hidpg
       {
         if (_pressed_keys[i] == 0)
         {
-          _pressed_keys[i] = kc;
+          _pressed_keys[i] = code;
           return;
         }
       }
       // 満杯ならずらして末尾に追加
       memmove(_pressed_keys, _pressed_keys + 1, 5);
-      _pressed_keys[5] = kc;
+      _pressed_keys[5] = code;
     }
 
-    void HidCore::unsetKey(KeyCode key_code)
+    void HidCore::unsetKey(CharacterKey character_key)
     {
-      uint8_t kc = static_cast<uint8_t>(key_code);
+      uint8_t code = static_cast<uint8_t>(character_key);
 
-      _key_counters[kc]--;
+      _key_counters[code]--;
 
-      if (_key_counters[kc] == 0)
+      if (_key_counters[code] == 0)
       {
         int i = 0;
         // 探して削除
         for (; i < 6; i++)
         {
-          if (_pressed_keys[i] == kc)
+          if (_pressed_keys[i] == code)
           {
             _pressed_keys[i] = 0;
             break;
@@ -230,7 +230,7 @@ namespace hidpg
       }
     }
 
-    void HidCore::consumerKeyPress(ConsumerControlCode usage_code)
+    void HidCore::consumerControlPress(ConsumerControlCode usage_code)
     {
       if (_hid_reporter != nullptr)
       {
@@ -238,7 +238,7 @@ namespace hidpg
       }
     }
 
-    void HidCore::consumerKeyRelease()
+    void HidCore::consumerControlRelease()
     {
       if (_hid_reporter != nullptr)
       {
@@ -246,7 +246,7 @@ namespace hidpg
       }
     }
 
-    void HidCore::systemControlKeyPress(SystemControlCode usage_code)
+    void HidCore::systemControlPress(SystemControlCode usage_code)
     {
       if (_hid_reporter != nullptr)
       {
@@ -254,7 +254,7 @@ namespace hidpg
       }
     }
 
-    void HidCore::systemControlKeyRelease()
+    void HidCore::systemControlRelease()
     {
       if (_hid_reporter != nullptr)
       {

@@ -30,8 +30,8 @@ namespace hidpg
 {
   // clang-format off
 
-  // Normal KeyCode
-  enum class KeyCode : uint8_t
+  // CharacterKey
+  enum class CharacterKey : uint8_t
   {
     None            = 0,
 
@@ -168,7 +168,7 @@ namespace hidpg
     Lang9           = 152,
   };
 
-  // ModifierKeys
+  // Modifiers
   enum class Modifiers : uint8_t
   {
     LeftCtrl   = 1,
@@ -184,6 +184,33 @@ namespace hidpg
   constexpr Modifiers operator+(const Modifiers &a, const Modifiers &b)
   {
     return static_cast<Modifiers>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
+  }
+
+  // CombinationKeys
+  struct CombinationKeys
+  {
+    CharacterKey character_key;
+    Modifiers modifiers;
+  };
+
+  constexpr CombinationKeys operator+(const CharacterKey &ck, const Modifiers &mo)
+  {
+    return CombinationKeys{ck, mo};
+  }
+
+  constexpr CombinationKeys operator+(const Modifiers &mo, const CharacterKey &ck)
+  {
+    return CombinationKeys{ck, mo};
+  }
+
+  constexpr CombinationKeys operator+(const CombinationKeys &cmbi, const Modifiers &mo)
+  {
+    return CombinationKeys{cmbi.character_key, cmbi.modifiers + mo};
+  }
+
+  constexpr CombinationKeys operator+(const Modifiers &mo, const CombinationKeys &cmbi)
+  {
+    return CombinationKeys{cmbi.character_key, cmbi.modifiers + mo};
   }
 
   // Mouse

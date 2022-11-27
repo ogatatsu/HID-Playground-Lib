@@ -33,28 +33,28 @@ namespace hidpg::Internal
 {
 
   //------------------------------------------------------------------+
-  // NormalKey
+  // CharacterKey
   //------------------------------------------------------------------+
-  class NormalKey : public Command
+  class CharacterKeyCommand : public Command
   {
   public:
-    NormalKey(KeyCode key_code);
+    CharacterKeyCommand(CharacterKey character_key);
 
   protected:
     void onPress() override;
     void onRelease() override;
 
   private:
-    const KeyCode _key_code;
+    const CharacterKey _character_key;
   };
 
   //------------------------------------------------------------------+
-  // ModifierKey
+  // Modifiers
   //------------------------------------------------------------------+
-  class ModifierKey : public Command
+  class ModifiersCommand : public Command
   {
   public:
-    ModifierKey(Modifiers modifiers);
+    ModifiersCommand(Modifiers modifiers);
 
   protected:
     void onPress() override;
@@ -65,20 +65,51 @@ namespace hidpg::Internal
   };
 
   //------------------------------------------------------------------+
-  // CombinationKey
+  // CombinationKeys
   //------------------------------------------------------------------+
-  class CombinationKey : public Command
+  class CombinationKeysCommand : public Command
   {
   public:
-    CombinationKey(Modifiers modifiers, KeyCode key_code);
+    CombinationKeysCommand(CombinationKeys combination_keys);
 
   protected:
     void onPress() override;
     void onRelease() override;
 
   private:
-    const Modifiers _modifiers;
-    const KeyCode _key_code;
+    const CombinationKeys _combination_keys;
+  };
+
+  //------------------------------------------------------------------+
+  // ConsumerControl
+  //------------------------------------------------------------------+
+  class ConsumerControl : public Command
+  {
+  public:
+    ConsumerControl(ConsumerControlCode usage_code);
+
+  protected:
+    void onPress() override;
+    void onRelease() override;
+
+  private:
+    const ConsumerControlCode _usage_code;
+  };
+
+  //------------------------------------------------------------------+
+  // SystemControl
+  //------------------------------------------------------------------+
+  class SystemControl : public Command
+  {
+  public:
+    SystemControl(SystemControlCode usage_code);
+
+  protected:
+    void onPress() override;
+    void onRelease() override;
+
+  private:
+    const SystemControlCode _usage_code;
   };
 
   //------------------------------------------------------------------+
@@ -277,24 +308,6 @@ namespace hidpg::Internal
     int16_t _delta_y_sum;
     size_t _idx_count;
     State _state;
-  };
-
-  //------------------------------------------------------------------+
-  // ConsumerAndSystemControl
-  //------------------------------------------------------------------+
-  using ControlCode = etl::variant<ConsumerControlCode, SystemControlCode>;
-
-  class ConsumerAndSystemControl : public Command
-  {
-  public:
-    ConsumerAndSystemControl(ControlCode usage_code);
-
-  protected:
-    void onPress() override;
-    void onRelease() override;
-
-  private:
-    const ControlCode _usage_code;
   };
 
   //------------------------------------------------------------------+
