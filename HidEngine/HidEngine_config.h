@@ -51,7 +51,7 @@
 
 // TapDanceコマンドのタップ判定時間 (ms)
 #ifndef HID_ENGINE_TAPPING_TERM_MS
-#define HID_ENGINE_TAPPING_TERM_MS 250
+#define HID_ENGINE_TAPPING_TERM_MS 200
 #endif
 
 // PreCommand::InsteadOfFirstGestureを設定した時にPreCommandが実行された後、次のジェスチャが実行されないようにする時間
