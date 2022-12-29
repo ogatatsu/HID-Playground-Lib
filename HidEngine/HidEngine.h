@@ -136,8 +136,8 @@ namespace hidpg
     const uint32_t combo_term_ms;
     const ComboBehavior behavior;
 
-    bool first_id_rereased;
-    bool second_id_rereased;
+    bool first_id_released;
+    bool second_id_released;
 
     bool isSpecifiedOrder() { return static_cast<uint8_t>(behavior) & 0b10; }
     bool isAnyOrder() { return !isSpecifiedOrder(); }

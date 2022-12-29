@@ -46,7 +46,7 @@ namespace hidpg
       static void stop();
       static bool isRunning();
       static bool waitReady();
-      static void setCannnotConnectCallback(cannotConnectCallback_t callback);
+      static void setCannotConnectCallback(cannotConnectCallback_t callback);
       static void setAdvLed(BlinkLed *adv_led);
 
     private:

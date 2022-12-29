@@ -155,7 +155,7 @@ namespace hidpg
 
     void HidEngineClass::processComboAndKey(Action action, etl::optional<uint8_t> key_id)
     {
-      static etl::optional<uint8_t> first_commbo_id;
+      static etl::optional<uint8_t> first_combo_id;
       static etl::intrusive_list<Combo> success_combo_list;
 
       switch (action)
@@ -173,14 +173,14 @@ namespace hidpg
         }
 
         // first_id check
-        if (first_commbo_id.has_value() == false)
+        if (first_combo_id.has_value() == false)
         {
           for (auto &combo : _combo_map)
           {
             if (combo.isMatchFirstId(key_id.value()))
             {
               // first_id success
-              first_commbo_id = key_id;
+              first_combo_id = key_id;
               _combo_interruption_event.start(combo.combo_term_ms);
               return;
             }
@@ -193,24 +193,24 @@ namespace hidpg
         // second_id check
         for (auto &combo : _combo_map)
         {
-          if (combo.isMatchIds(first_commbo_id.value(), key_id.value()))
+          if (combo.isMatchIds(first_combo_id.value(), key_id.value()))
           {
             // combo success
             _combo_interruption_event.stop();
-            combo.first_id_rereased = false;
-            combo.second_id_rereased = false;
+            combo.first_id_released = false;
+            combo.second_id_released = false;
             combo.command->press();
             success_combo_list.push_back(combo);
-            first_commbo_id = etl::nullopt;
+            first_combo_id = etl::nullopt;
             return;
           }
         }
 
         // second_id failure
         _combo_interruption_event.stop();
-        performKeyPress(first_commbo_id.value());
+        performKeyPress(first_combo_id.value());
         performKeyPress(key_id.value());
-        first_commbo_id = etl::nullopt;
+        first_combo_id = etl::nullopt;
       }
       break;
 
@@ -219,17 +219,17 @@ namespace hidpg
         // combo実行中のidがreleaseされた場合
         for (auto &combo : success_combo_list)
         {
-          if (combo.first_id == key_id && combo.first_id_rereased == false)
+          if (combo.first_id == key_id && combo.first_id_released == false)
           {
-            combo.first_id_rereased = true;
+            combo.first_id_released = true;
 
-            if ((combo.isFastRelease() && combo.second_id_rereased == false) ||
-                (combo.isSlowRelease() && combo.second_id_rereased))
+            if ((combo.isFastRelease() && combo.second_id_released == false) ||
+                (combo.isSlowRelease() && combo.second_id_released))
             {
               combo.command->release();
             }
 
-            if (combo.second_id_rereased)
+            if (combo.second_id_released)
             {
               auto i_item = etl::intrusive_list<Combo>::iterator(combo);
               success_combo_list.erase(i_item);
@@ -237,17 +237,17 @@ namespace hidpg
             return;
           }
 
-          if (combo.second_id == key_id && combo.second_id_rereased == false)
+          if (combo.second_id == key_id && combo.second_id_released == false)
           {
-            combo.second_id_rereased = true;
+            combo.second_id_released = true;
 
-            if ((combo.isFastRelease() && combo.first_id_rereased == false) ||
-                (combo.isSlowRelease() && combo.first_id_rereased))
+            if ((combo.isFastRelease() && combo.first_id_released == false) ||
+                (combo.isSlowRelease() && combo.first_id_released))
             {
               combo.command->release();
             }
 
-            if (combo.first_id_rereased)
+            if (combo.first_id_released)
             {
               auto i_item = etl::intrusive_list<Combo>::iterator(combo);
               success_combo_list.erase(i_item);
@@ -257,22 +257,22 @@ namespace hidpg
         }
 
         // first_idがタップされた場合
-        if (first_commbo_id == key_id)
+        if (first_combo_id == key_id)
         {
           _combo_interruption_event.stop();
-          first_commbo_id = etl::nullopt;
+          first_combo_id = etl::nullopt;
           performKeyPress(key_id.value());
           performKeyRelease(key_id.value());
           return;
         }
 
         // first_idより前に押されていたidがreleaseされた場合
-        if (first_commbo_id.has_value())
+        if (first_combo_id.has_value())
         {
           _combo_interruption_event.stop();
-          performKeyPress(first_commbo_id.value());
+          performKeyPress(first_combo_id.value());
           performKeyRelease(key_id.value());
-          first_commbo_id = etl::nullopt;
+          first_combo_id = etl::nullopt;
           return;
         }
 
@@ -284,10 +284,10 @@ namespace hidpg
       case Action::ComboInterruption:
       {
         _combo_interruption_event.stop();
-        if (first_commbo_id.has_value())
+        if (first_combo_id.has_value())
         {
-          performKeyPress(first_commbo_id.value());
-          first_commbo_id = etl::nullopt;
+          performKeyPress(first_combo_id.value());
+          first_combo_id = etl::nullopt;
         }
       }
       break;
@@ -602,7 +602,7 @@ namespace hidpg
       }
     }
 
-    void HidEngineClass::processGesturePreCommand(Gesture &gesture, uint8_t &n_timse)
+    void HidEngineClass::processGesturePreCommand(Gesture &gesture, uint8_t &n_times)
     {
       if (gesture.pre_command.has_value() &&
           gesture.pre_command.value().is_pressed == false)
@@ -612,7 +612,7 @@ namespace hidpg
 
         if (gesture.pre_command.value().timing == Timing::InsteadOfFirstAction)
         {
-          n_timse--;
+          n_times--;
           gesture.instead_of_first_gesture_millis = millis();
         }
       }

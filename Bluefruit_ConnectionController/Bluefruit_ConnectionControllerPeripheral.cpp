@@ -124,7 +124,7 @@ namespace hidpg
       return false;
     }
 
-    void Bluefruit_ConnectionControllerPeripheral::setCannnotConnectCallback(cannotConnectCallback_t callback)
+    void Bluefruit_ConnectionControllerPeripheral::setCannotConnectCallback(cannotConnectCallback_t callback)
     {
       _cannot_connect_cb = callback;
     }
