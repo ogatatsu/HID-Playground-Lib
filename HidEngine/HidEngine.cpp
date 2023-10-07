@@ -490,11 +490,11 @@ namespace hidpg
 
     void HidEngineClass::processGesture(Gesture &gesture, int16_t delta_x, int16_t delta_y)
     {
-#if (HID_ENGINE_WAIT_TIME_AFTER_INSTEAD_OF_FIRST_GESTURE_MS != 0)
+#if (HID_ENGINE_INSTEAD_OF_FIRST_GESTURE_AFTER_WAIT_TIME_MS != 0)
       if (gesture.instead_of_first_gesture_millis.has_value())
       {
         uint32_t curr_millis = millis();
-        if (static_cast<uint32_t>(curr_millis - gesture.instead_of_first_gesture_millis.value()) <= HID_ENGINE_WAIT_TIME_AFTER_INSTEAD_OF_FIRST_GESTURE_MS)
+        if (static_cast<uint32_t>(curr_millis - gesture.instead_of_first_gesture_millis.value()) <= HID_ENGINE_INSTEAD_OF_FIRST_GESTURE_AFTER_WAIT_TIME_MS)
         {
           return;
         }
@@ -612,8 +612,14 @@ namespace hidpg
 
         if (gesture.pre_command.value().timing == Timing::InsteadOfFirstAction)
         {
-          n_times--;
+#if (HID_ENGINE_INSTEAD_OF_FIRST_GESTURE_AFTER_WAIT_TIME_MS != 0)
           gesture.instead_of_first_gesture_millis = millis();
+          n_times = 0;
+          gesture.total_distance_x = 0;
+          gesture.total_distance_y = 0;
+#else
+          n_times--;
+#endif
         }
       }
     }

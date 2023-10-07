@@ -40,14 +40,12 @@ namespace hidpg::Internal
 
   void CharacterKeyCommand::onPress()
   {
-    Hid.setKey(_character_key);
-    Hid.sendKeyReport();
+    Hid.keyPress(_character_key);
   }
 
   void CharacterKeyCommand::onRelease()
   {
-    Hid.unsetKey(_character_key);
-    Hid.sendKeyReport();
+    Hid.keyRelease(_character_key);
   }
 
   //------------------------------------------------------------------+
@@ -59,14 +57,12 @@ namespace hidpg::Internal
 
   void ModifiersCommand::onPress()
   {
-    Hid.setModifiers(_modifiers);
-    Hid.sendKeyReport();
+    Hid.modifiersPress(_modifiers);
   }
 
   void ModifiersCommand::onRelease()
   {
-    Hid.unsetModifiers(_modifiers);
-    Hid.sendKeyReport();
+    Hid.modifiersRelease(_modifiers);
   }
 
   //------------------------------------------------------------------+
@@ -78,16 +74,14 @@ namespace hidpg::Internal
 
   void CombinationKeysCommand::onPress()
   {
-    Hid.setKey(_combination_keys.character_key);
-    Hid.setModifiers(_combination_keys.modifiers);
-    Hid.sendKeyReport();
+    Hid.modifiersPress(_combination_keys.modifiers);
+    Hid.keyPress(_combination_keys.character_key);
   }
 
   void CombinationKeysCommand::onRelease()
   {
-    Hid.unsetKey(_combination_keys.character_key);
-    Hid.unsetModifiers(_combination_keys.modifiers);
-    Hid.sendKeyReport();
+    Hid.keyRelease(_combination_keys.character_key);
+    Hid.modifiersRelease(_combination_keys.modifiers);
   }
 
   //------------------------------------------------------------------+

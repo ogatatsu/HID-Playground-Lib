@@ -35,18 +35,19 @@ namespace hidpg
 {
 
   // 物理的なスイッチ1個に対応するクラス
-  class Switch : Bounce
+  class Switch : private Bounce
   {
   public:
     using Bounce::attach;
+    using Bounce::read;
+    using Bounce::update;
 
   public:
     // 論理的なIDをセットする
-    Switch(uint8_t id, uint16_t debounce_delay_ms);
-    // スキャン時に呼ばれる、押されてるかを自分でチェックして自分のIDをセットする
-    void updateState(Set &switch_ids);
+    Switch(uint8_t id, uint16_t debounce_delay_ms) : Bounce(), _id(id) { Bounce::interval(debounce_delay_ms); }
 
-    uint16_t getDebounceDelay() const;
+    uint8_t getId() const { return _id; };
+    uint16_t getDebounceDelay() const { return Bounce::interval_millis; }
 
   private:
     const uint8_t _id;

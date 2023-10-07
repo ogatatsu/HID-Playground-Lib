@@ -32,6 +32,7 @@ namespace hidpg::Internal
   uint8_t Bluefruit_ConnectionControllerCentral::_profile_list_len = 0;
   uint8_t Bluefruit_ConnectionControllerCentral::_unconnected_count = 0;
   bool Bluefruit_ConnectionControllerCentral::_is_running = false;
+  Bluefruit_ConnectionControllerCentral::connectCallbackCallback_t Bluefruit_ConnectionControllerCentral::_connect_callback = nullptr;
   Bluefruit_ConnectionControllerCentral::disconnectCallbackCallback_t Bluefruit_ConnectionControllerCentral::_disconnect_callback = nullptr;
 
   void Bluefruit_ConnectionControllerCentral::begin()
@@ -124,6 +125,11 @@ namespace hidpg::Internal
     return _is_running;
   }
 
+  void Bluefruit_ConnectionControllerCentral::setConnectCallback(connectCallbackCallback_t callback)
+  {
+    _connect_callback = callback;
+  }
+
   void Bluefruit_ConnectionControllerCentral::setDisconnectCallback(disconnectCallbackCallback_t callback)
   {
     _disconnect_callback = callback;
@@ -182,6 +188,11 @@ namespace hidpg::Internal
           _profile_list[i]->enable();
           conn->requestPHY();
 
+          if (_connect_callback != nullptr)
+          {
+            _connect_callback(conn_handle);
+          }
+
           if (_unconnected_count == 0)
           {
             if (_scan_led != nullptr)
@@ -202,6 +213,11 @@ namespace hidpg::Internal
 
   void Bluefruit_ConnectionControllerCentral::disconnect_callback(uint16_t conn_handle, uint8_t reason)
   {
+    if (_disconnect_callback != nullptr)
+    {
+      _disconnect_callback(conn_handle, reason);
+    }
+
     _unconnected_count++;
 
     if (_is_running == true)

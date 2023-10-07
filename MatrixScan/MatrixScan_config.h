@@ -41,8 +41,8 @@
 
 // 割り込みにSense signalを使用するか
 // nRF52でのみ使用可能
-#ifndef MATRIX_SCAN_USE_SENSE_INTERRUPT
-#define MATRIX_SCAN_USE_SENSE_INTERRUPT false
+#ifndef MATRIX_SCAN_USE_NRF52_SENSE_INTERRUPT
+#define MATRIX_SCAN_USE_NRF52_SENSE_INTERRUPT false
 #endif
 
 // MatrixScanタスクのスタックサイズ

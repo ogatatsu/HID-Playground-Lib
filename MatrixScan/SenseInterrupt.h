@@ -26,7 +26,7 @@
 
 #include "MatrixScan_config.h"
 
-#if MATRIX_SCAN_USE_SENSE_INTERRUPT
+#if MATRIX_SCAN_USE_NRF52_SENSE_INTERRUPT
 
 #include "Arduino.h"
 

@@ -54,9 +54,9 @@
 #define HID_ENGINE_TAPPING_TERM_MS 200
 #endif
 
-// PreCommand::InsteadOfFirstGestureを設定した時にPreCommandが実行された後、次のジェスチャが実行されないようにする時間
-#ifndef HID_ENGINE_WAIT_TIME_AFTER_INSTEAD_OF_FIRST_GESTURE_MS
-#define HID_ENGINE_WAIT_TIME_AFTER_INSTEAD_OF_FIRST_GESTURE_MS 250
+// GestureでPreCommand::InsteadOfFirstActionを設定した時にPreCommandが実行された後、次のジェスチャが実行されないようにする時間
+#ifndef HID_ENGINE_INSTEAD_OF_FIRST_GESTURE_AFTER_WAIT_TIME_MS
+#define HID_ENGINE_INSTEAD_OF_FIRST_GESTURE_AFTER_WAIT_TIME_MS 250
 #endif
 
 // コンボ判定中にこの回数ポインタが動いたらコンボを中断する

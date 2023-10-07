@@ -41,14 +41,10 @@ namespace hidpg
       static void waitReady();
 
       // Keyboard API
-      // setKeyをした後でsendKeyReportを呼び出すことでキーを送る。
-      // 何回キーをsetしたかを覚えてるので複数回同じキーコードでsetKeyを呼び出したら同じ回数unsetKeyを呼び出すまではそのキーコードは入力され続ける。
-      // これにより別のスイッチに同じキーコードを割り当てたとしても正しく動作する。
-      static void setKey(CharacterKey character_key);
-      static void unsetKey(CharacterKey character_key);
-      static void setModifiers(Modifiers modifiers);
-      static void unsetModifiers(Modifiers modifiers);
-      static void sendKeyReport();
+      static void keyPress(CharacterKey character_key);
+      static void keyRelease(CharacterKey character_key);
+      static void modifiersPress(Modifiers modifiers);
+      static void modifiersRelease(Modifiers modifiers);
       static bool isModifiersSet();
 
       // Consumer API
@@ -73,6 +69,12 @@ namespace hidpg
       static void systemControlRelease();
 
     private:
+      static void setKey(CharacterKey character_key);
+      static void unsetKey(CharacterKey character_key);
+      static void setModifiers(Modifiers modifiers);
+      static void unsetModifiers(Modifiers modifiers);
+      static void sendKeyReport();
+
       static void sendMouseButtonsReport();
       static void sendRadialControllerButtonReport();
 

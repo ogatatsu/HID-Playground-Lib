@@ -40,7 +40,7 @@ namespace hidpg
       return false;
     }
 
-    bitSet(_data[val / 8], val % 8);
+    bitSet(_data[val / _data_bit_size], val % _data_bit_size);
     _count++;
     return true;
   }
@@ -55,13 +55,12 @@ namespace hidpg
 
   Set &Set::operator|=(const Set &rhs)
   {
-    uint32_t *data_32 = reinterpret_cast<uint32_t *>(_data);
-    uint32_t *rhs_data_32 = reinterpret_cast<uint32_t *>(const_cast<uint8_t *>(rhs._data));
     _count = 0;
-    for (int i = 0; i < 8; i++)
+
+    for (size_t i = 0; i < _data_size; i++)
     {
-      data_32[i] |= rhs_data_32[i];
-      _count += __builtin_popcountl(data_32[i]);
+      _data[i] |= rhs._data[i];
+      _count += __builtin_popcountl(_data[i]);
     }
     return *this;
   }
@@ -73,7 +72,7 @@ namespace hidpg
       return false;
     }
 
-    bitClear(_data[val / 8], val % 8);
+    bitClear(_data[val / _data_bit_size], val % _data_bit_size);
     _count--;
     return true;
   }
@@ -88,13 +87,11 @@ namespace hidpg
 
   Set &Set::operator-=(const Set &rhs)
   {
-    uint32_t *data_32 = reinterpret_cast<uint32_t *>(_data);
-    uint32_t *rhs_data_32 = reinterpret_cast<uint32_t *>(const_cast<uint8_t *>(rhs._data));
     _count = 0;
-    for (int i = 0; i < 8; i++)
+    for (size_t i = 0; i < _data_size; i++)
     {
-      data_32[i] &= ~(rhs_data_32[i]);
-      _count += __builtin_popcountl(data_32[i]);
+      _data[i] &= ~(rhs._data[i]);
+      _count += __builtin_popcountl(_data[i]);
     }
     return *this;
   }
@@ -119,7 +116,7 @@ namespace hidpg
 
   bool Set::contains(uint8_t val) const
   {
-    return bitRead(_data[val / 8], val % 8);
+    return bitRead(_data[val / _data_bit_size], val % _data_bit_size);
   }
 
   bool Set::containsAll(const uint8_t vals[], size_t len) const
@@ -152,17 +149,16 @@ namespace hidpg
       return;
 
     uint16_t buf_cnt = 0;
-    uint32_t *data_32 = reinterpret_cast<uint32_t *>(const_cast<uint8_t *>(_data));
 
-    for (int i = 0; i < 8; i++)
+    for (size_t i = 0; i < _data_size; i++)
     {
-      if (data_32[i] == 0)
+      if (_data[i] == 0)
       {
         continue;
       }
-      for (int j = 0; j < 32; j++)
+      for (size_t j = 0; j < _data_bit_size; j++)
       {
-        uint8_t val = i * 32 + j;
+        uint8_t val = i * _data_bit_size + j;
         if (contains(val))
         {
           buf[buf_cnt++] = val;
@@ -187,7 +183,7 @@ namespace hidpg
     {
       return false;
     }
-    return memcmp(a._data, b._data, 32) ? false : true;
+    return memcmp(a._data, b._data, sizeof(Set::_data)) ? false : true;
   }
 
   bool operator!=(const Set &a, const Set &b)
@@ -199,15 +195,11 @@ namespace hidpg
   {
     Set result;
 
-    uint32_t *a_data_32 = reinterpret_cast<uint32_t *>(const_cast<uint8_t *>(a._data));
-    uint32_t *b_data_32 = reinterpret_cast<uint32_t *>(const_cast<uint8_t *>(b._data));
-    uint32_t *r_data_32 = reinterpret_cast<uint32_t *>(const_cast<uint8_t *>(result._data));
-
-    for (int i = 0; i < 8; i++)
+    for (size_t i = 0; i < Set::_data_size; i++)
     {
-      r_data_32[i] |= a_data_32[i];
-      r_data_32[i] |= b_data_32[i];
-      result._count += __builtin_popcountl(r_data_32[i]);
+      result._data[i] |= a._data[i];
+      result._data[i] |= b._data[i];
+      result._count += __builtin_popcountl(result._data[i]);
     }
     return result;
   }
@@ -216,15 +208,11 @@ namespace hidpg
   {
     Set result;
 
-    uint32_t *a_data_32 = reinterpret_cast<uint32_t *>(const_cast<uint8_t *>(a._data));
-    uint32_t *b_data_32 = reinterpret_cast<uint32_t *>(const_cast<uint8_t *>(b._data));
-    uint32_t *r_data_32 = reinterpret_cast<uint32_t *>(const_cast<uint8_t *>(result._data));
-
-    for (int i = 0; i < 8; i++)
+    for (size_t i = 0; i < Set::_data_size; i++)
     {
-      r_data_32[i] |= a_data_32[i];
-      r_data_32[i] &= ~(b_data_32[i]);
-      result._count += __builtin_popcountl(r_data_32[i]);
+      result._data[i] |= a._data[i];
+      result._data[i] &= ~(b._data[i]);
+      result._count += __builtin_popcountl(result._data[i]);
     }
     return result;
   }

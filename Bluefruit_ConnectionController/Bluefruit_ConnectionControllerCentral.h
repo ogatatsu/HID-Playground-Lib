@@ -41,6 +41,7 @@ namespace hidpg::Internal
     friend class Bluefruit_ConnectionControllerClass;
 
   public:
+    using connectCallbackCallback_t = void (*)(uint16_t conn_handle);
     using disconnectCallbackCallback_t = void (*)(uint16_t conn_handle, uint8_t reason);
 
     static void setProfile(BLECentralProfile *profile_list[], uint8_t profile_list_len)
@@ -81,6 +82,7 @@ namespace hidpg::Internal
     static void start();
     static void stop();
     static bool isRunning();
+    static void setConnectCallback(connectCallbackCallback_t callback);
     static void setDisconnectCallback(disconnectCallbackCallback_t callback);
 
   private:
@@ -97,6 +99,7 @@ namespace hidpg::Internal
     static uint8_t _profile_list_len;
     static uint8_t _unconnected_count;
     static bool _is_running;
+    static connectCallbackCallback_t _connect_callback;
     static disconnectCallbackCallback_t _disconnect_callback;
 
     static BlinkLed *_scan_led;

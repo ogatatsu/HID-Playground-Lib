@@ -60,9 +60,12 @@ namespace hidpg
     uint16_t count() const;
 
   private:
-    // 8 * 32 = 256
-    uint8_t _data[32];
+    // 32 * 8 = 256
+    uint32_t _data[8];
     uint16_t _count;
+
+    static const size_t _data_size = 8;
+    static const size_t _data_bit_size = 32;
   };
 
   // 比較

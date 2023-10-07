@@ -164,21 +164,13 @@ namespace hidpg
 
     void HidCore::sendKeyReport()
     {
-      // 前回送ったreportと比較して変更があるか
-      bool is_changed = false;
-      // 新しくkeyもしくはmodifierが追加されたか、減った場合はfalseのまま
-      bool is_key_adding = false;
-      bool is_modifier_adding = false;
+      bool is_key_changed = false;
+      bool is_mod_changed = false;
 
       // 前回の6keyとの比較して変更があるか計算する
       if (memcmp(_prev_sent_keys, _pressed_keys, sizeof(_prev_sent_keys)) != 0)
       {
-        is_changed = true;
-
-        Set prev, current;
-        prev.addAll(_prev_sent_keys, 6);
-        current.addAll(_pressed_keys, 6);
-        is_key_adding = ((current - prev).count() != 0);
+        is_key_changed = true;
       }
 
       // 現在押されているmodifierを追加
@@ -194,40 +186,48 @@ namespace hidpg
       // 前回のmodifierとの比較
       if (modifiers != _prev_sent_modifiers)
       {
-        is_changed = true;
-        // modifierが新しく追加されたかどうかを計算
-        is_modifier_adding = ((modifiers & ~_prev_sent_modifiers) != 0);
+        is_mod_changed = true;
       }
 
-      if (is_key_adding && is_modifier_adding)
+      // 変更が無いなら終了
+      if (is_key_changed == false && is_mod_changed == false)
       {
-        // keyとmodifierが同時に追加された場合はmodifierキーを送ってからkeyを送る
-        // 全く同じタイミングで送ると一部の環境で意図しない動きになる（windowsキーを使ったショートカットなど）
-        if (_hid_reporter != nullptr)
-        {
-          vTaskDelayUntil(&_last_send_ticks, KEY_REPORT_MIN_INTERVAL_TICKS);
-          _hid_reporter->keyboardReport(modifiers, _prev_sent_keys);
-          vTaskDelay(KEY_REPORT_MIN_INTERVAL_TICKS);
-          _hid_reporter->keyboardReport(modifiers, _pressed_keys);
-          _last_send_ticks = xTaskGetTickCount();
-        }
-      }
-      else if (is_changed)
-      {
-        if (_hid_reporter != nullptr)
-        {
-          vTaskDelayUntil(&_last_send_ticks, KEY_REPORT_MIN_INTERVAL_TICKS);
-          _hid_reporter->keyboardReport(modifiers, _pressed_keys);
-          _last_send_ticks = xTaskGetTickCount();
-        }
+        return;
       }
 
-      // 次回用に保存
-      if (is_changed)
+      if (_hid_reporter != nullptr)
       {
-        memcpy(_prev_sent_keys, _pressed_keys, sizeof(_prev_sent_keys));
-        _prev_sent_modifiers = modifiers;
+        vTaskDelayUntil(&_last_send_ticks, KEY_REPORT_MIN_INTERVAL_TICKS);
+        _hid_reporter->keyboardReport(modifiers, _pressed_keys);
+        _last_send_ticks = xTaskGetTickCount();
       }
+
+      memcpy(_prev_sent_keys, _pressed_keys, sizeof(_prev_sent_keys));
+      _prev_sent_modifiers = modifiers;
+    }
+
+    void HidCore::keyPress(CharacterKey character_key)
+    {
+      setKey(character_key);
+      sendKeyReport();
+    }
+
+    void HidCore::keyRelease(CharacterKey character_key)
+    {
+      unsetKey(character_key);
+      sendKeyReport();
+    }
+
+    void HidCore::modifiersPress(Modifiers modifiers)
+    {
+      setModifiers(modifiers);
+      sendKeyReport();
+    }
+
+    void HidCore::modifiersRelease(Modifiers modifiers)
+    {
+      unsetModifiers(modifiers);
+      sendKeyReport();
     }
 
     void HidCore::consumerControlPress(ConsumerControlCode usage_code)

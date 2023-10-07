@@ -80,30 +80,30 @@ namespace hidpg
       // 入力ピンの設定
       for (int i = 0; i < _in_pins_len; i++)
       {
-#if (MATRIX_SCAN_ACTIVE_STATE == LOW) && (MATRIX_SCAN_USE_EXTERNAL_PULL_RESISTOR == false) && (MATRIX_SCAN_USE_SENSE_INTERRUPT == false)
+#if (MATRIX_SCAN_ACTIVE_STATE == LOW) && (MATRIX_SCAN_USE_EXTERNAL_PULL_RESISTOR == false) && (MATRIX_SCAN_USE_NRF52_SENSE_INTERRUPT == false)
         pinMode(_in_pins[i], INPUT_PULLUP);
         attachInterrupt(digitalPinToInterrupt(_in_pins[i]), interrupt_callback, FALLING);
-#elif (MATRIX_SCAN_ACTIVE_STATE == HIGH) && (MATRIX_SCAN_USE_EXTERNAL_PULL_RESISTOR == false) && (MATRIX_SCAN_USE_SENSE_INTERRUPT == false)
+#elif (MATRIX_SCAN_ACTIVE_STATE == HIGH) && (MATRIX_SCAN_USE_EXTERNAL_PULL_RESISTOR == false) && (MATRIX_SCAN_USE_NRF52_SENSE_INTERRUPT == false)
         pinMode(_in_pins[i], INPUT_PULLDOWN);
         attachInterrupt(digitalPinToInterrupt(_in_pins[i]), interrupt_callback, RISING);
-#elif (MATRIX_SCAN_ACTIVE_STATE == LOW) && (MATRIX_SCAN_USE_EXTERNAL_PULL_RESISTOR == true) && (MATRIX_SCAN_USE_SENSE_INTERRUPT == false)
+#elif (MATRIX_SCAN_ACTIVE_STATE == LOW) && (MATRIX_SCAN_USE_EXTERNAL_PULL_RESISTOR == true) && (MATRIX_SCAN_USE_NRF52_SENSE_INTERRUPT == false)
         pinMode(_in_pins[i], INPUT);
         attachInterrupt(digitalPinToInterrupt(_in_pins[i]), interrupt_callback, FALLING);
-#elif (MATRIX_SCAN_ACTIVE_STATE == HIGH) && (MATRIX_SCAN_USE_EXTERNAL_PULL_RESISTOR == true) && (MATRIX_SCAN_USE_SENSE_INTERRUPT == false)
+#elif (MATRIX_SCAN_ACTIVE_STATE == HIGH) && (MATRIX_SCAN_USE_EXTERNAL_PULL_RESISTOR == true) && (MATRIX_SCAN_USE_NRF52_SENSE_INTERRUPT == false)
         pinMode(_in_pins[i], INPUT);
         attachInterrupt(digitalPinToInterrupt(_in_pins[i]), interrupt_callback, RISING);
-#elif (MATRIX_SCAN_ACTIVE_STATE == LOW) && (MATRIX_SCAN_USE_EXTERNAL_PULL_RESISTOR == false) && (MATRIX_SCAN_USE_SENSE_INTERRUPT == true)
+#elif (MATRIX_SCAN_ACTIVE_STATE == LOW) && (MATRIX_SCAN_USE_EXTERNAL_PULL_RESISTOR == false) && (MATRIX_SCAN_USE_NRF52_SENSE_INTERRUPT == true)
         pinMode(_in_pins[i], INPUT_PULLUP_SENSE);
-#elif (MATRIX_SCAN_ACTIVE_STATE == HIGH) && (MATRIX_SCAN_USE_EXTERNAL_PULL_RESISTOR == false) && (MATRIX_SCAN_USE_SENSE_INTERRUPT == true)
+#elif (MATRIX_SCAN_ACTIVE_STATE == HIGH) && (MATRIX_SCAN_USE_EXTERNAL_PULL_RESISTOR == false) && (MATRIX_SCAN_USE_NRF52_SENSE_INTERRUPT == true)
         pinMode(_in_pins[i], INPUT_PULLDOWN_SENSE);
-#elif (MATRIX_SCAN_ACTIVE_STATE == LOW) && (MATRIX_SCAN_USE_EXTERNAL_PULL_RESISTOR == true) && (MATRIX_SCAN_USE_SENSE_INTERRUPT == true)
+#elif (MATRIX_SCAN_ACTIVE_STATE == LOW) && (MATRIX_SCAN_USE_EXTERNAL_PULL_RESISTOR == true) && (MATRIX_SCAN_USE_NRF52_SENSE_INTERRUPT == true)
         pinMode(_in_pins[i], INPUT_SENSE_LOW);
-#elif (MATRIX_SCAN_ACTIVE_STATE == HIGH) && (MATRIX_SCAN_USE_EXTERNAL_PULL_RESISTOR == true) && (MATRIX_SCAN_USE_SENSE_INTERRUPT == true)
+#elif (MATRIX_SCAN_ACTIVE_STATE == HIGH) && (MATRIX_SCAN_USE_EXTERNAL_PULL_RESISTOR == true) && (MATRIX_SCAN_USE_NRF52_SENSE_INTERRUPT == true)
         pinMode(_in_pins[i], INPUT_SENSE_HIGH);
 #endif
       }
 
-#if (MATRIX_SCAN_USE_SENSE_INTERRUPT == true)
+#if (MATRIX_SCAN_USE_NRF52_SENSE_INTERRUPT == true)
       attachSenseInterrupt(interrupt_callback);
 #endif
 
@@ -111,16 +111,16 @@ namespace hidpg
       uint16_t min_debounce_delay_ms = UINT16_MAX;
 
       // スイッチオブジェクトの初期化
-      for (int oi = 0; oi < _out_pins_len; oi++)
+      for (int out_i = 0; out_i < _out_pins_len; out_i++)
       {
-        for (int ii = 0; ii < _in_pins_len; ii++)
+        for (int in_i = 0; in_i < _in_pins_len; in_i++)
         {
-          int idx = oi * _in_pins_len + ii;
+          int idx = out_i * _in_pins_len + in_i;
           if (_matrix[idx] == nullptr)
           {
             continue;
           }
-          _matrix[idx]->attach(_in_pins[ii]);
+          _matrix[idx]->attach(_in_pins[in_i]);
           uint16_t d = _matrix[idx]->getDebounceDelay();
           max_debounce_delay_ms = max(d, max_debounce_delay_ms);
           min_debounce_delay_ms = min(d, min_debounce_delay_ms);
@@ -179,19 +179,22 @@ namespace hidpg
         {
           // スキャン
           outPinsSet(!MATRIX_SCAN_ACTIVE_STATE);
-          for (int oi = 0; oi < _out_pins_len; oi++)
+          for (int out_i = 0; out_i < _out_pins_len; out_i++)
           {
-            digitalWrite(_out_pins[oi], MATRIX_SCAN_ACTIVE_STATE);
-            for (int ii = 0; ii < _in_pins_len; ii++)
+            digitalWrite(_out_pins[out_i], MATRIX_SCAN_ACTIVE_STATE);
+            for (int in_i = 0; in_i < _in_pins_len; in_i++)
             {
-              int idx = oi * _in_pins_len + ii;
+              int idx = out_i * _in_pins_len + in_i;
               if (_matrix[idx] == nullptr)
               {
                 continue;
               }
-              _matrix[idx]->updateState(ids);
+              if (_matrix[idx]->update())
+              {
+                ids.update(_matrix[idx]->getId(), _matrix[idx]->read() == MATRIX_SCAN_ACTIVE_STATE);
+              }
             }
-            digitalWrite(_out_pins[oi], !MATRIX_SCAN_ACTIVE_STATE);
+            digitalWrite(_out_pins[out_i], !MATRIX_SCAN_ACTIVE_STATE);
           }
           // 割り込みのためにスキャンが終わったら出力をアクティブ側に設定
           outPinsSet(MATRIX_SCAN_ACTIVE_STATE);
